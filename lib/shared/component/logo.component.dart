@@ -11,26 +11,29 @@ class LogoComponent {
     double imageHeight = 55,
     double fontSize = 35,
     Color textColor = Colors.black87,
+    bool whiteFace = false,
     bool displayText = true,
     bool textShadows = false
   }) {
-    var widgets = buildWidgets(imageHeight, fontSize, textColor, displayText, textShadows);
+    var widgets = buildWidgets(imageHeight, fontSize, textColor, whiteFace, displayText, textShadows);
     return Container(
         child: orientation == LogoOrientation.horizontal
             ? Row(children: <Widget>[...widgets]) : Column(children: <Widget>[...widgets])
     );
   }
 
-  static List<Widget> buildWidgets(double imageHeight, double fontSize, Color textColor, displayText, bool textShadows) {
+  static List<Widget> buildWidgets(double imageHeight, double fontSize, Color textColor, whiteFace, displayText, bool textShadows) {
     return [
       Container(child: Image(
-          image: AssetImage('static/graphic/logo/ping-logo.png'), height: imageHeight, width: imageHeight)),
+          image: AssetImage(whiteFace ? 'static/graphic/logo/ping-logo-white.png'
+              : 'static/graphic/logo/ping-logo.png'),
+          height: imageHeight, width: imageHeight)),
       Text(displayText ? 'Ping' : '',
           style: new TextStyle(
               color: textColor,
               fontWeight: FontWeight.bold,
               fontSize: fontSize,
-              shadows: textShadows ? [Shadow(
+              shadows: textShadows ? [ gShadow(
                   color: Colors.black.withOpacity(0.2),
                   offset: Offset(1, 1),
                   blurRadius: 10
