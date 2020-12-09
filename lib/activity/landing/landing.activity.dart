@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/landing/policy.activity.dart';
+import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/shared/component/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';

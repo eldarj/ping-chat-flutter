@@ -2,8 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/auth/login.activity.dart';
-import 'package:flutterping/activity/landing/signup-form.activity.dart';
-import 'package:flutterping/activity/landing/landing.activity.dart';
+import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
@@ -16,8 +15,6 @@ class PolicyActivity extends StatefulWidget {
 }
 
 class PolicyActivityState extends BaseState<PolicyActivity> {
-  bool displayLoader = false;
-
   @override
   Widget render() {
     return Scaffold(
@@ -37,15 +34,28 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
                             Container(
                                 child: LogoComponent.build(orientation: LogoOrientation.vertical, displayText: false)),
                             Container(
-                                width: 300,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: <Widget>[
-                                    Text('Molimo pročitajte policy, te pritisnite "Prihvatam" da započnete koristiti aplikaciju.', textAlign: TextAlign.center),
                                     Container(
-                                        margin: EdgeInsets.all(50),
+                                      margin: EdgeInsets.only(bottom: 5),
+                                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                        Text("Please read the "),
+                                        GestureDetector(
+                                          onTap: () {
+                                            NavigatorUtil.push(context, PolicyInfoActivity());
+                                          },
+                                          child: Text("Terms of Services and Privacy Policy", style: TextStyle(
+                                            color: Colors.blue, decoration: TextDecoration.underline, // TODO: add info activity
+                                          )),
+                                        ),
+                                      ]),
+                                    ),
+                                    Text('and hit "Accept" to start using the application.'),
+                                    Container(
+                                        margin: EdgeInsets.all(25),
                                         child: GradientButton(
-                                            child: Text('Prihvatam'),
+                                            child: Text('Accept'),
                                             onPressed: displayLoader ? null : onAcceptPolicy)
                                     )
                                   ],
@@ -63,7 +73,7 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
     setState(() {
       displayLoader = true;
     });
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(Duration(seconds: 2));
     NavigatorUtil.replace(context, LoginActivity());
   }
 }

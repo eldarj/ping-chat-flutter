@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 abstract class BaseState<T extends StatefulWidget> extends State<T> {
   ScaffoldState scaffold;
+  bool displayLoader = false;
 
   @override
   Widget build(BuildContext context) {
