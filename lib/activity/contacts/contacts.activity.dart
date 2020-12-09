@@ -26,10 +26,48 @@ class ContactsActivity extends StatefulWidget {
 }
 
 class ContactsActivityState extends BaseState<ContactsActivity> {
+  List conversations = [
+    {'contactName': 'Indira', "content": 'Haha super eldare super..', "displaySeen": true, "seen": false,
+      "when": 'Yesterday', "notifications": 0, "isOnline": true},
+    {'contactName': 'Stara', "content": 'Gdje si?? Javi kako prodje', "displaySeen": true, "seen": false,
+      "when": 'Today 14:54', "notifications": 4, "isOnline": true},
+    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 1, "isOnline": false},
+    {'contactName': 'Dragan', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 1, "isOnline": true},
+    {'contactName': 'Alen', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 0, "isOnline": true},
+    {'contactName': 'Harun', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 0, "isOnline": false},
+    {'contactName': 'Idriz', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 0, "isOnline": false},
+    {'contactName': 'Admir', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 5, "isOnline": false},
+    {'contactName': 'Slaven', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 1, "isOnline": true},
+    {'contactName': 'Vojo', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 2, "isOnline": false},
+    {'contactName': 'Amer', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 3, "isOnline": true},
+    {'contactName': 'Muharem', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 1, "isOnline": false},
+    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 1, "isOnline": false},
+    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 0, "isOnline": false},
+    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 0, "isOnline": false},
+    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
+      "when": '2 days ago', "notifications": 0, "isOnline": false},
+  ];
+
   @override
   preRender() {
-    appBar = BaseAppBar.getBase(scaffold, NavigationDrawerLeading.build(() {
-      scaffold.openDrawer(); }),
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scaffold.showSnackBar(SnackBarsComponent.success('Awesome, you\'re all ready to start Pinging!'));
+    });
+
+    appBar = BaseAppBar.getProfileAppBar(scaffold,
         titleText: 'Contacts', actions: [
           IconButton(
               icon: Icon(Icons.calendar_today),
@@ -41,6 +79,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
     BottomNavigationComponent createState = new BottomNavigationComponent(currentIndex: 1);
     bottomNavigationBar = createState.build(context);
+
+    drawer = new NavigationDrawerComponent();
   }
 
   @override

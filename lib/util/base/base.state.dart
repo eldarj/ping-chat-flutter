@@ -11,13 +11,16 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
 
   BottomNavigationBar bottomNavigationBar;
 
+  var drawer;
+
   @override
   Widget build(BuildContext context) {
     preRender();
 
     return Scaffold(
         appBar: appBar != null ? appBar : null,
-        bottomNavigationBar: bottomNavigationBar,
+        bottomNavigationBar: bottomNavigationBar != null ? bottomNavigationBar : null,
+        drawer: drawer != null ? drawer : null,
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
           return this.render();
