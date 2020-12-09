@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/chats.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
-import 'package:flutterping/shared/component/gradient-button.component.dart';
+import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/drawer/partial/logout.dialog.dart';
 import 'package:flutterping/util/base/base.state.dart';
-import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class NavigationDrawerLeading {
   static build(onPressed) {
@@ -128,13 +126,19 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                         buildDrawerItem(context, 'Media and Storage',
                             buildIcon(icon: Icons.image)),
                         buildSectionTitle("Help & FAQ"),
-                        buildDrawerItem(context, 'Kontaktirajte nas', buildIcon(icon: Icons.email, backgroundColor: Colors.lightBlue.shade300)),
-                        buildDrawerItem(context, 'Uslovi korištenja', buildIcon(icon: Icons.copyright, backgroundColor: Colors.blueGrey.shade800)),
+                        buildDrawerItem(context, 'Kontaktirajte nas',
+                          buildIcon(icon: Icons.email, backgroundColor: Colors.lightBlue.shade300),
+                        ),
+                        buildDrawerItem(context, 'Uslovi korištenja',
+                            buildIcon(icon: Icons.copyright, backgroundColor: Colors.blueGrey.shade800),
+                            activity: PolicyInfoActivity()
+                        ),
                         Container(
                           color: Colors.grey.shade200,
                           margin: EdgeInsets.only(top: 25),
                           padding: EdgeInsets.only(top: 10, bottom: 10),
-                          child: buildDrawerItem(context, 'Odjavi se', buildIcon(icon: Icons.exit_to_app, backgroundColor: Colors.red.shade300),
+                          child: buildDrawerItem(context, 'Odjavi se',
+                              buildIcon(icon: Icons.exit_to_app, backgroundColor: Colors.red.shade300),
                               onTapFunction: () => showDialog(context: context, builder: (BuildContext context) {
                                 return LogoutDialog();
                               })),
