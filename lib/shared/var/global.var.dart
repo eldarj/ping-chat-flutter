@@ -4,7 +4,7 @@ class CompanyColor {
   static Color blueLight = Color.fromRGBO(162, 226, 243, 1); // #A2ECF3
   static Color blueAccent = Color.fromRGBO(37, 218, 227, 1); // #25E4E3
   static Color bluePrimary = Color.fromRGBO(38, 197, 221, 1); // #26CFDD
-  static Color blueDark = Color.fromRGBO(28, 166, 197, 1); // #63CFD9
+  static const Color blueDark = Color.fromRGBO(28, 166, 197, 1); // #63CFD9
 
   static Color accentGreen = Color.fromRGBO(0, 102, 116, 1);
   static Color accentGreenLight = Color(0xff1bb29f);

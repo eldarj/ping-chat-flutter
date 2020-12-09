@@ -8,6 +8,7 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/model/client-dto.model.dart';
@@ -26,40 +27,7 @@ class ContactsActivity extends StatefulWidget {
 }
 
 class ContactsActivityState extends BaseState<ContactsActivity> {
-  List conversations = [
-    {'contactName': 'Indira', "content": 'Haha super eldare super..', "displaySeen": true, "seen": false,
-      "when": 'Yesterday', "notifications": 0, "isOnline": true},
-    {'contactName': 'Stara', "content": 'Gdje si?? Javi kako prodje', "displaySeen": true, "seen": false,
-      "when": 'Today 14:54', "notifications": 4, "isOnline": true},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": false},
-    {'contactName': 'Dragan', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": true},
-    {'contactName': 'Alen', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": true},
-    {'contactName': 'Harun', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-    {'contactName': 'Idriz', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-    {'contactName': 'Admir', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 5, "isOnline": false},
-    {'contactName': 'Slaven', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": true},
-    {'contactName': 'Vojo', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 2, "isOnline": false},
-    {'contactName': 'Amer', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 3, "isOnline": true},
-    {'contactName': 'Muharem', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": false},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": false},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-  ];
+  var displayLoader = true;
 
   @override
   preRender() {
@@ -85,10 +53,24 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
   @override
   Widget render() {
-    return Center(
-        child: Container(
-          width: 300,
-          child: Text('Contacts'),
-        ));
+    return buildActivityContent();
+  }
+
+  Widget buildActivityContent() {
+    Widget widget = ActivityLoader.build();
+
+    if (!displayLoader) {
+      widget = Column(
+          children: [
+            Expanded(
+              child: Container(
+                child: Text('Hey'),
+              ),
+            ),
+          ]
+      );
+    }
+
+    return widget;
   }
 }

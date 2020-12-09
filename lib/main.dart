@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
         title: 'Ping',
         initialRoute: '/',
         routes: {
-          '/': (context) => LandingActivity()
+          '/': (context) => ChatsActivity()
         },
         theme: ThemeData(
           fontFamily: 'Roboto',

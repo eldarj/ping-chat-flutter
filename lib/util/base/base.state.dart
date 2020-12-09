@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 abstract class BaseState<T extends StatefulWidget> extends State<T> {
   ScaffoldState scaffold;
   bool displayLoader = false;
+  bool isError = false;
 
   AppBar appBar;
 
