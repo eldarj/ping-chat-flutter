@@ -33,7 +33,7 @@ class LogoComponent {
               color: textColor,
               fontWeight: FontWeight.bold,
               fontSize: fontSize,
-              shadows: textShadows ? [ gShadow(
+              shadows: textShadows ? [ Shadow(
                   color: Colors.black.withOpacity(0.2),
                   offset: Offset(1, 1),
                   blurRadius: 10
