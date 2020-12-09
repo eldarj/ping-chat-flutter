@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
@@ -12,7 +13,7 @@ import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/http/http-client.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutterping/activity/landing/signup-form.activity.dart';
+import 'package:flutterping/activity/auth/signup-form.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/jwt-token-dto.model.dart';
 import 'package:flutterping/model/client-dto.model.dart';
@@ -169,7 +170,11 @@ class SmsValidationState extends State<SmsValidationActivity> {
     dynamic user = response['user'];
     await UserService.setUserAndToken(response['token'], user);
 
-    NavigatorUtil.replace(context, SignUpFormActivity(clientDto: user));
+    if (user.firstName == null && user.lastName == null) {
+      NavigatorUtil.push(context, SignUpFormActivity(clientDto: user));
+    } else {
+      NavigatorUtil.push(context, ContactsActivity());
+    }
   }
 
   void onAuthRequestError(Object error) {
@@ -181,7 +186,7 @@ class SmsValidationState extends State<SmsValidationActivity> {
       setState(() {
         displayLoader = true;
         smsValidationMessage = ++smsValidationRetryCount > 3
-            ? 'Imate problema? Molimo kontaktirajte support@moj.taxi'
+            ? 'Imate problema? Molimo kontaktirajte support@ping.me'
             : '';
       });
       doSendAuthRequest(dialCodeArg, phoneNumberArg, smsAuthenticationCode)

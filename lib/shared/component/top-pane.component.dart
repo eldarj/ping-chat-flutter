@@ -33,9 +33,8 @@ class TopPaneComponent {
               Expanded(
                 flex: 1,
                 child: Container(
-                    width: 300,
-                    margin: EdgeInsets.only(top: 15, bottom: 5),
-                    child: Text('Ukoliko imate problema, molimo kontaktirajte support@moj.taxi',
+                    margin: EdgeInsets.all(15),
+                    child: Text('Ukoliko imate problema, molimo kontaktirajte support@ping.me',
                         style: TextStyle(
                             fontWeight: FontWeight.w300,
                             color: Colors.grey.shade600,

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:http/http.dart' as http;
@@ -158,7 +159,7 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
 
     await Future.delayed(Duration(seconds: 1));
 
-    // NavigatorUtil.replace(context, UserMapActivity());
+    NavigatorUtil.replace(context, ContactsActivity());
   }
 
   void onUpdateInfoError(_) {
