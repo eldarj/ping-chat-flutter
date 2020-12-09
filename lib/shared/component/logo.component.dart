@@ -24,7 +24,7 @@ class LogoComponent {
 
   static List<Widget> buildWidgets(double imageHeight, double fontSize, Color textColor, whiteFace, displayText, bool textShadows) {
     return [
-      Container(child: Image(
+      Container(margin: EdgeInsets.only(right: 10), child: Image(
           image: AssetImage(whiteFace ? 'static/graphic/logo/ping-logo-white.png'
               : 'static/graphic/logo/ping-logo.png'),
           height: imageHeight, width: imageHeight)),

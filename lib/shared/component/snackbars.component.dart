@@ -7,7 +7,7 @@ class SnackBarsComponent {
         duration: duration,
         backgroundColor: CompanyColor.red,
         content: Text(content != null ? content : 'Dogodila se greška.'),
-        action: SnackBarAction(
+        action: SnackBarAction(textColor: Colors.white,
             label: actionOnPressed == null ? '' : actionLabel != null ? actionLabel : 'Pokušaj ponovo',
             onPressed: actionOnPressed != null ? actionOnPressed : () {}));
   }
