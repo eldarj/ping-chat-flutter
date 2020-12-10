@@ -61,8 +61,8 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
   }
 
   @override
-  preRender() {
-    appBar = BaseAppBar.getProfileAppBar(scaffold,
+  preRender() async {
+    appBar = await BaseAppBar.getProfileAppBar(scaffold,
         titleText: 'Chats');
 
     BottomNavigationComponent createState = new BottomNavigationComponent(currentIndex: 0);
@@ -188,7 +188,7 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
   }
 
   Future<void> doGetChatData() async {
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(Duration(milliseconds: 200));
     return true;
   }
 

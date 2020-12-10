@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 class BaseAppBar {
@@ -15,9 +17,21 @@ class BaseAppBar {
         actions: actions);
   }
 
-  static getProfileAppBar(ScaffoldState scaffold, {
+  static getBackAppBar(ScaffoldState scaffold, {
     titleWidget, titleText, actions
   }) {
+    return getBase(scaffold, FlatButton(
+      onPressed: () {
+        Navigator.pop(scaffold.context);
+      },
+      child: Icon(Icons.arrow_back),
+    ), titleText: titleText, titleWidget: titleWidget, actions: actions);
+  }
+
+  static getProfileAppBar(ScaffoldState scaffold, {
+    titleWidget, titleText, actions
+  }) async {
+    ClientDto user = await UserService.getUser();
     return AppBar(
         elevation: 0.0,
         centerTitle: true,
@@ -34,7 +48,7 @@ class BaseAppBar {
                   children: [
                     Container(alignment: Alignment.center,
                         width: 45, height: 45,
-                        child: CircleAvatar(backgroundImage: NetworkImage("https://media-exp1.licdn.com/dms/image/C5603AQH9KNis_BzaRA/profile-displayphoto-shrink_100_100/0?e=1608768000&v=beta&t=-A__OpLiqt5XbBcRDSoDJdgOjsUszXHJzxhkp8jTMrs"))
+                        child: CircleAvatar(backgroundImage: NetworkImage(user.profileImagePath))
                     ),
                     Container(alignment: Alignment.center,
                         width: 17.5, height: 17.5,

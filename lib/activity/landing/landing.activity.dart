@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
-import 'package:flutterping/shared/component/linear-progress-loader.component.dart';
+import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';

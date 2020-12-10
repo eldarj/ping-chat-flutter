@@ -6,7 +6,7 @@ import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
-import 'package:flutterping/shared/component/spinner.element.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/util/http/http-client.dart';

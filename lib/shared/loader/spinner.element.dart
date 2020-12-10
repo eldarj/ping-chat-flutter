@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutterping/shared/var/global.var.dart';
 
 class Spinner extends StatelessWidget {
   final double strokeWidth;

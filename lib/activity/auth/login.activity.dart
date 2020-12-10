@@ -12,7 +12,7 @@ import 'package:flutterping/activity/auth/sms-validation.activity.dart';
 import 'package:flutterping/model/country-code-dto.model.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/shared/component/spinner.element.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/util/http/http-client.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';

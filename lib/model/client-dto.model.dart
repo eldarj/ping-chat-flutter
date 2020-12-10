@@ -11,6 +11,7 @@ class ClientDto {
   CountryCodeDto countryCode;
   String firstName;
   String lastName;
+  bool displayMyFullName;
 
   int joinedTimestamp;
 

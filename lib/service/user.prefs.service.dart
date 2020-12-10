@@ -23,7 +23,7 @@ class UserService {
 
     var jsonDecodedUserDto = json.decode(userJson);
 
-    var userDto = null;
+    var userDto;
     if (jsonDecodedUserDto != null) {
       userDto = ClientDto.fromJson(jsonDecodedUserDto);
     }

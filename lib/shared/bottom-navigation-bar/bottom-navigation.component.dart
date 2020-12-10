@@ -34,7 +34,7 @@ class BottomNavigationComponent extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: (index) {
         if (index != currentIndex) {
-          NavigatorUtil.replace(context, bottomBarActivities[index]);
+          NavigatorUtil.push(context, bottomBarActivities[index]);
         }
       },
     );

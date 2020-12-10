@@ -8,7 +8,7 @@ import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/shared/component/spinner.element.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/http/http-client.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';

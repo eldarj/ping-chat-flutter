@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/auth/login.activity.dart';
 import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
-import 'package:flutterping/shared/component/linear-progress-loader.component.dart';
+import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
@@ -32,7 +32,7 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             Container(
-                                child: LogoComponent.build(orientation: LogoOrientation.vertical, displayText: false)),
+                                child: LogoComponent.build(orientation: LogoOrientation.vertical, displayText: true)),
                             Container(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,

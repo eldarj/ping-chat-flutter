@@ -15,6 +15,7 @@ ClientDto _$ClientDtoFromJson(Map<String, dynamic> json) {
         : CountryCodeDto.fromJson(json['countryCode'] as Map<String, dynamic>)
     ..firstName = json['firstName'] as String
     ..lastName = json['lastName'] as String
+    ..displayMyFullName = json['displayMyFullName'] as bool
     ..joinedTimestamp = json['joinedTimestamp'] as int
     ..isActive = json['isActive'] as bool
     ..profileImagePath = json['profileImagePath'] as String;
@@ -26,6 +27,7 @@ Map<String, dynamic> _$ClientDtoToJson(ClientDto instance) => <String, dynamic>{
       'countryCode': instance.countryCode,
       'firstName': instance.firstName,
       'lastName': instance.lastName,
+      'displayMyFullName': instance.displayMyFullName,
       'joinedTimestamp': instance.joinedTimestamp,
       'isActive': instance.isActive,
       'profileImagePath': instance.profileImagePath,
