@@ -1,6 +1,8 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
@@ -62,18 +64,7 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
   }
 
   @override
-  preRender() async {
-    appBar = await BaseAppBar.getProfileAppBar(scaffold,
-        titleText: 'Chats');
-
-    BottomNavigationComponent createState = new BottomNavigationComponent(currentIndex: 0);
-    bottomNavigationBar = createState.build(context);
-
-    drawer = new NavigationDrawerComponent();
-  }
-
-  @override
-  Widget render() {
+  Widget build(BuildContext context) {
     conversationRows = conversations.map((e) => buildSingleConversationRow(
         contactName: e['contactName'],
         content: Text(e['content']),
@@ -83,7 +74,15 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
         when: e['when'],
         isOnline: e['isOnline']
     )).toList();
-    return buildActivityContent();
+    return Scaffold(
+        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Chats'),
+        drawer: NavigationDrawerComponent(),
+        bottomNavigationBar: new BottomNavigationComponent(currentIndex: 0).build(context),
+        body: Builder(builder: (context) {
+          scaffold = Scaffold.of(context);
+          return buildActivityContent();
+        })
+    );
   }
 
   Widget buildActivityContent() {

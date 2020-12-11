@@ -62,12 +62,11 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getBackAppBar(scaffold, titleText: 'Contacts');
+    drawer = new NavigationDrawerComponent();
+    appBar = BaseAppBar.getProfileAppBar(scaffold, titleText: 'Contacts');
 
     BottomNavigationComponent createState = new BottomNavigationComponent(currentIndex: 1);
     bottomNavigationBar = createState.build(context);
-
-    drawer = new NavigationDrawerComponent();
   }
 
   @override

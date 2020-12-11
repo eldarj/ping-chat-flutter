@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 class BaseAppBar {
@@ -30,8 +30,7 @@ class BaseAppBar {
 
   static getProfileAppBar(ScaffoldState scaffold, {
     titleWidget, titleText, actions
-  }) async {
-    ClientDto user = await UserService.getUser();
+  }) {
     return AppBar(
         elevation: 0.0,
         centerTitle: true,
@@ -48,7 +47,11 @@ class BaseAppBar {
                   children: [
                     Container(alignment: Alignment.center,
                         width: 45, height: 45,
-                        child: CircleAvatar(backgroundImage: NetworkImage(user.profileImagePath))
+                        child: FutureBuilder(future: UserService.getUser(), builder: (context, snapshot) {
+                          return snapshot.hasData
+                              ? CircleAvatar(backgroundImage: NetworkImage(snapshot.data.profileImagePath))
+                              : Spinner();
+                        })
                     ),
                     Container(alignment: Alignment.center,
                         width: 17.5, height: 17.5,

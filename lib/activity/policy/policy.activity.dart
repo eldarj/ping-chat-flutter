@@ -32,7 +32,7 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             Container(
-                                child: LogoComponent.build(orientation: LogoOrientation.vertical, displayText: true)),
+                                child: LogoComponent.build(orientation: LogoOrientation.vertical, displayText: false)),
                             Container(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,

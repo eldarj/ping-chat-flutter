@@ -29,7 +29,7 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
     );
   }
 
-  Widget render();
+  Widget render() {}
 
   preRender() {}
 }
