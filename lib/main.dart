@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         title: 'Ping',
         initialRoute: '/',
         routes: {
-          '/': (context) => AddContactActivity()
+          '/': (context) => ContactsActivity()
         },
         theme: ThemeData(
           fontFamily: 'Roboto',

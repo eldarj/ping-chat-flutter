@@ -3,7 +3,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
+import 'package:flutterping/activity/contacts/single-contact.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -134,87 +136,109 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
         child: ListView.builder(
           itemCount: contacts == null ? 0 : contacts.length,
           itemBuilder: (context, index) {
-            return Container(
-              decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.grey.shade100, width: 1))
-              ),
-              padding: EdgeInsets.all(10),
-              child: Row(
-                  children: [
-                    Container(
-                        padding: EdgeInsets.only(left: 5, right: 10),
-                        child: Stack(
-                            alignment: AlignmentDirectional.topEnd,
-                            children: [
-                              new RoundProfileImageComponent(url: contacts[index].contactUser.profileImagePath,
-                                margin: 2.5, borderRadius: 50, height: 50, width: 50,),
-                              Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      border: Border.all(color: Colors.white, width: 1.5),
-                                      borderRadius: BorderRadius.only(
-                                          topRight: Radius.circular(5),
-                                          bottomLeft: Radius.circular(5))
-                                  ),
-                                  margin: EdgeInsets.all(5),
-                                  width: 10, height: 10)
-                            ])
-                    ),
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            margin: EdgeInsets.only(bottom: 5),
-                                            child: Text(contacts[index].contactName,
-                                                style: TextStyle(fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black87))),
-                                        Visibility(
-                                            visible: contacts[index].contactUser.displayMyFullName,
-                                            child: Text(contacts[index].contactUser.firstName + ' ' + contacts[index].contactUser.lastName)
-                                        )
-                                      ]
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+            return GestureDetector(
+              onTap: () {
+                NavigatorUtil.push(context, SingleContactActivity(contactDto: contacts[index]));
+              },
+              child: Slidable(
+                actionPane: SlidableDrawerActionPane(),
+                actionExtentRatio: 0.2,
+                actions: [],
+                secondaryActions: <Widget>[
+                  IconSlideAction(
+                    color: Colors.grey.shade700,
+                    iconWidget: Icon(Icons.star, color: Colors.yellow),
+                    onTap: () => print('Add to favourite'),
+                  ),
+                  IconSlideAction(
+                    color: Colors.grey.shade700,
+                    iconWidget: Icon(Icons.delete, color: Colors.deepOrange),
+                    onTap: () => print('Delete'),
+                  ),
+                ],
+                child: Container(
+                  decoration: BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1))
+                  ),
+                  padding: EdgeInsets.all(10),
+                  child: Row(
+                      children: [
+                        Container(
+                            padding: EdgeInsets.only(left: 5, right: 10),
+                            child: Stack(
+                                alignment: AlignmentDirectional.topEnd,
+                                children: [
+                                  new RoundProfileImageComponent(url: contacts[index].contactUser.profileImagePath,
+                                    margin: 2.5, borderRadius: 50, height: 50, width: 50,),
+                                  Container(
+                                      decoration: BoxDecoration(
+                                          color: Colors.green,
+                                          border: Border.all(color: Colors.white, width: 1.5),
+                                          borderRadius: BorderRadius.only(
+                                              topRight: Radius.circular(5),
+                                              bottomLeft: Radius.circular(5))
+                                      ),
+                                      margin: EdgeInsets.all(5),
+                                      width: 10, height: 10)
+                                ])
+                        ),
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: <Widget>[
-                              Row(children: <Widget>[
-                                Container(
-                                    margin: EdgeInsets.only(right: 5),
-                                    child: Icon(Icons.check_circle, color: Colors.green, size: 13)),
-                                Text('Today 14:54', style: TextStyle(fontSize: 12))
-                              ]),
-                              Container(
-                                  margin: EdgeInsets.only(top: 10),
-                                  alignment: Alignment.center,
-                                  width: 20, height: 20,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(50)),
-                                    color: Colors.grey.shade200,
-                                  ),
-                                  child: Text('4', style: TextStyle(color: Colors.black87))
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Container(
+                                      alignment: Alignment.topLeft,
+                                      child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                                margin: EdgeInsets.only(bottom: 5),
+                                                child: Text(contacts[index].contactName,
+                                                    style: TextStyle(fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.black87))),
+                                            Visibility(
+                                                visible: contacts[index].contactUser.displayMyFullName,
+                                                child: Text(contacts[index].contactUser.firstName + ' ' + contacts[index].contactUser.lastName)
+                                            )
+                                          ]
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: <Widget>[
+                                  Row(children: <Widget>[
+                                    Container(
+                                        margin: EdgeInsets.only(right: 5),
+                                        child: Icon(Icons.check_circle, color: Colors.green, size: 13)),
+                                    Text('Today 14:54', style: TextStyle(fontSize: 12))
+                                  ]),
+                                  Container(
+                                      margin: EdgeInsets.only(top: 10),
+                                      alignment: Alignment.center,
+                                      width: 20, height: 20,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(Radius.circular(50)),
+                                        color: Colors.grey.shade200,
+                                      ),
+                                      child: Text('4', style: TextStyle(color: Colors.black87))
+                                  )
+                                ],
                               )
                             ],
-                          )
-                        ],
-                      ),
-                    )
-                  ]
+                          ),
+                        )
+                      ]
+                  ),
+                ),
               ),
             );
           },
