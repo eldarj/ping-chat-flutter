@@ -7,10 +7,12 @@ class ContactDto {
   String contactPhoneNumber;
   String contactName;
   bool favorite;
+  bool contactUserExists;
 
   int joinedTimestamp;
 
-  ContactDto({this.id, this.contactPhoneNumber, this.contactUser, this.contactName, this.favorite, this.joinedTimestamp});
+  ContactDto({this.id, this.contactPhoneNumber, this.contactUser, this.contactName,
+    this.favorite, this.contactUserExists, this.joinedTimestamp});
 
   factory ContactDto.fromJson(Map<String, dynamic> parsedJson) {
     return ContactDto()
@@ -21,6 +23,7 @@ class ContactDto {
           : ClientDto.fromJson(parsedJson['contactUser'] as Map<String, dynamic>)
       ..contactName = parsedJson['contactName'] as String
       ..favorite = parsedJson['favorite'] as bool
+      ..contactUserExists = parsedJson['contactUserExists'] as bool
       ..joinedTimestamp = parsedJson['joinedTimestamp'] as int;
   }
 
@@ -30,6 +33,7 @@ class ContactDto {
     'contactUser': contactUser,
     'contactName': contactName,
     'favorite': favorite,
+    'contactUserExists': contactUserExists,
     'joinedTimestamp': joinedTimestamp,
   };
 }

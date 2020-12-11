@@ -23,7 +23,11 @@ import 'package:flutterping/util/http/http-client.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class ContactsActivity extends StatefulWidget {
-  const ContactsActivity();
+  final bool displaySavedContactSnackbar;
+  final String savedContactName;
+  final String savedContactPhoneNumber;
+
+  const ContactsActivity({this.displaySavedContactSnackbar = false, this.savedContactName, this.savedContactPhoneNumber}): super();
 
   @override
   State<StatefulWidget> createState() => new ContactsActivityState();
@@ -51,6 +55,12 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
   @override
   initState() {
     super.initState();
+    if (widget.displaySavedContactSnackbar) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scaffold.showSnackBar(SnackBarsComponent
+            .success('Uspješno ste snimili kontakt ${widget.savedContactName} (${widget.savedContactPhoneNumber})'));
+      });
+    }
     getUserAndGetRides();
   }
 
@@ -59,19 +69,46 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
     return DefaultTabController(
         length: 2,
         child: Scaffold(
-            appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Contacts', bottomTabs: TabBar(
-                onTap: (index) {
-                  setState(() {
-                    displayLoader = true;
-                  });
-                  doGetContacts(clearRides: true, favouritesOnly: index == 1)
-                      .then(onGetContactsSuccess, onError: onGetContactsError);
-                },
-                tabs: [
-                  Tab(icon: Icon(Icons.people)),
-                  Tab(icon: Icon(Icons.star_border)),
-                ]
-            )),
+            appBar: BaseAppBar.getProfileAppBar(scaffold,
+                titleText: 'Contacts',
+                actions: [
+                  PopupMenuButton<String>(
+                    onSelected: (choice) {
+                      if (choice == 'search') {
+
+                      } else if (choice == 'newcontact') {
+                        NavigatorUtil.push(context, AddContactActivity());
+                      }
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return [
+                        PopupMenuItem<String>(
+                            value: 'search',
+                            child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
+                                child: Icon(Icons.search)), Text('Search') ])
+                        ),
+                        PopupMenuItem<String>(
+                            value: 'newcontact',
+                            child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
+                                child: Icon(Icons.person_add)), Text('Add contact') ])
+                        )
+                      ];
+                    },
+                  )
+                ],
+                bottomTabs: TabBar(
+                    onTap: (index) {
+                      setState(() {
+                        displayLoader = true;
+                      });
+                      doGetContacts(clearRides: true, favouritesOnly: index == 1)
+                          .then(onGetContactsSuccess, onError: onGetContactsError);
+                    },
+                    tabs: [
+                      Tab(icon: Icon(Icons.people)),
+                      Tab(icon: Icon(Icons.star_border)),
+                    ]
+                )),
             drawer: NavigationDrawerComponent(),
             bottomNavigationBar: new BottomNavigationComponent(currentIndex: 1).build(context),
             body: Builder(builder: (context) {
@@ -96,7 +133,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                   margin: EdgeInsets.all(25),
                   child: Column(
                     children: [
-                      Text('Nemate niti jedan kontakt'),
+                      RoundProfileImageComponent(displayQuestionMarkImage: true),
+                      Text('Nemate niti jedan kontakt', style: TextStyle(color: Colors.grey)),
                       Container(
                         margin: EdgeInsets.only(top: 25),
                         child: GradientButton(text: 'Dodaj kontakt', onPressed: () {
@@ -178,9 +216,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                             child: Stack(
                                 alignment: AlignmentDirectional.topEnd,
                                 children: [
-                                  new RoundProfileImageComponent(url: contacts[index].contactUser.profileImagePath,
-                                    margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
-                                    borderRadius: 50, height: 50, width: 50,),
+                                  RoundProfileImageComponent(displayQuestionMarkImage: contact.contactUser == null,
+                                      url: contacts[index].contactUser?.profileImagePath,
+                                      margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
+                                      borderRadius: 50, height: 50, width: 50),
                                   Container(
                                       decoration: BoxDecoration(
                                           color: Colors.green,
@@ -213,11 +252,11 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                                                     style: TextStyle(fontSize: 18,
                                                         fontWeight: FontWeight.bold,
                                                         color: Colors.black87))),
-                                            Visibility(
+                                            contact.contactUser != null ? Visibility(
                                                 visible: contact.contactUser.displayMyFullName,
                                                 child: Text(contact.contactUser.firstName + ' ' +
                                                     contact.contactUser.lastName)
-                                            )
+                                            ) : Container()
                                           ]
                                       ),
                                     )
@@ -315,6 +354,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
     dynamic result = response.decode();
 
+    await Future.delayed(Duration(seconds: 1  ));
     return {'contacts': result['page'], 'totalElements': result['totalElements']};
   }
 

@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutterping/activity/contacts/contacts.activity.dart';
+import 'package:flutterping/activity/contacts/dialog/invite-contact.dialog.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/country-code-dto.model.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -13,6 +15,7 @@ import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:flutterping/util/exception/custom-exception.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
@@ -69,8 +72,18 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(child: Text('Dodaj novi kontakt', style: TextStyle(color: Colors.grey,
-              fontWeight: FontWeight.w400, fontSize: 24))),
+          Row(
+            children: [
+              Container(margin: EdgeInsets.only(right: 10),
+                  width: 50, height: 50,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50.0),
+                      color: Colors.grey.shade400
+                  ),
+                  child: Icon(Icons.person, color: Colors.grey.shade300, size: 25)),
+              Container(child: Text('Novi kontakt', style: TextStyle(fontSize: 16))),
+            ],
+          ),
           Container(
               margin: EdgeInsets.only(top: 10, bottom: 15),
               padding: EdgeInsets.only(left: 10.0, right: 10.0),
@@ -134,10 +147,11 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
           ? 'Unesite broj telefona'
           : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Broj može sadržati samo cifre.' : '';
 
-      contactNameValidationMessage = contactNameController.text.length < 5 ? 'Unesite ime kontakta' : '';
+      contactNameValidationMessage = contactNameController.text.length < 3 ? 'Unesite ime kontakta' : '';
     });
 
     if (phoneNumberValidationMessage.length > 0) {
+      scaffold.removeCurrentSnackBar();
       scaffold.showSnackBar(SnackBarsComponent.error(content: 'Molimo ispravite greške.', duration: Duration(seconds: 2)));
     } else {
       setState(() { displayLoader = true; });
@@ -146,13 +160,15 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
     }
   }
 
-  doSendAuthRequest(String dialCode, String phoneNumber, String contactName) async {
+  Future<ContactDto> doSendAuthRequest(String dialCode, String phoneNumber, String contactName) async {
     FocusScope.of(context).unfocus();
 
     http.Response response = await HttpClient.post('/api/contacts', body: new ContactDto(
       contactPhoneNumber: dialCode + phoneNumber,
       contactName: contactName,
     ));
+
+    await Future.delayed(Duration(seconds: 1));
 
     if (response.statusCode != 200) {
       throw new Exception();
@@ -163,28 +179,44 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
       throw new CustomException(decode['error']);
     }
 
-    return decode['contact'];
+    return ContactDto.fromJson(decode['contact']);
   }
 
-  onSuccessAuthRequest(contactDto) {
-    setState(() {
-      displayLoader = false;
-    });
-    print(contactDto);
-    // if (success) {
-    //   NavigatorUtil.pushWithArguments(context, SmsValidationActivity(), '/sms-validation',
-    //       {'dialCode': dialCodesMap[selectedCallingCodeId], 'phoneNumber': phoneNumberController.text});
-    // } else {
-    //   this.onErrorAuthRequest('');
-    // }
+  onSuccessAuthRequest(ContactDto contactDto) async {
+    setState(() { displayLoader = false; });
+
+    if (contactDto.contactUserExists) {
+      NavigatorUtil.push(context, ContactsActivity(
+          displaySavedContactSnackbar: true,
+          savedContactName: contactDto.contactName,
+          savedContactPhoneNumber: contactDto.contactPhoneNumber
+      ));
+    } else {
+      scaffold.removeCurrentSnackBar();
+      scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste dodali kontakt ${contactDto.contactPhoneNumber}'));
+
+      await showDialog(context: context, builder: (BuildContext context) {
+        return InviteContactDialog(contactName: contactDto.contactName,
+            contactPhoneNumber: contactDto.contactPhoneNumber);
+      }).then((invited) {
+        if (invited != null && invited) {
+          scaffold.removeCurrentSnackBar();
+          scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste poslali pozivnicu na ${contactDto.contactPhoneNumber}'));
+        }
+        NavigatorUtil.push(context, ContactsActivity(
+            displaySavedContactSnackbar: true,
+            savedContactName: contactDto.contactName,
+            savedContactPhoneNumber: contactDto.contactPhoneNumber
+        ));
+      });
+    }
   }
 
-  onErrorAuthRequest(var error) {
-    FocusScope.of(context).unfocus();
-
+  onErrorAuthRequest(error) {
     setState(() { displayLoader = false; });
 
     String message = error is CustomException ? error.toString() : null;
+    scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(content: message, actionOnPressed: () {
       setState(() { displayLoader = true; });
       doSendAuthRequest(dialCodesMap[selectedCallingCodeId], phoneNumberController.text, contactNameController.text)
@@ -224,6 +256,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
     print(error);
     setState(() { displayLoader = false; });
 
+    scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () {
       setState(() {
         displayLoader = true;

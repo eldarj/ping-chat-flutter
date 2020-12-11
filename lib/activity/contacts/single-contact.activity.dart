@@ -71,7 +71,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     Row(children: [
                       Container(
                           margin: EdgeInsets.only(left: 5, right: 10),
-                          child: new RoundProfileImageComponent(url: widget.contactDto.contactUser.profileImagePath,
+                          child: new RoundProfileImageComponent(url: widget.contactDto.contactUser?.profileImagePath,
                               height: 100, width: 100, borderRadius: 20)
                       ),
                       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -98,10 +98,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                           Container(
                               margin: EdgeInsets.only(right: 10, left: 1),
                               child: CountryIconComponent
-                                  .buildCountryIcon(widget.contactDto.contactUser.countryCode.countryName, height: 15, width: 15)
+                                  .buildCountryIcon(widget.contactDto.contactUser?.countryCode.countryName, height: 15, width: 15)
                           ),
                           Container(
-                              child: Text(widget.contactDto.contactUser.countryCode.countryName)
+                              child: Text(widget.contactDto.contactUser?.countryCode.countryName)
                           )
                         ],
                       ),

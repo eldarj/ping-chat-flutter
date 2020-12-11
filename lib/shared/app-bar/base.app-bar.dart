@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
@@ -48,9 +49,8 @@ class BaseAppBar {
                     Container(alignment: Alignment.center,
                         width: 45, height: 45,
                         child: FutureBuilder(future: UserService.getUser(), builder: (context, snapshot) {
-                          return snapshot.hasData
-                              ? CircleAvatar(backgroundImage: NetworkImage(snapshot.data.profileImagePath))
-                              : Spinner();
+                          return snapshot.hasData ? RoundProfileImageComponent(url: snapshot.data.profileImagePath,
+                              height: 40, width: 40, margin: 0) : Spinner();
                         })
                     ),
                     Container(alignment: Alignment.center,

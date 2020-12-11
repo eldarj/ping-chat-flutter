@@ -124,7 +124,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                               return Container(
                                   child: Wrap(children: [
                                     ListTile(leading: Icon(Icons.person_add),
-                                        title: Text('Add new contact'),
+                                        title: Text('Novi kontakt'),
                                         onTap: () {
                                           NavigatorUtil.push(context, AddContactActivity());
                                         }),
