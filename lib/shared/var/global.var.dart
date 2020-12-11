@@ -14,6 +14,8 @@ class CompanyColor {
   static Color green = Colors.green.shade400;
 
   static Color grey = Colors.grey;
+
+  static Color backgroundGrey = Colors.grey.shade200;
 }
 
 class Shadows {

@@ -6,6 +6,7 @@ import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.compo
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 
 class ChatsActivity extends StatefulWidget {
@@ -174,7 +175,7 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
                           width: 20, height: 20,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.all(Radius.circular(50)),
-                            color: Colors.grey.shade200,
+                            color: CompanyColor.backgroundGrey,
                           ),
                           child: Text(notifications.toString(), style: TextStyle(color: Colors.black87))
                       ) : Container()

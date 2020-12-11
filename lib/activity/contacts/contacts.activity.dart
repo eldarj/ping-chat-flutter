@@ -16,6 +16,7 @@ import 'package:flutterping/shared/component/round-profile-image.component.dart'
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/model/client-dto.model.dart';
@@ -82,6 +83,37 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
         widget = Container(
           child: Column(
             children: [
+              Container(
+                color: CompanyColor.backgroundGrey,
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        displayLoader = true;
+                      });
+                      doGetContacts(clearRides: true)
+                          .then(onGetContactsSuccess, onError: onGetContactsError);
+                    },
+                    child: Container(padding: EdgeInsets.only(bottom: 5, left: 25, right: 25), child: Row(children: [
+                      Container(margin: EdgeInsets.only(right: 10), child: Icon(Icons.people)), Text('Svi kontakti')
+                    ])),
+                  ),
+                  Container(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          displayLoader = true;
+                        });
+                        doGetContacts(clearRides: true, favouritesOnly: true)
+                            .then(onGetContactsSuccess, onError: onGetContactsError);
+                      },
+                      child: Container(padding: EdgeInsets.only(bottom: 5, left: 25, right: 25), child: Row(children: [
+                        Container(margin: EdgeInsets.only(right: 10), child: Icon(Icons.star_border)), Text('Omiljeni')
+                      ])),
+                    ),
+                  )
+                ]),
+              ),
               contacts != null && contacts.length > 0 ? buildListView() :
               Center(
                 child: Container(
@@ -160,7 +192,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                 child: Container(
                   decoration: BoxDecoration(
                       color: contact.favorite ? Colors.white : Colors.grey.shade50,
-                      border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1))
+                      border: Border(bottom: BorderSide(color: CompanyColor.backgroundGrey, width: 1))
                   ),
                   padding: EdgeInsets.all(10),
                   child: Row(
@@ -234,7 +266,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
   Future<ContactDto> doUpdateFavourites(ContactDto contactDto, int index) async {
     String url = '/api/contacts/${contactDto.id}/favourite';
 
-    http.Response response = await HttpClient.post(url, body: contactDto.favorite);
+    http.Response response = await HttpClient.post(url, body: !contactDto.favorite);
 
     if(response.statusCode != 200) {
       throw new Exception();
@@ -287,7 +319,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
     }
   }
 
-  Future<dynamic> doGetContacts({page = 1, clearRides = false}) async {
+  Future<dynamic> doGetContacts({page = 1, clearRides = false, favouritesOnly = false}) async {
     if (clearRides) {
       contacts.clear();
       pageNumber = 1;
@@ -296,7 +328,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
     String url = '/api/contacts'
         '?pageNumber=' + page.toString() +
         '&pageSize=' + pageSize.toString() +
-        '&userId=' + userId.toString();
+        '&userId=' + userId.toString() +
+        '&favourites=' + favouritesOnly.toString();
 
     http.Response response = await HttpClient.get(url);
 

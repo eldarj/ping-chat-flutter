@@ -11,7 +11,7 @@ class BaseAppBar {
     return AppBar(
         elevation: 0.0,
         centerTitle: true,
-        backgroundColor: Colors.grey.shade200,
+        backgroundColor: CompanyColor.backgroundGrey,
         leading: leading,
         title: titleText != null ? Text(titleText) : titleWidget,
         actions: actions);
@@ -35,7 +35,7 @@ class BaseAppBar {
     return AppBar(
         elevation: 0.0,
         centerTitle: true,
-        backgroundColor: Colors.grey.shade200,
+        backgroundColor: CompanyColor.backgroundGrey,
         leading: GestureDetector(
           onTap: () {
             scaffold.openDrawer();

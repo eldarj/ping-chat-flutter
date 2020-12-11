@@ -23,7 +23,7 @@ class GradientButton extends StatelessWidget {
         borderRadius: bubble.borderRadius,
         gradient: LinearGradient(
           colors: this.onPressed != null ? (this.color != null ? [this.color, this.color] : [CompanyColor.blueAccent, CompanyColor.bluePrimary])
-              : [Colors.grey.shade100, Colors.grey.shade200],
+              : [Colors.grey.shade100, CompanyColor.backgroundGrey],
           begin: FractionalOffset.bottomLeft,
           end: FractionalOffset.topRight,
         ),

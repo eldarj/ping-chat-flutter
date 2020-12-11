@@ -10,6 +10,7 @@ import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/drawer/partial/logout.dialog.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
@@ -75,8 +76,8 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                                 child: new RoundProfileImageComponent(url: user.profileImagePath,
                                     height: 100, width: 100, borderRadius: 100, margin: 0)),
                             displayLoader ? Column(children: [
-                              Container(margin: EdgeInsets.only(bottom: 5), color: Colors.grey.shade200, height: 20, width: 120),
-                              Container(color: Colors.grey.shade200, height: 20, width: 50),
+                              Container(margin: EdgeInsets.only(bottom: 5), color: CompanyColor.backgroundGrey, height: 20, width: 120),
+                              Container(color: CompanyColor.backgroundGrey, height: 20, width: 50),
                             ]) : Column(children: [
                               Text(user.firstName + " " + user.lastName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400)),
                               Container(
@@ -158,7 +159,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                             activity: PolicyInfoActivity()
                         ),
                         Container(
-                          color: Colors.grey.shade200,
+                          color: CompanyColor.backgroundGrey,
                           margin: EdgeInsets.only(top: 25),
                           padding: EdgeInsets.only(top: 10, bottom: 10),
                           child: buildDrawerItem(context, 'Odjavi se',
