@@ -61,14 +61,14 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getProfileAppBar(scaffold, titleText: 'New contact');
+    appBar = BaseAppBar.getBackAppBar(scaffold, titleText: 'Novi kontakt');
     drawer = new NavigationDrawerComponent();
   }
 
   @override
   Widget render() {
     return Container(
-      margin: EdgeInsets.only(left: 50, right: 50, top: 15, bottom: 15),
+      margin: EdgeInsets.only(left: 30, right: 30, top: 15, bottom: 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -84,6 +84,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
               Container(child: Text('Novi kontakt', style: TextStyle(fontSize: 16))),
             ],
           ),
+          Divider(height: 25, thickness: 1),
           Container(
               margin: EdgeInsets.only(top: 10, bottom: 15),
               padding: EdgeInsets.only(left: 10.0, right: 10.0),

@@ -45,6 +45,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
   int pageNumber = 1;
   int pageSize = 50;
 
+  int selectedTabIndex = 0;
+
   getUserAndGetRides() async {
     dynamic user = await UserService.getUser();
     userId = user.id;
@@ -98,6 +100,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                 ],
                 bottomTabs: TabBar(
                     onTap: (index) {
+                      selectedTabIndex = index;
                       setState(() {
                         displayLoader = true;
                       });
@@ -131,7 +134,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
               Center(
                 child: Container(
                   margin: EdgeInsets.all(25),
-                  child: Column(
+                  child: selectedTabIndex == 0 ? Column(
                     children: [
                       RoundProfileImageComponent(displayQuestionMarkImage: true),
                       Text('Nemate niti jedan kontakt', style: TextStyle(color: Colors.grey)),
@@ -141,7 +144,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                           NavigatorUtil.push(context, AddContactActivity());
                         }),
                       )                    ],
-                  ),
+                  ) : Text('Nemate niti jedan kontakt u omiljenim', style: TextStyle(color: Colors.grey)),
                 ),
               ),
               Container(
