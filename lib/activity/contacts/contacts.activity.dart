@@ -216,27 +216,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                                   ],
                                 ),
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: <Widget>[
-                                  Row(children: <Widget>[
-                                    Container(
-                                        margin: EdgeInsets.only(right: 5),
-                                        child: Icon(Icons.check_circle, color: Colors.green, size: 13)),
-                                    Text('Today 14:54', style: TextStyle(fontSize: 12))
-                                  ]),
-                                  Container(
-                                      margin: EdgeInsets.only(top: 10),
-                                      alignment: Alignment.center,
-                                      width: 20, height: 20,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.all(Radius.circular(50)),
-                                        color: Colors.grey.shade200,
-                                      ),
-                                      child: Text('4', style: TextStyle(color: Colors.black87))
-                                  )
-                                ],
-                              )
+                              Text(contact.contactPhoneNumber, style: TextStyle(color: Colors.grey))
                             ],
                           ),
                         )
