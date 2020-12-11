@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
@@ -29,12 +28,13 @@ class BaseAppBar {
   }
 
   static getProfileAppBar(ScaffoldState scaffold, {
-    titleWidget, titleText, actions
+    titleWidget, titleText, actions, bottomTabs
   }) {
     return AppBar(
         elevation: 0.0,
         centerTitle: true,
         backgroundColor: CompanyColor.backgroundGrey,
+        bottom: bottomTabs,
         leading: GestureDetector(
           onTap: () {
             scaffold.openDrawer();

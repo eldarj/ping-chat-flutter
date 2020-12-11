@@ -1,8 +1,5 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';

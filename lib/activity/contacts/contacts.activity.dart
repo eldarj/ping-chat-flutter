@@ -1,12 +1,9 @@
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
-import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
@@ -19,11 +16,8 @@ import 'package:flutterping/shared/loader/linear-progress-loader.component.dart'
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/util/http/http-client.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
@@ -61,17 +55,31 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
   }
 
   @override
-  preRender() async {
-    drawer = new NavigationDrawerComponent();
-    appBar = BaseAppBar.getProfileAppBar(scaffold, titleText: 'Contacts');
-
-    BottomNavigationComponent createState = new BottomNavigationComponent(currentIndex: 1);
-    bottomNavigationBar = createState.build(context);
-  }
-
-  @override
-  Widget render() {
-    return buildActivityContent();
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+            appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Contacts', bottomTabs: TabBar(
+                onTap: (index) {
+                  setState(() {
+                    displayLoader = true;
+                  });
+                  doGetContacts(clearRides: true, favouritesOnly: index == 1)
+                      .then(onGetContactsSuccess, onError: onGetContactsError);
+                },
+                tabs: [
+                  Tab(icon: Icon(Icons.people)),
+                  Tab(icon: Icon(Icons.star_border)),
+                ]
+            )),
+            drawer: NavigationDrawerComponent(),
+            bottomNavigationBar: new BottomNavigationComponent(currentIndex: 1).build(context),
+            body: Builder(builder: (context) {
+              scaffold = Scaffold.of(context);
+              return buildActivityContent();
+            })
+        )
+    );
   }
 
   Widget buildActivityContent() {
@@ -82,37 +90,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
         widget = Container(
           child: Column(
             children: [
-              Container(
-                color: CompanyColor.backgroundGrey,
-                child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        displayLoader = true;
-                      });
-                      doGetContacts(clearRides: true)
-                          .then(onGetContactsSuccess, onError: onGetContactsError);
-                    },
-                    child: Container(padding: EdgeInsets.only(bottom: 5, left: 25, right: 25), child: Row(children: [
-                      Container(margin: EdgeInsets.only(right: 10), child: Icon(Icons.people)), Text('Svi kontakti')
-                    ])),
-                  ),
-                  Container(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          displayLoader = true;
-                        });
-                        doGetContacts(clearRides: true, favouritesOnly: true)
-                            .then(onGetContactsSuccess, onError: onGetContactsError);
-                      },
-                      child: Container(padding: EdgeInsets.only(bottom: 5, left: 25, right: 25), child: Row(children: [
-                        Container(margin: EdgeInsets.only(right: 10), child: Icon(Icons.star_border)), Text('Omiljeni')
-                      ])),
-                    ),
-                  )
-                ]),
-              ),
               contacts != null && contacts.length > 0 ? buildListView() :
               Center(
                 child: Container(
