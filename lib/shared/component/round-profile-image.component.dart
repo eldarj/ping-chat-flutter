@@ -9,11 +9,12 @@ class RoundProfileImageComponent extends StatefulWidget {
   final String url;
   final double width;
   final double height;
+  final BoxBorder border;
   final double borderRadius;
   final double margin;
 
   const RoundProfileImageComponent({this.url, this.height = 55, this.width = 55,
-    this.borderRadius = 30.0, this.margin = 10.0}) : super();
+    this.border, this.borderRadius = 30.0, this.margin = 10.0}) : super();
 
   @override
   State<StatefulWidget> createState() => new RoundProfileImageComponentState();
@@ -26,6 +27,7 @@ class RoundProfileImageComponentState extends State<RoundProfileImageComponent> 
       child: Container(
         decoration: BoxDecoration(
             color: Colors.grey.shade50,
+            border: widget.border,
             borderRadius: BorderRadius.circular(widget.borderRadius)
         ),
         child: ClipRRect(borderRadius: BorderRadius.circular(widget.borderRadius),

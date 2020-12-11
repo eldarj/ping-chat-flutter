@@ -136,9 +136,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
         child: ListView.builder(
           itemCount: contacts == null ? 0 : contacts.length,
           itemBuilder: (context, index) {
+            var contact = contacts[index];
             return GestureDetector(
               onTap: () {
-                NavigatorUtil.push(context, SingleContactActivity(contactDto: contacts[index]));
+                NavigatorUtil.push(context, SingleContactActivity(contactDto: contact));
               },
               child: Slidable(
                 actionPane: SlidableDrawerActionPane(),
@@ -147,8 +148,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                 secondaryActions: <Widget>[
                   IconSlideAction(
                     color: Colors.grey.shade700,
-                    iconWidget: Icon(Icons.star, color: Colors.yellow),
-                    onTap: () => print('Add to favourite'),
+                    iconWidget: Icon(contact.favorite ? Icons.star : Icons.star_border, color: Colors.yellow),
+                    onTap: () => doUpdateFavourites(contact, index).then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
                   ),
                   IconSlideAction(
                     color: Colors.grey.shade700,
@@ -158,6 +159,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                 ],
                 child: Container(
                   decoration: BoxDecoration(
+                      color: contact.favorite ? Colors.white : Colors.grey.shade50,
                       border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1))
                   ),
                   padding: EdgeInsets.all(10),
@@ -169,7 +171,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                                 alignment: AlignmentDirectional.topEnd,
                                 children: [
                                   new RoundProfileImageComponent(url: contacts[index].contactUser.profileImagePath,
-                                    margin: 2.5, borderRadius: 50, height: 50, width: 50,),
+                                    margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
+                                    borderRadius: 50, height: 50, width: 50,),
                                   Container(
                                       decoration: BoxDecoration(
                                           color: Colors.green,
@@ -198,13 +201,14 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                                           children: [
                                             Container(
                                                 margin: EdgeInsets.only(bottom: 5),
-                                                child: Text(contacts[index].contactName,
+                                                child: Text(contact.contactName,
                                                     style: TextStyle(fontSize: 18,
                                                         fontWeight: FontWeight.bold,
                                                         color: Colors.black87))),
                                             Visibility(
-                                                visible: contacts[index].contactUser.displayMyFullName,
-                                                child: Text(contacts[index].contactUser.firstName + ' ' + contacts[index].contactUser.lastName)
+                                                visible: contact.contactUser.displayMyFullName,
+                                                child: Text(contact.contactUser.firstName + ' ' +
+                                                    contact.contactUser.lastName)
                                             )
                                           ]
                                       ),
@@ -245,6 +249,38 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
         ),
       ),
     );
+  }
+
+  Future<ContactDto> doUpdateFavourites(ContactDto contactDto, int index) async {
+    String url = '/api/contacts/${contactDto.id}/favourite';
+
+    http.Response response = await HttpClient.post(url, body: contactDto.favorite);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return contactDto;
+  }
+
+  onUpdateFavouritesSuccess(ContactDto contactDto) {
+    setState(() {
+      contactDto.favorite = !contactDto.favorite;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    if (contactDto.favorite) {
+      scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste dodali ${contactDto.contactName} u omiljene.'));
+    } else {
+      scaffold.showSnackBar(SnackBarsComponent.info('Uklonili ste ${contactDto.contactName} iz omiljenih.'));
+    }
+  }
+
+  onUpdateFavouritesError(error) {
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(
+        content: 'Nismo uspjeli dodati kontakt u omiljene, molimo pokušajte ponovo.'
+    ));
   }
 
   void getNextPageOnScroll() async {

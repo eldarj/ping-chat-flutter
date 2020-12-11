@@ -12,6 +12,8 @@ class CompanyColor {
 
   static Color red = Color.fromRGBO(231, 76, 60, 1);
   static Color green = Colors.green.shade400;
+
+  static Color grey = Colors.grey;
 }
 
 class Shadows {

@@ -20,6 +20,14 @@ class SnackBarsComponent {
     );
   }
 
+  static SnackBar info(content) {
+    return SnackBar(
+      duration: Duration(seconds: 2),
+      backgroundColor: CompanyColor.grey,
+      content: Text(content),
+    );
+  }
+
   static SnackBar doubleBack() {
     return SnackBar(
         content: Text('Pritisnite nazad 2x za izlazak iz aplikacije', style: TextStyle(color: Colors.white)),
