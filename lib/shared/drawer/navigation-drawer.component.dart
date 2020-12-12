@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutterping/activity/chats/chats.activity.dart';
+import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/activity/policy/policy-info.activity.dart';
@@ -112,7 +112,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                         buildSectionTitle("Chats"),
                         buildDrawerItem(context, 'Chats',
                             buildIcon(icon: Icons.chat, backgroundColor: Colors.green.shade400),
-                            activity: ChatsActivity()),
+                            activity: ChatListActivity()),
                         buildDrawerItem(context, 'My contacts',
                             buildIcon(icon: Icons.people, backgroundColor: Colors.orangeAccent.shade700),
                             activity: ContactsActivity()),

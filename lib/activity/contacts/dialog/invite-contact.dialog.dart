@@ -1,7 +1,5 @@
-
-
-import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:flutterping/util/http/http-client.dart';
 import 'package:http/http.dart' as http;
@@ -24,8 +22,19 @@ class InviteContactDialogState extends BaseState<InviteContactDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
         title: Text('Uspješno ste dodali kontakt'),
-        content: Text('Napravili ste novi kontakt, ali nažalost, ${widget.contactName} ne koristi Ping Chat!\n\n'
-            'Želite poslati besplatnu SMS pozivnicu na ${widget.contactPhoneNumber}?'),
+        content: RichText(
+            text: TextSpan(
+              text: 'Napravili ste novi kontakt, ali nažalost ',
+              style: TextStyle(color: Colors.black87),
+              children: [
+                TextSpan(text: widget.contactName,
+                    style: TextStyle(color: CompanyColor.bluePrimary, fontWeight: FontWeight.bold)),
+                TextSpan(text: ' ne koristi Ping Chat!\n\nŽelite poslati besplatnu SMS pozivnicu na '),
+                TextSpan(text: widget.contactPhoneNumber,
+                    style: TextStyle(color: CompanyColor.bluePrimary, fontWeight: FontWeight.bold)),
+                TextSpan(text: '?')
+              ],
+            )),
         actionsPadding: EdgeInsets.only(right: 10),
         actions: [
           FlatButton(

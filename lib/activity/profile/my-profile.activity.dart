@@ -57,7 +57,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   @override
   preRender() {
-    appBar = BaseAppBar.getBackAppBar(scaffold, titleText: 'Profile');
+    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Profile');
     drawer = new NavigationDrawerComponent();
   }
 

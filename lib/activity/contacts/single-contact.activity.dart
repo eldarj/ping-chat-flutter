@@ -47,7 +47,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
   @override
   preRender() {
-    appBar = BaseAppBar.getBackAppBar(scaffold, titleText: 'Kontakt');
+    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Kontakt');
     drawer = new NavigationDrawerComponent();
   }
 

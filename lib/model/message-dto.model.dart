@@ -14,7 +14,13 @@ class MessageDto {
   String senderContactName;
   String receiverContactName;
 
-  String sentTimestamp;
+  bool senderOnline;
+  bool receiverOnline;
+
+  double senderLastOnlineTimestamp;
+  double receiverLastOnlineTimestamp;
+
+  double sentTimestamp;
 
   MessageDto({this.id, this.text, this.sender, this.receiver, this.received, this.seen,
     this.senderContactName, this.receiverContactName, this.sentTimestamp});
@@ -33,7 +39,11 @@ class MessageDto {
       ..seen = parsedJson['seen'] as bool
       ..senderContactName = parsedJson['senderContactName'] as String
       ..receiverContactName = parsedJson['receiverContactName'] as String
-      ..sentTimestamp = parsedJson['sentTimestamp'] as String;
+      ..senderOnline = parsedJson['senderOnline'] as bool
+      ..receiverOnline = parsedJson['receiverOnline'] as bool
+      ..senderLastOnlineTimestamp = parsedJson['senderLastOnlineTimestamp'] as double
+      ..receiverLastOnlineTimestamp = parsedJson['receiverLastOnlineTimestamp'] as double
+      ..sentTimestamp = parsedJson['sentTimestamp'] as double;
   }
 
   Map<String, dynamic> toJson() => {
@@ -45,6 +55,10 @@ class MessageDto {
     'seen': seen,
     'senderContactName': senderContactName,
     'receiverContactName': receiverContactName,
+    'senderOnline': senderOnline,
+    'receiverOnline': receiverOnline,
+    'senderLastOnlineTimestamp': senderLastOnlineTimestamp,
+    'receiverLastOnlineTimestamp': receiverLastOnlineTimestamp,
     'sentTimestamp': sentTimestamp,
   };
 }

@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -61,7 +59,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getBackAppBar(scaffold, titleText: 'Novi kontakt');
+    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Novi kontakt');
     drawer = new NavigationDrawerComponent();
   }
 

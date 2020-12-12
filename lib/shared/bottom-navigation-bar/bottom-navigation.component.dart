@@ -2,7 +2,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/chats/chats.activity.dart';
+import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
@@ -11,7 +11,7 @@ class BottomNavigationComponent extends StatelessWidget {
   final int currentIndex;
 
   final List<Widget> bottomBarActivities = const [
-    ChatsActivity(),
+    ChatListActivity(),
     ContactsActivity(),
   ];
 

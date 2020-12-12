@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 
 abstract class BaseState<T extends StatefulWidget> extends State<T> {
   ScaffoldState scaffold;
+
+  BuildContext getScaffoldContext() => scaffold.context;
+
   bool displayLoader = false;
   bool isError = false;
 

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/chats/chats.activity.dart';
+import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
@@ -28,7 +28,7 @@ class _LandingActivityState extends BaseState<LandingActivity> {
       NavigatorUtil.push(context, PolicyActivity());
       return;
     } else {
-      NavigatorUtil.replace(context, ChatsActivity());
+      NavigatorUtil.replace(context, ChatListActivity());
     }
   }
 

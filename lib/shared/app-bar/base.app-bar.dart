@@ -5,35 +5,42 @@ import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 class BaseAppBar {
-  static getBase(ScaffoldState scaffold, leading, {
-    titleWidget, titleText, actions
+  static getBase(Function getContext, {leading, titleWidget, titleText, actions, centerTitle = true
   }) {
     return AppBar(
         elevation: 0.0,
-        centerTitle: true,
+        centerTitle: centerTitle,
         backgroundColor: CompanyColor.backgroundGrey,
-        leading: leading,
-        title: titleText != null ? Text(titleText) : titleWidget,
+        titleSpacing: 0,
+        automaticallyImplyLeading: false,
+        title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          leading,
+          titleText != null ? Text(titleText) : titleWidget
+        ]),
         actions: actions);
   }
 
-  static getBackAppBar(ScaffoldState scaffold, {
-    titleWidget, titleText, actions
+  static getBackAppBar(Function getContext, { titleWidget, titleText, actions, centerTitle = true
   }) {
-    return getBase(scaffold, FlatButton(
-      onPressed: () {
-        Navigator.pop(scaffold.context);
-      },
-      child: Icon(Icons.arrow_back),
-    ), titleText: titleText, titleWidget: titleWidget, actions: actions);
+    return getBase(getContext, leading: Container(
+      width: 45,
+      height: 50,
+      child: FlatButton(
+        padding: EdgeInsets.all(0),
+        onPressed: () {
+          Navigator.pop(getContext());
+        },
+        child: Icon(Icons.arrow_back),
+      ),
+    ), titleText: titleText, titleWidget: titleWidget, actions: actions, centerTitle: centerTitle);
   }
 
   static getProfileAppBar(ScaffoldState scaffold, {
-    titleWidget, titleText, actions, bottomTabs
+    titleWidget, titleText, actions, bottomTabs, centerTitle = true
   }) {
     return AppBar(
         elevation: 0.0,
-        centerTitle: true,
+        centerTitle: centerTitle,
         backgroundColor: CompanyColor.backgroundGrey,
         bottom: bottomTabs,
         leading: GestureDetector(

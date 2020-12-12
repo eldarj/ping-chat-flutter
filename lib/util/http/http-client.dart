@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutterping/service/user.prefs.service.dart';
 
 class HttpClient {
-  static String _API_BASE_URL = 'http://192.168.1.6:8089';
+  static String _API_BASE_URL = 'http://192.168.1.4:8089';
 
   static Future<http.Response> post(url, {body = const {}, headers = const {}, bool encode = true}) async {
     var userToken = await UserService.getToken();
