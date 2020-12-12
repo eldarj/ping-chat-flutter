@@ -1,12 +1,23 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/contacts/add-contact.activity.dart';
+import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
+import 'package:flutterping/shared/component/error.component.dart';
+import 'package:flutterping/shared/component/gradient-button.component.dart';
+import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
+import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutterping/util/extension/http.response.extension.dart';
 
 class ChatsActivity extends StatefulWidget {
   const ChatsActivity();
@@ -18,59 +29,30 @@ class ChatsActivity extends StatefulWidget {
 class ChatsActivityState extends BaseState<ChatsActivity> {
   var displayLoader = true;
 
-  List<Widget> conversationRows = [];
-  List conversations = [
-    {'contactName': 'Indira', "content": 'Haha super eldare super..', "displaySeen": true, "seen": false,
-      "when": 'Yesterday', "notifications": 0, "isOnline": true},
-    {'contactName': 'Stara', "content": 'Gdje si?? Javi kako prodje', "displaySeen": true, "seen": false,
-      "when": 'Today 14:54', "notifications": 4, "isOnline": true},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": false},
-    {'contactName': 'Dragan', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": true},
-    {'contactName': 'Alen', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": true},
-    {'contactName': 'Harun', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-    {'contactName': 'Idriz', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-    {'contactName': 'Admir', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 5, "isOnline": false},
-    {'contactName': 'Slaven', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": true},
-    {'contactName': 'Vojo', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 2, "isOnline": false},
-    {'contactName': 'Amer', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 3, "isOnline": true},
-    {'contactName': 'Muharem', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": false},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 1, "isOnline": false},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-    {'contactName': 'Miki', "content": 'Cucemo se, javi se kad god', "displaySeen": false, "seen": true,
-      "when": '2 days ago', "notifications": 0, "isOnline": false},
-  ];
+  int userId = 0;
 
-  @override
-  initState() {
-    super.initState();
+  List<MessageDto> chats = new List();
+  int totalChats = 0;
+
+  bool isLoadingOnScroll = false;
+  int pageSize = 50;
+  int pageNumber = 1;
+
+  getUserAndGetChats() async {
+    dynamic user = await UserService.getUser();
+    userId = user.id;
+
     doGetChatData().then(onGetChatDataSuccess, onError: onGetChatDataError);
   }
 
   @override
+  initState() {
+    super.initState();
+    getUserAndGetChats();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    conversationRows = conversations.map((e) => buildSingleConversationRow(
-        contactName: e['contactName'],
-        content: Text(e['content']),
-        displaySeen: e['displaySeen'],
-        notifications: e['notifications'],
-        seen: e['seen'],
-        when: e['when'],
-        isOnline: e['isOnline']
-    )).toList();
     return Scaffold(
         appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Chats'),
         drawer: NavigationDrawerComponent(),
@@ -86,26 +68,76 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
     Widget widget = ActivityLoader.build();
 
     if (!displayLoader) {
-      widget = Column(
-          children: [
-            Expanded(
-              child: Container(
-                child: CupertinoScrollbar(
-                  child: ListView(
-                      children: conversationRows
-                  ),
+      if (!isError) {
+        widget = Container(
+          child: Column(
+            children: [
+              chats != null && chats.length > 0 ? buildListView() :
+              Center(
+                child: Container(
+                  margin: EdgeInsets.all(25),
+                  child: Text('Nemate poruka', style: TextStyle(color: Colors.grey)),
                 ),
               ),
-            ),
-          ]
-      );
+              Opacity(
+                  opacity: isLoadingOnScroll ? 1 : 0,
+                  child: LinearProgressLoader.build(context)
+              )
+            ],
+          ),
+        );
+      } else {
+        widget = ErrorComponent.build(actionOnPressed: () async {
+          setState(() {
+            displayLoader = true;
+            isError = false;
+          });
+
+          await Future.delayed(Duration(seconds: 1));
+          doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
+        });
+      }
     }
 
     return widget;
   }
 
-  Container buildSingleConversationRow({String profile, String contactName, Widget content, bool displaySeen = true,
-    bool seen = true, String when, int notifications = 0, bool isOnline}) {
+  Widget buildListView() {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification scrollInfo) {
+        if (!displayLoader && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+          getNextPageOnScroll();
+        }
+      },
+      child: Expanded(
+        child: ListView.builder(
+          itemCount: chats == null ? 0 : chats.length,
+          itemBuilder: (context, index) {
+            var chat = chats[index];
+            var profileUrl, contactName;
+            if (userId == chat.sender.id) {
+              profileUrl = chat.receiver.profileImagePath;
+              contactName = chat.receiverContactName;
+            } else {
+              profileUrl = chat.sender.profileImagePath;
+              contactName = chat.senderContactName;
+            }
+            return buildSingleConversationRow(
+                profile: profileUrl,
+                contactName: contactName,
+                messageContent: chat.text,
+                seen: chat.seen,
+                when: chat.sentTimestamp
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+
+  Container buildSingleConversationRow({String profile, String contactName, String messageContent,
+    bool displaySeen = true, bool seen = true, String when, int notifications = 0, bool isOnline = false}) {
     return Container(
       decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.grey.shade100, width: 1))
@@ -118,14 +150,12 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
                 child: Stack(
                     alignment: AlignmentDirectional.topEnd,
                     children: [
-                      Icon(Icons.account_circle, size: 50),
+                      RoundProfileImageComponent(url: profile, margin: 2.5, borderRadius: 50, height: 50, width: 50),
                       Container(
                           decoration: BoxDecoration(
                               color: isOnline ? Colors.green : Colors.grey,
-                              border: Border.all(color: Colors.white, width: 1.5),
-                              borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(5),
-                                  bottomLeft: Radius.circular(5))
+                              border: Border.all(color: Colors.white, width: 1),
+                              borderRadius: BorderRadius.circular(50)
                           ),
                           margin: EdgeInsets.all(5),
                           width: 10, height: 10)
@@ -147,24 +177,28 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
                               children: [
                                 Container(
                                     margin: EdgeInsets.only(bottom: 5),
-                                    child: Text(contactName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87))),
-                                content
+                                    child: Text(contactName, style: TextStyle(fontSize: 18,
+                                        fontWeight: FontWeight.bold, color: Colors.black87))),
+                                Row(
+                                  children: <Widget>[
+                                    Text(messageContent, style: TextStyle(color: Colors.grey)),
+                                    displaySeen ? Container(
+                                        margin: EdgeInsets.only(left: 5),
+                                        child: seen? Icon(Icons.check, color: Colors.green, size: 14)
+                                            : Icon(Icons.check, color: Colors.grey, size: 14)
+                                    ) : Container(),
+                                  ],
+                                )
                               ]
                           ),
-                        )                      ],
+                        )
+                      ],
                     ),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: <Widget>[
-                      Row(children: <Widget>[
-                        displaySeen ? Container(
-                            margin: EdgeInsets.only(right: 5),
-                            child: seen? Icon(Icons.check_circle, color: Colors.green, size: 13)
-                                : Icon(Icons.radio_button_unchecked, color: Colors.grey, size: 13)
-                        ) : Container(),
-                        Text(when, style: TextStyle(fontSize: 12))
-                      ]),
+                      Text(when, style: TextStyle(fontSize: 12)),
                       notifications > 0 ? Container(
                           margin: EdgeInsets.only(top: 10),
                           alignment: Alignment.center,
@@ -176,7 +210,8 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
                           child: Text(notifications.toString(), style: TextStyle(color: Colors.black87))
                       ) : Container()
                     ],
-                  )                ],
+                  )
+                ],
               ),
             )
           ]
@@ -184,24 +219,74 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
     );
   }
 
-  Future<void> doGetChatData() async {
-    await Future.delayed(Duration(milliseconds: 200));
-    return true;
+  void getNextPageOnScroll() async {
+    if (!isLoadingOnScroll) {
+      setState(() {
+        isLoadingOnScroll = true;
+      });
+
+      if (totalChats != 0 && pageNumber * pageSize < totalChats) {
+        pageNumber++;
+        await Future.delayed(Duration(seconds: 1));
+        doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
+      } else {
+        await Future.delayed(Duration(seconds: 1));
+        setState(() {
+          isLoadingOnScroll = false;
+        });
+        scaffold.showSnackBar(SnackBar(
+            content: Text('Sve smo učitali!.', style: TextStyle(color: Colors.white)),
+            duration: Duration(seconds: 2),
+            backgroundColor: Theme.of(context).accentColor
+        ));
+      }
+    }
   }
 
-  void onGetChatDataSuccess(status) async {
+  Future<void> doGetChatData({page = 1, clearChats = false}) async {
+    if (clearChats) {
+      chats.clear();
+      pageNumber = 1;
+    }
+
+    String url = '/api/chat/$userId'
+        '?pageNumber=' + (page - 1).toString() +
+        '&pageSize=' + pageSize.toString();
+
+    http.Response response = await HttpClient.get(url);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    dynamic result = response.decode();
+
+    return {'chats': result['page'], 'totalElements': result['totalElements']};
+  }
+
+  void onGetChatDataSuccess(result) async {
+    List filteredChats = result['chats'];
+    totalChats = result['totalElements'];
+
+    filteredChats.forEach((element) {
+      chats.add(MessageDto.fromJson(element));
+    });
+
     setState(() {
       displayLoader = false;
+      isLoadingOnScroll = false;
       isError = false;
     });
   }
 
   void onGetChatDataError(Object error) {
     setState(() {
-      isError = true;
       displayLoader = false;
+      isLoadingOnScroll = false;
+      isError = true;
     });
 
+    scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () async {
       setState(() {
         displayLoader = true;
@@ -210,7 +295,7 @@ class ChatsActivityState extends BaseState<ChatsActivity> {
 
       await Future.delayed(Duration(seconds: 1));
 
-      doGetChatData().then(onGetChatDataSuccess, onError: onGetChatDataError);
+      doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
     }));
   }
 }
