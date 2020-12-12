@@ -1,6 +1,3 @@
-
-import 'dart:wasm';
-
 import 'package:flutter/cupertino.dart';
 
 class CountryIconComponent {

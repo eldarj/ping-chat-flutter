@@ -21,7 +21,7 @@ class LogoutDialog extends StatelessWidget {
                 NavigatorUtil.replace(context, LogoutActivity());
               }),
           GradientButton(text: 'Ne',
-              bubble: GradientButtonBubbleDirection.fromBottomRight,
+              bubble: GradientButtonBubble.fromBottomRight,
               onPressed: () {
                 Navigator.of(context).pop();
               })

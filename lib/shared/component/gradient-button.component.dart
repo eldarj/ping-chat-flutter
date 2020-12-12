@@ -6,12 +6,12 @@ class GradientButton extends StatelessWidget {
   final Widget child;
   final String text;
 
-  final GradientButtonBubbleDirection bubble;
+  final GradientButtonBubble bubble;
   final Function onPressed;
 
   final Color color;
 
-  const GradientButton({Key key, this.child, this.text, this.bubble: GradientButtonBubbleDirection.fromTopLeft,
+  const GradientButton({Key key, this.child, this.text, this.bubble: GradientButtonBubble.fromTopLeft,
     this.onPressed, this.color}) : super(key: key);
 
   @override
@@ -37,32 +37,32 @@ class GradientButton extends StatelessWidget {
   }
 }
 
-enum GradientButtonBubbleDirection {
+enum GradientButtonBubble {
   fromTopLeft, fromTopRight, fromBottomLeft, fromBottomRight
 }
 
-extension GradientButtonBubbleDirectionExtension on GradientButtonBubbleDirection {
+extension GradientButtonBubbleExtension on GradientButtonBubble {
   BorderRadius get borderRadius {
     switch (this) {
-      case GradientButtonBubbleDirection.fromBottomLeft:
+      case GradientButtonBubble.fromBottomLeft:
         return BorderRadius.only(
           topRight: Radius.circular(10),
           bottomRight: Radius.circular(10),
           topLeft: Radius.circular(10),
         );
-      case GradientButtonBubbleDirection.fromBottomRight:
+      case GradientButtonBubble.fromBottomRight:
         return BorderRadius.only(
           bottomLeft: Radius.circular(10),
           topRight: Radius.circular(10),
           topLeft: Radius.circular(10),
         );
-      case GradientButtonBubbleDirection.fromTopLeft:
+      case GradientButtonBubble.fromTopLeft:
         return BorderRadius.only(
           bottomLeft: Radius.circular(10),
           topRight: Radius.circular(10),
           bottomRight: Radius.circular(10),
         );
-      case GradientButtonBubbleDirection.fromTopRight:
+      case GradientButtonBubble.fromTopRight:
         return BorderRadius.only(
           bottomLeft: Radius.circular(10),
           bottomRight: Radius.circular(10),

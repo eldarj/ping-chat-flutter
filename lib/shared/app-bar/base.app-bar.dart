@@ -57,7 +57,7 @@ class BaseAppBar {
                         width: 45, height: 45,
                         child: FutureBuilder(future: UserService.getUser(), builder: (context, snapshot) {
                           return snapshot.hasData ? RoundProfileImageComponent(url: snapshot.data.profileImagePath,
-                              height: 40, width: 40, margin: 0) : Spinner();
+                              height: 45, width: 45, margin: 0) : Spinner();
                         })
                     ),
                     Container(alignment: Alignment.center,

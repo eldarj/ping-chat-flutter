@@ -44,7 +44,7 @@ class InviteContactDialogState extends BaseState<InviteContactDialog> {
               }),
           GradientButton(
               child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Da'),
-              bubble: GradientButtonBubbleDirection.fromBottomRight,
+              bubble: GradientButtonBubble.fromBottomRight,
               onPressed: () {
                 doSendAuthRequest().then(onSuccessAuthRequest, onError: onErrorAuthRequest);
               })

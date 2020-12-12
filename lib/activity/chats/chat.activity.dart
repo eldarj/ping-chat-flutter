@@ -4,10 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
+import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
+import 'package:keyboard_visibility/keyboard_visibility.dart';
 
 class ChatActivity extends StatefulWidget {
   final ClientDto clientDto;
@@ -23,9 +26,30 @@ class ChatActivity extends StatefulWidget {
 }
 
 class ChatActivityState extends BaseState<ChatActivity> {
+  final TextEditingController textEditingController = TextEditingController();
+  final FocusNode textFieldFocusNode = FocusNode();
+
+  bool textFieldHasFocus = false;
+
   @override
   initState() {
     super.initState();
+
+    KeyboardVisibilityNotification().addNewListener(
+      onChange: (bool visible) {
+        print('KEYBOARD VISIBLITY');
+        textFieldHasFocus = visible;
+      },
+    );
+
+    textFieldFocusNode.addListener(() {
+      if (textFieldFocusNode.hasFocus) {
+        setState(() {
+          print('has focus');
+          textFieldHasFocus = true;
+        });
+      }
+    });
   }
 
   @override
@@ -79,12 +103,87 @@ class ChatActivityState extends BaseState<ChatActivity> {
         drawer: NavigationDrawerComponent(),
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
-          return buildActivityContent();
+          return Container(
+            color: Colors.white,
+            child: Column(children: [
+              Container(child: Text('hey'), color: Colors.blue),
+              Expanded(child: Container(color: Colors.red, child: Text('hey'))),
+              buildInputRow()
+            ]),
+          );
         })
     );
   }
 
-  Widget buildActivityContent() {
-    return Spinner();
+  Widget buildInputRow() {
+    return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [Shadows.topShadow()],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        width: MediaQuery.of(context).size.width,
+        child: Row(children: [
+          Container(
+            child: IconButton(
+              icon: Icon(Icons.tag_faces),
+              onPressed: () {},
+              color: CompanyColor.blueDark,
+            ),
+          ),
+          Expanded(child: Container(
+            child: TextField(
+              onSubmitted: (value) {
+                // onSendMessage(textEditingController.text, 0);
+              },
+              style: TextStyle(fontSize: 15.0),
+              controller: textEditingController,
+              decoration: InputDecoration.collapsed(
+                hintText: 'Vaša poruka...',
+                hintStyle: TextStyle(color: Colors.grey),
+              ),
+              focusNode: textFieldFocusNode,
+            ),
+          )),
+          Container(
+            child: Container(
+              height: 30, width: 30,
+              decoration: BoxDecoration(
+                border: Border.all(color: CompanyColor.blueDark, width: 1.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.gif, color: CompanyColor.blueDark),
+            ),
+          ),
+          Container(
+            child: IconButton(
+              icon: Icon(Icons.image),
+              onPressed: () {},
+              color: CompanyColor.blueDark,
+            ),
+          ),
+          Container(
+            child: IconButton(
+              icon: Icon(Icons.photo_camera),
+              onPressed: () {},
+              color: CompanyColor.blueDark,
+            ),
+          ),
+          textFieldHasFocus ? Container(child: Icon(Icons.send)) :
+          Container(
+              margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
+              height: 45, width: 45,
+              decoration: BoxDecoration(
+                color: CompanyColor.blueDark,
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: IconButton(
+                icon: Icon(Icons.mic),
+                iconSize: 18,
+                onPressed: () {},
+                color: Colors.white,
+              )
+          ),
+        ]));
   }
 }

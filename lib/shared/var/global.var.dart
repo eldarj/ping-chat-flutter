@@ -20,11 +20,20 @@ class CompanyColor {
 
 class Shadows {
   static topShadow(
-      {color: const Color(0xFFE0E0E0), double blurRadius: 2, double spreadRadius: 0, double topDistance: 1}) {
+      {color: const Color(0xFFD0D0D0), double blurRadius: 2, double spreadRadius: 0, double topDistance: 1}) {
     return BoxShadow(
         color: color,
         blurRadius: blurRadius,
         spreadRadius: spreadRadius,
         offset: Offset.fromDirection(4.7, topDistance));
+  }
+
+  static base(
+      {color: const Color(0xFFE0E0E0), double blurRadius: 5, double spreadRadius: 5 }) {
+    return BoxShadow(
+        color: color,
+        blurRadius: blurRadius,
+        spreadRadius: spreadRadius
+    );
   }
 }
