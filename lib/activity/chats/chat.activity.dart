@@ -3,11 +3,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/http/http-client.dart';
 import 'package:http/http.dart' as http;
@@ -30,6 +32,8 @@ class ChatActivity extends StatefulWidget {
 }
 
 class ChatActivityState extends BaseState<ChatActivity> {
+  var displayLoader = true;
+
   final TextEditingController textEditingController = TextEditingController();
   final FocusNode textFieldFocusNode = FocusNode();
 
@@ -38,6 +42,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   int userId = 0;
   int anotherUserId = 0;
 
+  List<MessageDto> messages = new List();
   bool isLoadingOnScroll = false;
   int pageNumber = 1;
   int pageSize = 50;
@@ -73,10 +78,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   Future doGetMessages({page = 1, clearRides = false, favouritesOnly = false}) async {
-    // if (clearRides) {
-    //   contacts.clear();
-    //   pageNumber = 1;
-    // }
+    if (clearRides) {
+      messages.clear();
+      pageNumber = 1;
+    }
 
     String url = '/api/messages'
         '?pageNumber=' + (page - 1).toString() +
@@ -93,20 +98,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
     dynamic result = response.decode();
 
     await Future.delayed(Duration(seconds: 1  ));
-    return {'contacts': result['page'], 'totalElements': result['totalElements']};
+    return {'messages': result['page'], 'totalElements': result['totalElements']};
   }
 
   onGetMessagesSuccess(result) {
-    List filteredRides = result['contacts'];
-    // totalContacts = result['totalElements'];
-    //
-    // filteredRides.forEach((element) {
-    //   contacts.add(ContactDto.fromJson(element));
-    // });
+    List filteredMessages = result['messages'];
+
+    filteredMessages.forEach((element) {
+      messages.add(MessageDto.fromJson(element));
+    });
 
     setState(() {
       displayLoader = false;
-      // isLoadingOnScroll = false;
+      isLoadingOnScroll = false;
       isError = false;
     });
   }
@@ -115,7 +119,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     print(error);
     setState(() {
       displayLoader = false;
-      // isLoadingOnScroll = false;
+      isLoadingOnScroll = false;
       isError = true;
     });
 
@@ -128,7 +132,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
       await Future.delayed(Duration(seconds: 1));
 
-      // doGetContacts(clearRides: true).then(onGetContactsSuccess, onError: onGetContactsError);
+      doGetMessages(clearRides: true).then(onGetMessagesSuccess, onError: onGetMessagesError);
     }));
   }
 
@@ -186,18 +190,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
           return Container(
             color: Colors.white,
             child: Column(children: [
-              Container(child: Text('hey'), color: Colors.blue),
-              Expanded(child: Container(color: Colors.red, child: Text('hey'))),
-              IconButton(
-                key: Key('sendButton'),
-                onPressed: () {
-                  // sendMessage();
-                },
-                icon: Icon(
-                  Icons.send,
-                  color: StreamChatTheme.of(context).accentColor,
-                ),
-              ),
+              buildListView(),
               MessageInput(
                 actions: <Widget>[
                   IconButton(
@@ -212,6 +205,41 @@ class ChatActivityState extends BaseState<ChatActivity> {
           );
         })
     );
+  }
+
+  Widget buildListView() {
+    Widget widget = Center(child: Spinner());
+
+    if (!displayLoader) {
+      if (messages != null && messages.length > 0) {
+        widget = Expanded(
+          child: ListView.builder(
+            itemCount: messages == null ? 0 : messages.length,
+            itemBuilder: (context, index) {
+              var message = messages[index];
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Column(children: [
+                    Text(message.text)
+                  ]),
+                ],
+              );
+            },
+          ),
+        );
+      } else {
+        widget = Center(
+          child: Container(
+            margin: EdgeInsets.all(25),
+            child: Text('Here begins history', style: TextStyle(color: Colors.grey)),
+          ),
+        );
+      }
+    }
+
+    return widget;
   }
 
   Widget buildInputRow() {

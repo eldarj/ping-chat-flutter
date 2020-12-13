@@ -17,10 +17,10 @@ class MessageDto {
   bool senderOnline;
   bool receiverOnline;
 
-  double senderLastOnlineTimestamp;
-  double receiverLastOnlineTimestamp;
+  int senderLastOnlineTimestamp;
+  int receiverLastOnlineTimestamp;
 
-  double sentTimestamp;
+  int sentTimestamp;
 
   MessageDto({this.id, this.text, this.sender, this.receiver, this.received, this.seen,
     this.senderContactName, this.receiverContactName, this.sentTimestamp});
@@ -41,9 +41,9 @@ class MessageDto {
       ..receiverContactName = parsedJson['receiverContactName'] as String
       ..senderOnline = parsedJson['senderOnline'] as bool
       ..receiverOnline = parsedJson['receiverOnline'] as bool
-      ..senderLastOnlineTimestamp = parsedJson['senderLastOnlineTimestamp'] as double
-      ..receiverLastOnlineTimestamp = parsedJson['receiverLastOnlineTimestamp'] as double
-      ..sentTimestamp = parsedJson['sentTimestamp'] as double;
+      ..senderLastOnlineTimestamp = parsedJson['senderLastOnlineTimestamp'] as int
+      ..receiverLastOnlineTimestamp = parsedJson['receiverLastOnlineTimestamp'] as int
+      ..sentTimestamp = parsedJson['sentTimestamp'] as int;
   }
 
   Map<String, dynamic> toJson() => {
