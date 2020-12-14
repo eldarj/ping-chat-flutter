@@ -8,40 +8,42 @@ import 'package:flutter/widgets.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
-import 'package:flutterping/util/ws/ws-client.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 
 class ChatActivity extends StatefulWidget {
-  final ClientDto clientDto;
+  final ClientDto peer;
+  final String peerContactName;
 
-  final String contactName;
+  final String myContactName;
+
   final String statusLabel;
 
   final int contactBindingId;
 
-  const ChatActivity({Key key, this.clientDto,
-    this.contactName, this.statusLabel, this.contactBindingId}) : super(key: key);
+  const ChatActivity({Key key, this.myContactName, this.peer,
+    this.peerContactName, this.statusLabel, this.contactBindingId}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ChatActivityState();
 }
 
 class ChatActivityState extends BaseState<ChatActivity> {
-  var displayLoader = true;
+  static const String STREAMS_LISTENER_IDENTIFIER = "ChatActivityListener";
 
-  WsClient wsClient;
+  var displayLoader = true;
 
   final TextEditingController textEditingController = TextEditingController();
   final FocusNode textFieldFocusNode = FocusNode();
@@ -58,64 +60,55 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   onInit() async {
     user = await UserService.getUser();
-    anotherUserId = widget.clientDto.id;
+    anotherUserId = widget.peer.id;
 
     doGetMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
 
     dynamic userToken = await UserService.getToken();
-    wsClient = new WsClient(userToken, onConnectedFunc: () {
-      wsClient.subscribe(destination: '/user/messages/receive', callback: (frame) async {
-        MessageDto newMessage = MessageDto.fromJson(json.decode(frame.body));
-        newMessage.senderContactName = widget.contactName;
-        setState(() {
-          messages.insert(0, newMessage);
-        });
 
-        wsClient.send('/messages/seen', new MessageSeenDto(id: newMessage.id,
-            senderPhoneNumber: newMessage.sender.countryCode.dialCode + newMessage.sender.phoneNumber));
+    wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
+      setState(() {
+        messages.insert(0, message);
       });
 
-      wsClient.subscribe(destination: '/user/messages/sent', callback: (frame) async {
-        await Future.delayed(Duration(seconds: 1));
-        MessageDto message = MessageDto.fromJson(json.decode(frame.body));
-        setState(() {
-          for(var i = messages.length - 1; i >= 0; i--){
-            if (messages[i].sentTimestamp == message.sentTimestamp) {
-              setState(() {
-                messages[i].id = message.id;
-                messages[i].sent = true;
-              });
-            }
-          }
-        });
-      });
+      sendSeenStatus(new MessageSeenDto(id: message.id,
+          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
+    });
 
-      wsClient.subscribe(destination: '/user/messages/received', callback: (frame) async {
-        await Future.delayed(Duration(seconds: 2));
-        int messageId = json.decode(frame.body);
-        setState(() {
-          for(var i = messages.length - 1; i >= 0; i--){
-            if (messages[i].id == messageId) {
-              setState(() {
-                messages[i].received = true;
-              });
-            }
+    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
+      setState(() {
+        for(var i = messages.length - 1; i >= 0; i--){
+          if (messages[i].sentTimestamp == message.sentTimestamp) {
+            setState(() {
+              messages[i].id = message.id;
+              messages[i].sent = true;
+            });
           }
-        });
+        }
       });
+    });
 
-      wsClient.subscribe(destination: '/user/messages/seen', callback: (frame) async {
-        await Future.delayed(Duration(seconds: 3));
-        int messageId = json.decode(frame.body);
-        setState(() {
-          for(var i = messages.length - 1; i >= 0; i--){
-            if (messages[i].id == messageId) {
-              setState(() {
-                messages[i].seen = true;
-              });
-            }
+    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) {
+      setState(() {
+        for(var i = messages.length - 1; i >= 0; i--){
+          if (messages[i].id == messageId) {
+            setState(() {
+              messages[i].received = true;
+            });
           }
-        });
+        }
+      });
+    });
+
+    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) {
+      setState(() {
+        for(var i = messages.length - 1; i >= 0; i--){
+          if (messages[i].id == messageId) {
+            setState(() {
+              messages[i].seen = true;
+            });
+          }
+        }
       });
     });
   }
@@ -146,7 +139,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
   @override
   dispose() {
     super.dispose();
-    wsClient.destroy();
   }
 
   @override
@@ -155,12 +147,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
         appBar: BaseAppBar.getBackAppBar(getScaffoldContext, centerTitle: false,
             titleWidget: Row(
               children: [
-                RoundProfileImageComponent(url: widget.clientDto.profileImagePath,
+                RoundProfileImageComponent(url: widget.peer.profileImagePath,
                     height: 45, width: 45, borderRadius: 45, margin: 0),
                 Container(
                   margin: EdgeInsets.only(left: 10),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(widget.contactName, style: TextStyle(fontWeight: FontWeight.normal)),
+                    Text(widget.peerContactName, style: TextStyle(fontWeight: FontWeight.normal)),
                     Text(widget.statusLabel, style: TextStyle(fontSize: 12, color: Colors.grey))
                   ]),
                 ),
@@ -234,7 +226,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   Widget buildSingleMessage(MessageDto message) {
-    bool isPeerMessage = user.id == message.receiver.id;
+    bool isPeerMessage = user.id != message.sender.id;
     if (isPeerMessage) {
       return Row(
         children: <Widget>[
@@ -410,13 +402,13 @@ class ChatActivityState extends BaseState<ChatActivity> {
     textEditingController.clear();
 
     message.sender = user;
-    message.receiver = widget.clientDto;
+    message.receiver = widget.peer;
+    message.senderContactName = widget.myContactName;
+    message.receiverContactName = widget.peerContactName;
 
     message.sent = false;
     message.received = false;
     message.seen = false;
-
-    message.receiverContactName = widget.contactName;
 
     message.sentTimestamp = DateTime.now().millisecondsSinceEpoch;
     message.contactBindingId = widget.contactBindingId;
@@ -425,7 +417,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       messages.insert(0, message);
     });
 
-    wsClient.send("/messages/send", message);
+    sendMessage(message);
   }
 
   Future doGetMessages({page = 1, clearRides = false, favouritesOnly = false}) async {
@@ -440,7 +432,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         '&userId=' + user.id.toString() +
         '&anotherUserId=' + anotherUserId.toString();
 
-    http.Response response = await HttpClient.get(url);
+    http.Response response = await HttpClientService.get(url);
 
     if(response.statusCode != 200) {
       throw new Exception();
@@ -448,11 +440,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     dynamic result = response.decode();
 
-    await Future.delayed(Duration(seconds: 1  ));
     return {'messages': result['page'], 'totalElements': result['totalElements']};
   }
 
   onGetMessagesSuccess(result) {
+    scaffold.removeCurrentSnackBar();
+
     List filteredMessages = result['messages'];
 
     filteredMessages.forEach((element) {
@@ -480,8 +473,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
         displayLoader = true;
         isError = false;
       });
-
-      await Future.delayed(Duration(seconds: 1));
 
       doGetMessages(clearRides: true).then(onGetMessagesSuccess, onError: onGetMessagesError);
     }));

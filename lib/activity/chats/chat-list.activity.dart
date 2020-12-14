@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +6,8 @@ import 'package:flutterping/activity/chats/chat.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
-import 'package:flutterping/service/global-app.service.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
@@ -17,12 +16,10 @@ import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
-import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
-import 'package:flutterping/util/ws/ws-client.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
 
@@ -34,9 +31,9 @@ class ChatListActivity extends StatefulWidget {
 }
 
 class ChatListActivityState extends BaseState<ChatListActivity> {
-  var displayLoader = true;
+  static const String STREAMS_LISTENER_IDENTIFIER = "ChatListListener";
 
-  WsClient wsClient;
+  var displayLoader = true;
 
   int userId = 0;
 
@@ -53,29 +50,41 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     dynamic userToken = await UserService.getToken();
     userId = user.id;
 
-    // Register UI ws client listener
-    wsClient = new WsClient(userToken, onConnectedFunc: () {
-      wsClient.subscribe(destination: '/users/status', callback: (frame) async {
-        print('USERS STATUS CHANGE');
-        print(frame);
-      });
+    wsClientService.userStatusPub.addListener(STREAMS_LISTENER_IDENTIFIER, (item) {
+      print(item);
     });
 
-    globalAppService.listenToReceivingMessages('chatlist_receivingmessages', (message) {
-      wsClient.send('/messages/received', new MessageSeenDto(id: message.id,
-          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
-
-      chats.forEach((ch) => {
-        if (ch.contactBindingId == message.contactBindingId) {
+    wsClientService.sendingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (MessageDto message) {
+      chats.forEach((chat) => {
+        if (chat.contactBindingId == message.contactBindingId) {
           setState(() {
-            ch.text = message.text;
+            chat.text = message.text;
+            chat.sender = message.sender;
+            chat.receiver = message.receiver;
+            chat.senderContactName = message.senderContactName;
+            chat.receiverContactName = message.receiverContactName;
+            chat.sentTimestamp = message.sentTimestamp;
           })
         }
       });
     });
-    globalAppService.listenToReceivingMessages('chatlist_receivingmessages', (message) {
-      wsClient.send('/messages/received', new MessageSeenDto(id: message.id,
+
+    wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
+      sendReceivedStatus(new MessageSeenDto(id: message.id,
           senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
+
+      chats.forEach((chat) => {
+        if (chat.contactBindingId == message.contactBindingId) {
+          setState(() {
+            chat.text = message.text;
+            chat.sender = message.sender;
+            chat.receiver = message.receiver;
+            chat.senderContactName = message.senderContactName;
+            chat.receiverContactName = message.receiverContactName;
+            chat.sentTimestamp = message.sentTimestamp;
+          })
+        }
+      });
     });
 
     doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
@@ -88,12 +97,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   initState() {
     super.initState();
     onInit();
-  }
-
-  @override
-  void dispose() {
-    wsClient.destroy();
-    super.dispose();
   }
 
   @override
@@ -159,12 +162,13 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           itemBuilder: (context, index) {
             // TODO: Move this to onSuccess
             var chat = chats[index];
-            var contact, profileUrl, contactName, isOnline, lastOnline, statusLabel;
+            var contact, profileUrl, peerContactName, myContactName, isOnline, lastOnline, statusLabel;
 
             if (userId == chat.sender.id) {
               contact = chat.receiver;
               profileUrl = chat.receiver.profileImagePath;
-              contactName = chat.receiverContactName;
+              myContactName = chat.senderContactName;
+              peerContactName = chat.receiverContactName;
               isOnline = chat.receiverOnline;
               if (!isOnline) {
                 lastOnline = chat.receiverLastOnlineTimestamp;
@@ -172,7 +176,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             } else {
               contact = chat.sender;
               profileUrl = chat.sender.profileImagePath;
-              contactName = chat.senderContactName;
+              myContactName = chat.receiverContactName;
+              peerContactName = chat.senderContactName;
               isOnline = chat.senderOnline;
               lastOnline = chat.senderLastOnlineTimestamp;
             }
@@ -180,13 +185,15 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             return buildSingleConversationRow(
               contact: contact,
               profile: profileUrl,
-              contactName: contactName??'fixme',
+              myContactName: myContactName,
+              peerContactName: peerContactName??'fixme',
               contactBindingId: chat.contactBindingId,
               messageContent: chat.text,
               seen: chat.seen,
               isOnline: isOnline,
               statusLabel: isOnline ? 'Online' : DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
               messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp),
+              displaySeen: userId == chat.sender.id,
             );
           },
         ),
@@ -195,13 +202,13 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }
 
 
-  Widget buildSingleConversationRow({ClientDto contact, String profile, String contactName, String messageContent,
-    bool displaySeen = true, bool seen = true, String messageSent, bool isOnline = false, String statusLabel = '',
-    int contactBindingId = 0
+  Widget buildSingleConversationRow({ClientDto contact, String profile, String peerContactName, String myContactName,
+    String messageContent, bool displaySeen = true, bool seen = true, String messageSent, bool isOnline = false,
+    String statusLabel = '', int contactBindingId = 0
   }) {
     return GestureDetector(
       onTap: () {
-        NavigatorUtil.push(context, ChatActivity(clientDto: contact, contactName: contactName,
+        NavigatorUtil.push(context, ChatActivity(myContactName: myContactName, peer: contact, peerContactName: peerContactName,
             statusLabel: statusLabel, contactBindingId: contactBindingId));
       },
       child: Container(
@@ -245,7 +252,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Container(
-                                        child: Text(contactName, style: TextStyle(fontSize: 18,
+                                        child: Text(peerContactName, style: TextStyle(fontSize: 18,
                                             fontWeight: FontWeight.bold, color: Colors.black87))),
                                     Row(
                                       children: <Widget>[
@@ -295,7 +302,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         '?pageNumber=' + (page - 1).toString() +
         '&pageSize=' + pageSize.toString();
 
-    http.Response response = await HttpClient.get(url);
+    http.Response response = await HttpClientService.get(url);
 
     if(response.statusCode != 200) {
       throw new Exception();

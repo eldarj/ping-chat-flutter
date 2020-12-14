@@ -17,7 +17,7 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 
 class AddContactActivity extends StatefulWidget {
   const AddContactActivity();
@@ -162,12 +162,10 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
   Future<ContactDto> doSendAuthRequest(String dialCode, String phoneNumber, String contactName) async {
     FocusScope.of(context).unfocus();
 
-    http.Response response = await HttpClient.post('/api/contacts', body: new ContactDto(
+    http.Response response = await HttpClientService.post('/api/contacts', body: new ContactDto(
       contactPhoneNumber: dialCode + phoneNumber,
       contactName: contactName,
     ));
-
-    await Future.delayed(Duration(seconds: 1));
 
     if (response.statusCode != 200) {
       throw new Exception();
@@ -228,7 +226,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
   }
 
   Future<List<DropdownMenuItem<String>>> doGetCountryCodes() async {
-    http.Response response = await HttpClient.get('/api/country-codes');
+    http.Response response = await HttpClientService.get('/api/country-codes');
     Map<String, dynamic> responseBody = json.decode(response.body);
 
     return responseBody.entries.map<DropdownMenuItem<String>>((entry) {

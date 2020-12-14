@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';

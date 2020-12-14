@@ -1,7 +1,7 @@
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -57,9 +57,8 @@ class InviteContactDialogState extends BaseState<InviteContactDialog> {
       displayLoader = true;
     });
 
-    http.Response response = await HttpClient.post('/api/contacts/invite', body: widget.contactPhoneNumber);
+    http.Response response = await HttpClientService.post('/api/contacts/invite', body: widget.contactPhoneNumber);
 
-    await Future.delayed(Duration(seconds: 1));
     if (response.statusCode != 200) {
       throw new Exception();
     }

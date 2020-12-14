@@ -13,7 +13,7 @@ import 'package:flutterping/model/country-code-dto.model.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
@@ -161,7 +161,7 @@ class LoginActivityState extends State<LoginActivity> {
   }
 
   Future<List<DropdownMenuItem<String>>> doGetCountryCodes() async {
-    http.Response response = await HttpClient.get('/api/country-codes');
+    http.Response response = await HttpClientService.get('/api/country-codes');
     Map<String, dynamic> responseBody = json.decode(response.body);
 
     return responseBody.entries.map<DropdownMenuItem<String>>((entry) {
@@ -177,7 +177,7 @@ class LoginActivityState extends State<LoginActivity> {
   Future<bool> doSendAuthRequest(String dialCode, String phoneNumber) async {
     FocusScope.of(context).unfocus();
 
-    http.Response response = await HttpClient.post('/api/authenticate',
+    http.Response response = await HttpClientService.post('/api/authenticate',
         headers: {'phoneNumber': phoneNumber, 'dialCode': dialCode});
 
     return json.decode(response.body)['success'];

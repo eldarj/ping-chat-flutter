@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/profile/profile-image-upload/profile-image-upload.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
@@ -16,7 +16,7 @@ import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/base/base.state.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -177,7 +177,6 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
             isError = false;
           });
 
-          await Future.delayed(Duration(seconds: 1));
           doGetProfileData().then(onGetProfileDataSuccess, onError: onGetProfileDataError);
         });
       }
@@ -238,7 +237,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   Future<void> doGetProfileData() async {
     var user = await UserService.getUser();
-    http.Response response = await HttpClient.get('/api/users/${user.id}');
+    http.Response response = await HttpClientService.get('/api/users/${user.id}');
 
     if (response.statusCode != 200) {
       throw new Exception();
@@ -272,8 +271,6 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
         displayLoader = true;
         isError = false;
       });
-
-      await Future.delayed(Duration(seconds: 1));
 
       doGetProfileData().then(onGetProfileDataSuccess, onError: onGetProfileDataError);
     }));

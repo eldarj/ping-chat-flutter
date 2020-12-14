@@ -5,11 +5,11 @@ import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class SignUpFormActivity extends StatefulWidget {
@@ -135,9 +135,7 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
       this.displayLoader = true;
     });
 
-    await Future.delayed(Duration(seconds: 1));
-
-    http.Response response = await HttpClient.post('/api/users/${widget.clientDto.id}/name',
+    http.Response response = await HttpClientService.post('/api/users/${widget.clientDto.id}/name',
         body: {'firstName': firstName, 'lastName': lastName});
 
     if (response.statusCode != 200) {
@@ -156,8 +154,6 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
     });
 
     scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste snimili podatke!'));
-
-    await Future.delayed(Duration(seconds: 1));
 
     NavigatorUtil.replace(context, ContactsActivity());
   }

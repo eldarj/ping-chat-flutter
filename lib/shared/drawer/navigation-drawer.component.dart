@@ -6,7 +6,7 @@ import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/activity/profile/my-profile.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/drawer/partial/logout.dialog.dart';

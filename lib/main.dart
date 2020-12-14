@@ -6,8 +6,7 @@ import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/activity/landing/landing.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/activity/profile/my-profile.activity.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
-import 'package:flutterping/util/ws/ws-client.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 
 void main() => runApp(MyApp());
 

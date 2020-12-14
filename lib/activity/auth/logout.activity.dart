@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/activity/auth/login.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 
 class LogoutActivity extends StatefulWidget {
@@ -30,10 +30,10 @@ class LogoutActivityState extends State<LogoutActivity> {
 
   doLogout() async {
     var user = await UserService.getUser();
-    HttpClient.post('/api/users/${user.id}/logout');
+    HttpClientService.post('/api/users/${user.id}/logout');
     UserService.remove();
 
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 1));
 
     setState(() {
       displayLoader = false;
@@ -41,7 +41,7 @@ class LogoutActivityState extends State<LogoutActivity> {
 
     scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste se odjavili.'));
 
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 1));
 
     NavigatorUtil.push(context, LoginActivity());
   }

@@ -18,6 +18,13 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
   var drawer;
 
   @override
+  setState(VoidCallback callback) {
+    if (this.mounted) {
+      super.setState(callback);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     preRender();
 

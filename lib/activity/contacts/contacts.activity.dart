@@ -16,10 +16,10 @@ import 'package:flutterping/shared/loader/linear-progress-loader.component.dart'
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class ContactsActivity extends StatefulWidget {
@@ -165,7 +165,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
             isError = false;
           });
 
-          await Future.delayed(Duration(seconds: 1));
           doGetContacts(clearRides: true).then(onGetContactsSuccess, onError: onGetContactsError);
         });
       }
@@ -284,7 +283,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
   Future<ContactDto> doUpdateFavourites(ContactDto contactDto, int index) async {
     String url = '/api/contacts/${contactDto.id}/favourite';
 
-    http.Response response = await HttpClient.post(url, body: !contactDto.favorite);
+    http.Response response = await HttpClientService.post(url, body: !contactDto.favorite);
 
     if(response.statusCode != 200) {
       throw new Exception();
@@ -321,10 +320,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
       if (totalContacts != 0 && pageNumber * pageSize < totalContacts) {
         pageNumber++;
-        await Future.delayed(Duration(seconds: 1));
         doGetContacts(page: pageNumber).then(onGetContactsSuccess, onError: onGetContactsError);
       } else {
-        await Future.delayed(Duration(seconds: 1));
         setState(() {
           isLoadingOnScroll = false;
         });
@@ -349,7 +346,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
         '&userId=' + userId.toString() +
         '&favourites=' + favouritesOnly.toString();
 
-    http.Response response = await HttpClient.get(url);
+    http.Response response = await HttpClientService.get(url);
 
     if(response.statusCode != 200) {
       throw new Exception();
@@ -357,11 +354,12 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
     dynamic result = response.decode();
 
-    await Future.delayed(Duration(seconds: 1  ));
     return {'contacts': result['page'], 'totalElements': result['totalElements']};
   }
 
   void onGetContactsSuccess(result) {
+    scaffold.removeCurrentSnackBar();
+
     List filteredRides = result['contacts'];
     totalContacts = result['totalElements'];
 
@@ -391,7 +389,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
         isError = false;
       });
 
-      await Future.delayed(Duration(seconds: 1));
 
       doGetContacts(clearRides: true).then(onGetContactsSuccess, onError: onGetContactsError);
     }));

@@ -73,7 +73,6 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
     setState(() {
       displayLoader = true;
     });
-    await Future.delayed(Duration(seconds: 2));
     NavigatorUtil.replace(context, LoginActivity());
   }
 }

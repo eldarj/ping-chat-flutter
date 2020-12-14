@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -22,7 +22,6 @@ class _LandingActivityState extends BaseState<LandingActivity> {
   }
 
   loadActivity() async {
-    await Future.delayed(Duration(seconds: 2));
     var user = await UserService.getUser();
     if (user == null) {
       NavigatorUtil.push(context, PolicyActivity());

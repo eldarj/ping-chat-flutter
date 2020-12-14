@@ -10,9 +10,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutterping/util/http/http-client.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 
 class ProfileImageUploadActivity extends StatefulWidget {
   @override
@@ -51,7 +51,6 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
     setState(() {
       displayLoader = true;
     });
-    await Future.delayed(Duration(seconds: 1));
     chooseImage();
   }
 
@@ -157,7 +156,7 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
 
   Future<String> doUploadProfileImage() async {
     var user = await UserService.getUser();
-    var response = await HttpClient.postMultipartFile('/api/users/${user.id}/profile-image', imagePath, imageFile);
+    var response = await HttpClientService.postMultipartFile('/api/users/${user.id}/profile-image', imagePath, imageFile);
 
     if (response.statusCode != 200) {
       throw new Exception();
@@ -168,7 +167,6 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
 
   void onUploadProfileImageSuccess(savedProfileImagePath) async {
     UserService.setUserProfileImagePath(savedProfileImagePath);
-    await Future.delayed(Duration(seconds: 1));
 
     setState(() {
       isLoadingSaveButton = false;
@@ -190,7 +188,6 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
         isLoadingSaveButton = true;
       });
 
-      await Future.delayed(Duration(seconds: 1));
       doUploadProfileImage().then(onUploadProfileImageSuccess, onError: onUploadProfileImageError);
     }));
   }
