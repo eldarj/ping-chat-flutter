@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
@@ -278,50 +279,17 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 children: [
                   Container(
                       padding: EdgeInsets.only(left: 10, top: 10, right: 10, bottom: 0),
-                      child: Text(message.text)),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Text(DateTimeUtil.convertTimestampToChatFriendlyDate(message.sentTimestamp),
-                        style: TextStyle(color: CompanyColor.grey, fontSize: 12),
-                      ),
-                      buildSeenStatus(message.sent, message.received, message.seen)
-                    ],
-                  ),
+                      child: Text(message.text, style: TextStyle(fontSize: 15))),
+                  MessageStatusRow(
+                      text: DateTimeUtil.convertTimestampToChatFriendlyDate(message.sentTimestamp),
+                      mainAlignment: MainAxisAlignment.end,
+                      sent: message.sent, received: message.received, seen: message.seen),
                 ]),
           )
         ],
         mainAxisAlignment: MainAxisAlignment.end,
       );
     }
-  }
-
-  buildSeenStatus(sent, received, seen) {
-    Widget statusWidget;
-
-    if (seen) {
-      statusWidget = Stack(children: [
-        Icon(Icons.check, color: Colors.green, size: 15),
-        Container(margin: EdgeInsets.only(left: 5), child: Icon(Icons.check, color: Colors.green, size: 15))
-      ]);
-    } else if (received) {
-      statusWidget = Stack(children: [
-        Icon(Icons.check, color: Colors.grey, size: 15),
-        Container(margin: EdgeInsets.only(left: 5), child: Icon(Icons.check, color: Colors.grey, size: 15))
-      ]);
-    } else if (sent) {
-      statusWidget = Icon(Icons.check, color: Colors.grey, size: 13);
-    } else {
-      statusWidget = Icon(Icons.hourglass_empty, color: Colors.grey, size: 13);
-    }
-
-    return Container(
-        height: 15,
-        width: 20,
-        margin: EdgeInsets.only(bottom: 2.5, left: 5, right: 5),
-        child: statusWidget
-    );
   }
 
   Widget buildInputRow() {

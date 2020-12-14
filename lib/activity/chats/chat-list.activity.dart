@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/chat.activity.dart';
+import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
@@ -16,6 +17,7 @@ import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
@@ -194,6 +196,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
               statusLabel: isOnline ? 'Online' : DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
               messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp),
               displaySeen: userId == chat.sender.id,
+              message: chat,
             );
           },
         ),
@@ -204,7 +207,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   Widget buildSingleConversationRow({ClientDto contact, String profile, String peerContactName, String myContactName,
     String messageContent, bool displaySeen = true, bool seen = true, String messageSent, bool isOnline = false,
-    String statusLabel = '', int contactBindingId = 0
+    String statusLabel = '', int contactBindingId = 0, MessageDto message
   }) {
     return GestureDetector(
       onTap: () {
@@ -254,16 +257,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                     Container(
                                         child: Text(peerContactName, style: TextStyle(fontSize: 18,
                                             fontWeight: FontWeight.bold, color: Colors.black87))),
-                                    Row(
-                                      children: <Widget>[
-                                        Text(messageContent, style: TextStyle(color: Colors.grey)),
-                                        displaySeen ? Container(
-                                            margin: EdgeInsets.only(left: 5),
-                                            child: seen? Icon(Icons.check, color: Colors.green, size: 14)
-                                                : Icon(Icons.check, color: Colors.grey, size: 14)
-                                        ) : Container(),
-                                      ],
-                                    )
+                                    MessageStatusRow(text: message.text, sent: message.sent, received: message.received, seen: message.seen)
                                   ]
                               ),
                             )
