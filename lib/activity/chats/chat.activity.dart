@@ -138,8 +138,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   @override
-  dispose() {
-    super.dispose();
+  void deactivate() {
+    super.deactivate();
+    wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
   }
 
   @override

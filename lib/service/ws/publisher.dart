@@ -30,4 +30,9 @@ class Publisher<T> {
       subs[key] = subject.listen(callback);
     }
   }
+
+  removeListener(String key) {
+    subs[key]?.cancel();
+    subs.remove(key);
+  }
 }

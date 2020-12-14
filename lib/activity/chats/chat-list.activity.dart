@@ -72,9 +72,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
 
     wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
-      sendReceivedStatus(new MessageSeenDto(id: message.id,
-          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
-
       chats.forEach((chat) => {
         if (chat.contactBindingId == message.contactBindingId) {
           setState(() {
@@ -89,6 +86,43 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
+    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
+      setState(() {
+        for(var i = chats.length - 1; i >= 0; i--){
+          if (chats[i].sentTimestamp == message.sentTimestamp) {
+            setState(() {
+              chats[i].id = message.id;
+              chats[i].sent = true;
+            });
+          }
+        }
+      });
+    });
+
+    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) {
+      setState(() {
+        for(var i = chats.length - 1; i >= 0; i--){
+          if (chats[i].id == messageId) {
+            setState(() {
+              chats[i].received = true;
+            });
+          }
+        }
+      });
+    });
+
+    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) {
+      setState(() {
+        for(var i = chats.length - 1; i >= 0; i--){
+          if (chats[i].id == messageId) {
+            setState(() {
+              chats[i].seen = true;
+            });
+          }
+        }
+      });
+    });
+
     doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
   }
 
@@ -99,6 +133,17 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   initState() {
     super.initState();
     onInit();
+  }
+
+  @override
+  deactivate() {
+    super.deactivate();
+    wsClientService.userStatusPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
   }
 
   @override
@@ -257,7 +302,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                     Container(
                                         child: Text(peerContactName, style: TextStyle(fontSize: 18,
                                             fontWeight: FontWeight.bold, color: Colors.black87))),
-                                    MessageStatusRow(text: message.text, sent: message.sent, received: message.received, seen: message.seen)
+                                    MessageStatusRow(text: message.text, displaySeen: displaySeen, sent: message.sent, received: message.received, seen: message.seen)
                                   ]
                               ),
                             )
