@@ -16,6 +16,10 @@ class CompanyColor {
   static Color grey = Colors.grey;
 
   static Color backgroundGrey = Colors.grey.shade200;
+
+  // Component colors
+  static Color myMessageBackground = Color.fromRGBO(240, 255, 240, 1);
+  static Color myMessageBorder = Color.fromRGBO(230, 245, 230, 1);
 }
 
 class Shadows {

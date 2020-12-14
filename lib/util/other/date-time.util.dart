@@ -8,7 +8,7 @@ class DateTimeUtil {
     }
 
     var round = timestamp.round();
-    final date = DateTime.fromMillisecondsSinceEpoch(round * 1000);
+    final date = DateTime.fromMillisecondsSinceEpoch(round);
 
     return timeago.format(date);
   }
@@ -20,8 +20,29 @@ class DateTimeUtil {
 
     final dateFormat = new DateFormat('dd.MM.yyyy hh:mm');
     var round = timestamp.round();
-    final date = DateTime.fromMillisecondsSinceEpoch(round * 1000);
+    final date = DateTime.fromMillisecondsSinceEpoch(round);
 
     return dateFormat.format(date);
+  }
+
+  static String convertTimestampToChatFriendlyDate(var timestamp) {
+    if (timestamp == null) {
+      return '-';
+    }
+
+    var round = timestamp.round();
+    final date = DateTime.fromMillisecondsSinceEpoch(round);
+
+    var now = DateTime.now();
+    var dateFormat = new DateFormat('hh:mm');
+    var prefix = '';
+
+    if (date.day == now.day) {
+      prefix = 'Today, ';
+    } else if (date.day == now.day - 1) {
+      prefix = 'Yesterday, ';
+    }
+
+    return prefix + dateFormat.format(date);
   }
 }

@@ -56,7 +56,7 @@ class WsClient {
     return _stompClient.subscribe(destination: destination, callback: callback, headers: headers);
   }
 
-  destroy() async {
+  destroy() {
     _stompClient.deactivate();
     _stompClient = null;
   }

@@ -43,6 +43,7 @@ dependencies:
   timeago: ^2.0.15
   keyboard_visibility: ^0.5.6
   stream_chat_flutter: ^0.2.3
+  rxdart: ^0.24.1
 
 dev_dependencies:
   flutter_test:

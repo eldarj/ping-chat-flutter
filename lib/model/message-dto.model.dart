@@ -8,6 +8,7 @@ class MessageDto {
   ClientDto sender;
   ClientDto receiver;
 
+  bool sent;
   bool received;
   bool seen;
 
@@ -22,8 +23,10 @@ class MessageDto {
 
   int sentTimestamp;
 
-  MessageDto({this.id, this.text, this.sender, this.receiver, this.received, this.seen,
-    this.senderContactName, this.receiverContactName, this.sentTimestamp});
+  int contactBindingId;
+
+  MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
+    this.senderContactName, this.receiverContactName, this.sentTimestamp, this.contactBindingId});
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
     return MessageDto()
@@ -35,6 +38,7 @@ class MessageDto {
       ..receiver = parsedJson['receiver'] == null
           ? null
           : ClientDto.fromJson(parsedJson['receiver'] as Map<String, dynamic>)
+      ..sent = parsedJson['sent'] as bool
       ..received = parsedJson['received'] as bool
       ..seen = parsedJson['seen'] as bool
       ..senderContactName = parsedJson['senderContactName'] as String
@@ -43,7 +47,8 @@ class MessageDto {
       ..receiverOnline = parsedJson['receiverOnline'] as bool
       ..senderLastOnlineTimestamp = parsedJson['senderLastOnlineTimestamp'] as int
       ..receiverLastOnlineTimestamp = parsedJson['receiverLastOnlineTimestamp'] as int
-      ..sentTimestamp = parsedJson['sentTimestamp'] as int;
+      ..sentTimestamp = parsedJson['sentTimestamp'] as int
+      ..contactBindingId = parsedJson['contactBindingId'] as int;
   }
 
   Map<String, dynamic> toJson() => {
@@ -51,6 +56,7 @@ class MessageDto {
     'text': text,
     'sender': sender,
     'receiver': receiver,
+    'sent': sent,
     'received': received,
     'seen': seen,
     'senderContactName': senderContactName,
@@ -60,5 +66,6 @@ class MessageDto {
     'senderLastOnlineTimestamp': senderLastOnlineTimestamp,
     'receiverLastOnlineTimestamp': receiverLastOnlineTimestamp,
     'sentTimestamp': sentTimestamp,
+    'contactBindingId': contactBindingId,
   };
 }

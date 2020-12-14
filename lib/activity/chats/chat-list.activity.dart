@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/chat.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/model/message-seen-dto.model.dart';
+import 'package:flutterping/service/global-app.service.dart';
 import 'package:flutterping/service/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
@@ -36,9 +41,10 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   int userId = 0;
 
   List<MessageDto> chats = new List();
-  int totalChats = 0;
+  int totalChatsLoaded = 0;
 
   bool isLoadingOnScroll = false;
+  bool noMoreChatsToLoad = false;
   int pageSize = 50;
   int pageNumber = 1;
 
@@ -55,7 +61,27 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
+    globalAppService.listenToReceivingMessages('chatlist_receivingmessages', (message) {
+      wsClient.send('/messages/received', new MessageSeenDto(id: message.id,
+          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
+
+      chats.forEach((ch) => {
+        if (ch.contactBindingId == message.contactBindingId) {
+          setState(() {
+            ch.text = message.text;
+          })
+        }
+      });
+    });
+    globalAppService.listenToReceivingMessages('chatlist_receivingmessages', (message) {
+      wsClient.send('/messages/received', new MessageSeenDto(id: message.id,
+          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
+    });
+
     doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
+  }
+
+  onDispose() async {
   }
 
   @override
@@ -65,9 +91,9 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }
 
   @override
-  dispose() {
-    super.dispose();
+  void dispose() {
     wsClient.destroy();
+    super.dispose();
   }
 
   @override
@@ -112,7 +138,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             isError = false;
           });
 
-          await Future.delayed(Duration(seconds: 1));
           doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
         });
       }
@@ -153,14 +178,15 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             }
 
             return buildSingleConversationRow(
-                contact: contact,
-                profile: profileUrl,
-                contactName: contactName,
-                messageContent: chat.text,
-                seen: chat.seen,
-                isOnline: isOnline,
-                statusLabel: isOnline ? 'Online' : DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
-                messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp)
+              contact: contact,
+              profile: profileUrl,
+              contactName: contactName??'fixme',
+              contactBindingId: chat.contactBindingId,
+              messageContent: chat.text,
+              seen: chat.seen,
+              isOnline: isOnline,
+              statusLabel: isOnline ? 'Online' : DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
+              messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp),
             );
           },
         ),
@@ -170,11 +196,13 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
 
   Widget buildSingleConversationRow({ClientDto contact, String profile, String contactName, String messageContent,
-    bool displaySeen = true, bool seen = true, String messageSent, bool isOnline = false, String statusLabel = ''}) {
+    bool displaySeen = true, bool seen = true, String messageSent, bool isOnline = false, String statusLabel = '',
+    int contactBindingId = 0
+  }) {
     return GestureDetector(
       onTap: () {
-        NavigatorUtil.push(context, ChatActivity(clientDto: contact,
-            contactName: contactName, statusLabel: statusLabel));
+        NavigatorUtil.push(context, ChatActivity(clientDto: contact, contactName: contactName,
+            statusLabel: statusLabel, contactBindingId: contactBindingId));
       },
       child: Container(
         height: 75,
@@ -248,26 +276,12 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }
 
   void getNextPageOnScroll() async {
-    if (!isLoadingOnScroll) {
+    if (!isLoadingOnScroll && !noMoreChatsToLoad) {
       setState(() {
         isLoadingOnScroll = true;
       });
-
-      if (totalChats != 0 && pageNumber * pageSize < totalChats) {
-        pageNumber++;
-        await Future.delayed(Duration(seconds: 1));
-        doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
-      } else {
-        await Future.delayed(Duration(seconds: 1));
-        setState(() {
-          isLoadingOnScroll = false;
-        });
-        scaffold.showSnackBar(SnackBar(
-            content: Text('Sve smo učitali!.', style: TextStyle(color: Colors.white)),
-            duration: Duration(seconds: 2),
-            backgroundColor: Theme.of(context).accentColor
-        ));
-      }
+      pageNumber++;
+      doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
     }
   }
 
@@ -294,7 +308,11 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   void onGetChatDataSuccess(result) async {
     List filteredChats = result['chats'];
-    totalChats = result['totalElements'];
+    totalChatsLoaded += result['totalElements'];
+
+    if (result['totalElements'] == 0) {
+      noMoreChatsToLoad = true;
+    }
 
     filteredChats.forEach((element) {
       chats.add(MessageDto.fromJson(element));
@@ -321,8 +339,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         displayLoader = true;
         isError = false;
       });
-
-      await Future.delayed(Duration(seconds: 1));
 
       doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
     }));

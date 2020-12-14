@@ -6,7 +6,8 @@ import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/activity/landing/landing.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/activity/profile/my-profile.activity.dart';
-import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'package:flutterping/service/user.prefs.service.dart';
+import 'package:flutterping/util/ws/ws-client.dart';
 
 void main() => runApp(MyApp());
 
@@ -28,11 +29,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (context) => LandingActivity()
         },
-        theme: themeData,
-        builder: (context, child) => StreamChat(
-          streamChatThemeData: StreamChatThemeData.fromTheme(themeData),
-          child: child,
-        )
+        theme: themeData
     );
   }
 }
