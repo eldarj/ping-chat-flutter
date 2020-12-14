@@ -1,10 +1,11 @@
 
 
 import 'dart:convert';
-
+import 'package:flutter/rendering.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutterping/activity/chats/widget/chat-settings-menu.dart';
 import 'package:flutterping/activity/chats/widget/message-bubble.dart';
 import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
@@ -48,28 +49,30 @@ class ChatActivityState extends BaseState<ChatActivity> {
   var displayLoader = true;
 
   final TextEditingController textEditingController = TextEditingController();
-  final FocusNode textFieldFocusNode = FocusNode();
 
-  bool textFieldHasFocus = false;
+  bool displaySendButtong = false;
 
   ClientDto user;
   int anotherUserId = 0;
 
   List<MessageDto> messages = new List();
+  int totalMessages = 0;
+
   bool isLoadingOnScroll = false;
+
   int pageNumber = 1;
-  int pageSize = 50;
+  int pageSize = 10;
 
   bool previousWasPeerMessage;
   DateTime previousMessageDate;
+
+  ScrollController scrollViewColtroller = new ScrollController();
 
   onInit() async {
     user = await UserService.getUser();
     anotherUserId = widget.peer.id;
 
     doGetMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
-
-    dynamic userToken = await UserService.getToken();
 
     wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
       setState(() {
@@ -130,19 +133,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     KeyboardVisibilityNotification().addNewListener(
       onChange: (bool visible) {
-        print('KEYBOARD VISIBLITY');
-        textFieldHasFocus = visible;
+        displaySendButtong = visible;
       },
     );
-
-    textFieldFocusNode.addListener(() {
-      if (textFieldFocusNode.hasFocus) {
-        setState(() {
-          print('has focus');
-          textFieldHasFocus = true;
-        });
-      }
-    });
   }
 
   @override
@@ -171,31 +164,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 ),
               ],
             ),
-            actions: [
-              PopupMenuButton<String>(
-                onSelected: (choice) {
-                  if (choice == 'info') {
-
-                  } else if (choice == 'media') {
-                    // NavigatorUtil.push(context, AddContactActivity());
-                  }
-                },
-                itemBuilder: (BuildContext context) {
-                  return [
-                    PopupMenuItem<String>(
-                        value: 'info',
-                        child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
-                            child: Icon(Icons.info_outline)), Text('View contact') ])
-                    ),
-                    PopupMenuItem<String>(
-                        value: 'media',
-                        child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
-                            child: Icon(Icons.sd_storage)), Text('Shared media') ])
-                    )
-                  ];
-                },
-              )
-            ]
+            actions: [ChatSettingsMenu()]
         ),
         drawer: NavigationDrawerComponent(),
         body: Builder(builder: (context) {
@@ -203,6 +172,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
           return Container(
             color: Colors.white,
             child: Column(children: [
+              isLoadingOnScroll ? SizedOverflowBox(
+                  size: Size(100, 0),
+                  child: Container(
+                      padding: EdgeInsets.only(top: 50),
+                      child: Spinner(size: 20))) : Container(),
               buildMessagesList(),
               buildInputRow()
             ]),
@@ -216,15 +190,30 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     if (!displayLoader) {
       if (messages != null && messages.length > 0) {
-        widget = Expanded(
-          child: Container(
-            padding: EdgeInsets.only(bottom: 20),
-            child: ListView.builder(
-              reverse: true,
-              itemCount: messages == null ? 0 : messages.length,
-              itemBuilder: (context, index) {
-                return buildSingleMessage(messages[index], isLastMessage: index == 0);
-              },
+        widget = NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (!displayLoader) {
+              if (scrollInfo is UserScrollNotification) {
+                UserScrollNotification userScrollNotification = scrollInfo as UserScrollNotification;
+                if (scrollInfo.metrics.pixels == scrollInfo.metrics.minScrollExtent
+                    && userScrollNotification.direction == ScrollDirection.reverse) {
+                  getNextPageOfMessagesOnScroll();
+                }
+              }
+            }
+            return true;
+          },
+          child: Expanded(
+            child: Container(
+              color: Colors.transparent,
+              padding: EdgeInsets.only(bottom: 20),
+              child: ListView.builder(
+                reverse: true,
+                itemCount: messages == null ? 0 : messages.length,
+                itemBuilder: (context, index) {
+                  return buildSingleMessage(messages[index], isLastMessage: index == 0);
+                },
+              ),
             ),
           ),
         );
@@ -261,7 +250,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     return MessageBubble(isPeerMessage: isPeerMessage, content: message.text, maxWidth: width,
       displayTimestamp: displayTimestamp, sentTimestamp: message.sentTimestamp,
       sent: message.sent, received: message.received, seen: message.seen,
-      displayCheckMark: message.displayCheckMark, isChained: message.isChained,
+      displayCheckMark: message.displayCheckMark, chained: message.chained,
     );
   }
 
@@ -292,7 +281,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 hintText: 'Vaša poruka...',
                 hintStyle: TextStyle(color: Colors.grey),
               ),
-              focusNode: textFieldFocusNode,
             ),
           )),
           Container(
@@ -319,7 +307,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
               color: CompanyColor.blueDark,
             ),
           ),
-          textFieldHasFocus ? IconButton(onPressed: doSendMessage, icon: Icon(Icons.send)) :
+          displaySendButtong ? IconButton(onPressed: doSendMessage, icon: Icon(Icons.send)) :
           Container(
               margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
               height: 45, width: 45,
@@ -351,6 +339,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     message.received = false;
     message.seen = false;
     message.displayCheckMark = true;
+    message.chained = messages.first.sender == message.sender;
 
     message.sentTimestamp = DateTime.now().millisecondsSinceEpoch;
     message.contactBindingId = widget.contactBindingId;
@@ -366,6 +355,25 @@ class ChatActivityState extends BaseState<ChatActivity> {
     setState(() {
       message.displayCheckMark = false;
     });
+  }
+
+  void getNextPageOfMessagesOnScroll() async {
+    if (!isLoadingOnScroll) {
+      setState(() {
+        isLoadingOnScroll = true;
+      });
+
+      await Future.delayed(Duration(seconds: 1));
+
+      if (totalMessages != 0 && pageNumber * pageSize < totalMessages) {
+        pageNumber++;
+        doGetMessages(page: pageNumber).then(onGetMessagesSuccess, onError: onGetMessagesError);
+      } else {
+        setState(() {
+          isLoadingOnScroll = false;
+        });
+      }
+    }
   }
 
   Future doGetMessages({page = 1, clearRides = false, favouritesOnly = false}) async {
@@ -391,10 +399,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
     return {'messages': result['page'], 'totalElements': result['totalElements']};
   }
 
-  onGetMessagesSuccess(result) {
+  onGetMessagesSuccess(result) async {
     scaffold.removeCurrentSnackBar();
 
     List fetchedMessages = result['messages'];
+    totalMessages = result['totalElements'];
 
     MessageDto prevMessage;
     List<MessageSeenDto> unseenMessages = new List();
@@ -402,10 +411,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
       var m = MessageDto.fromJson(e);
 
       if (prevMessage == null) {
-        m.isChained = false;
+        m.chained = false;
         prevMessage = m;
       } else {
-        prevMessage.isChained = prevMessage.sender.id == m.sender.id;
+        prevMessage.chained = prevMessage.sender.id == m.sender.id;
         prevMessage = m;
       }
 

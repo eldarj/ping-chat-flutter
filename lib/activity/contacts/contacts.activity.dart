@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
@@ -176,9 +177,16 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
   Widget buildListView() {
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
-        if (!displayLoader && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-          getNextPageOnScroll();
+        if (!displayLoader) {
+          if (scrollInfo is UserScrollNotification) {
+            UserScrollNotification userScrollNotification = scrollInfo as UserScrollNotification;
+            if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent
+                && userScrollNotification.direction == ScrollDirection.reverse) {
+              getNextPageOnScroll();
+            }
+          }
         }
+        return true;
       },
       child: Expanded(
         child: ListView.builder(
@@ -326,7 +334,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
           isLoadingOnScroll = false;
         });
         scaffold.showSnackBar(SnackBar(
-            content: Text('Sve smo učitali!.', style: TextStyle(color: Colors.white)),
+            content: Text('Svi kontakti prikazani.', style: TextStyle(color: Colors.white)),
             duration: Duration(seconds: 2),
             backgroundColor: Theme.of(context).accentColor
         ));

@@ -27,11 +27,11 @@ class MessageDto {
 
   int contactBindingId;
 
-  bool isChained;
+  bool chained;
 
   MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
     this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
-    this.contactBindingId, this.isChained});
+    this.contactBindingId, this.chained});
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
     return MessageDto()
@@ -55,7 +55,7 @@ class MessageDto {
       ..receiverLastOnlineTimestamp = parsedJson['receiverLastOnlineTimestamp'] as int
       ..sentTimestamp = parsedJson['sentTimestamp'] as int
       ..contactBindingId = parsedJson['contactBindingId'] as int
-      ..isChained = parsedJson['isChained'] == null ? false : parsedJson['isChained'] as bool;
+      ..chained = parsedJson['chained'] == null ? false : parsedJson['chained'] as bool;
   }
 
   Map<String, dynamic> toJson() => {
@@ -75,6 +75,6 @@ class MessageDto {
     'receiverLastOnlineTimestamp': receiverLastOnlineTimestamp,
     'sentTimestamp': sentTimestamp,
     'contactBindingId': contactBindingId,
-    'isChained': isChained,
+    'chained': chained,
   };
 }

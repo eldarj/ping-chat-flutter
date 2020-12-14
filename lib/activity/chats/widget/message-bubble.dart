@@ -20,10 +20,10 @@ class MessageBubble extends StatelessWidget {
   final bool seen;
   final bool displayCheckMark;
 
-  final bool isChained;
+  final bool chained;
 
   const MessageBubble({Key key, this.isPeerMessage, this.content, this.sentTimestamp, this.displayTimestamp,
-    this.maxWidth, this.sent, this.received, this.seen, this.displayCheckMark, this.isChained = false}) : super(key: key);
+    this.maxWidth, this.sent, this.received, this.seen, this.displayCheckMark, this.chained = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class MessageBubble extends StatelessWidget {
             Container(
                 decoration: isPeerMessage ? peerBoxDecoration() : myBoxDecoration(),
                 constraints: BoxConstraints(maxWidth: maxWidth),
-                padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
+                padding: EdgeInsets.only(top: 7.5, bottom: 7.5, left: 10, right: 10),
                 child: Text(content, style: TextStyle(fontSize: 16))),
             displayTimestamp ? SizedOverflowBox(
                 alignment: isPeerMessage ? Alignment.centerLeft : Alignment.centerRight,
@@ -48,14 +48,14 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget peerMessageStatus() => Container(
-    margin: EdgeInsets.only(left: 5),
+    margin: EdgeInsets.only(left: 2.5),
     child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp),
       style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
     ),
   );
 
   Widget myMessageStatus() => Container(
-    margin: EdgeInsets.only(right: 5),
+    margin: EdgeInsets.only(right: 2.5),
     child: MessageStatusRow(timestamp: sentTimestamp,
         displayPlaceholderCheckmark: displayCheckMark,
         sent: sent, received: received, seen: seen),
@@ -65,10 +65,10 @@ class MessageBubble extends StatelessWidget {
     color: Color.fromRGBO(239, 239, 239, 1),
     border: Border.all(color: Color.fromRGBO(234, 234, 234, 1), width: 1),
     borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(isChained ? 15 : 0),
-        bottomLeft: Radius.circular(15),
-        topRight: Radius.circular(15),
-        bottomRight: Radius.circular(15)),
+        topLeft: Radius.circular(chained ? 15 : 0),
+        bottomLeft: Radius.circular(10),
+        topRight: Radius.circular(10),
+        bottomRight: Radius.circular(10)),
     boxShadow: [BoxShadow(color: Colors.grey.shade300,
       offset: Offset.fromDirection(1, 0.3),
       blurRadius: 0, spreadRadius: 0,
@@ -79,9 +79,9 @@ class MessageBubble extends StatelessWidget {
     color: Color.fromRGBO(235, 255, 220, 1),
     border: Border.all(color: CompanyColor.myMessageBorder, width: 1),
     borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(15),
-        bottomLeft: Radius.circular(15),
-        topRight: Radius.circular(isChained ? 15 : 0),
+        topLeft: Radius.circular(10),
+        bottomLeft: Radius.circular(10),
+        topRight: Radius.circular(chained ? 15 : 0),
         bottomRight: Radius.circular(15)),
     boxShadow: [BoxShadow(color: Colors.grey.shade300,
       offset: Offset.fromDirection(1, 0.3),
