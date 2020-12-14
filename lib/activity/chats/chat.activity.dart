@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutterping/activity/chats/widget/message-bubble.dart';
 import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
@@ -57,7 +58,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   List<MessageDto> messages = new List();
   bool isLoadingOnScroll = false;
   int pageNumber = 1;
-  int pageSize = 2;
+  int pageSize = 50;
 
   bool previousWasPeerMessage;
   DateTime previousMessageDate;
@@ -222,7 +223,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
               reverse: true,
               itemCount: messages == null ? 0 : messages.length,
               itemBuilder: (context, index) {
-                return buildSingleMessage(messages[index]);
+                return buildSingleMessage(messages[index], isLastMessage: index == 0);
               },
             ),
           ),
@@ -240,7 +241,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     return widget;
   }
 
-  Widget buildSingleMessage(MessageDto message) {
+  Widget buildSingleMessage(MessageDto message, {isLastMessage}) {
     double width = MediaQuery.of(context).size.width - 150;
 
     bool isPeerMessage = user.id != message.sender.id;
@@ -249,82 +250,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
     final thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
 
     if (previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
-        && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage) {
+        && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage
+        && !isLastMessage) {
       displayTimestamp = false;
     }
 
     previousWasPeerMessage = isPeerMessage;
     previousMessageDate = thisMessageDate;
 
-    if (isPeerMessage) {
-      return Container(
-        margin: EdgeInsets.only(left: 10, right: 10, bottom: displayTimestamp ? 20 : 5),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                  decoration: BoxDecoration(
-                    color: Color.fromRGBO(239, 239, 239, 1),
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(0),
-                        bottomLeft: Radius.circular(0),
-                        topRight: Radius.circular(10),
-                        bottomRight: Radius.circular(10)),
-                    boxShadow: [BoxShadow(color: Colors.grey.shade200,
-                        blurRadius: 0, spreadRadius: 0,
-                        offset: Offset.fromDirection(1.3, 0.5)
-                    )],
-                  ),
-                  constraints: BoxConstraints(maxWidth: width),
-                  padding: EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 15),
-                  child: Text(message.text, style: TextStyle(fontSize: 16))),
-              displayTimestamp ? SizedOverflowBox(
-                  alignment: Alignment.centerLeft,
-                  size: Size(50, 0),
-                  child: Container(
-                    margin: EdgeInsets.only(left: 2, top: 15),
-                    child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(message.sentTimestamp),
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                    ),
-                  )) : Container(),
-            ]),
-      );
-    } else {
-      return Container(
-          margin: EdgeInsets.only(left: 10, right: 10, bottom: displayTimestamp ? 20 : 5),
-          padding: EdgeInsets.all(0),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                    decoration: BoxDecoration(
-                      color: Color.fromRGBO(235, 255, 220, 1),
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          bottomLeft: Radius.circular(10),
-                          topRight: Radius.circular(0),
-                          bottomRight: Radius.circular(0)),
-                      border: Border.all(color: CompanyColor.myMessageBorder, width: 1),
-                      boxShadow: [BoxShadow(color: Colors.grey.shade200,
-                          blurRadius: 0, spreadRadius: 0,
-                          offset: Offset.fromDirection(1.3, 0.5)
-                      )],
-                    ),
-                    constraints: BoxConstraints(maxWidth: width),
-                    padding: EdgeInsets.only(left: 15, top: 10, right: 10, bottom: 10),
-                    child: Text(message.text, style: TextStyle(fontSize: 16))),
-                displayTimestamp ? SizedOverflowBox(
-                  alignment: Alignment.centerRight,
-                  size: Size(50, 0),
-                  child: Container(
-                    margin: EdgeInsets.only(right: 1, top: 15),
-                    child: MessageStatusRow(timestamp: message.sentTimestamp,
-                        displayPlaceholderCheckmark: message.displayCheckMark,
-                        sent: message.sent, received: message.received, seen: message.seen),
-                  ),
-                ) : Container(),
-              ]
-          )
-      );
-    }
+    return MessageBubble(isPeerMessage: isPeerMessage, content: message.text, maxWidth: width,
+      displayTimestamp: displayTimestamp, sentTimestamp: message.sentTimestamp,
+      sent: message.sent, received: message.received, seen: message.seen,
+      displayCheckMark: message.displayCheckMark, isChained: message.isChained,
+    );
   }
 
   Widget buildInputRow() {
@@ -458,13 +396,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     List fetchedMessages = result['messages'];
 
-    fetchedMessages.forEach((element) {
-      messages.add(MessageDto.fromJson(element));
-    });
-
+    MessageDto prevMessage;
     List<MessageSeenDto> unseenMessages = new List();
     messages.addAll(fetchedMessages.map((e) {
       var m = MessageDto.fromJson(e);
+
+      if (prevMessage == null) {
+        m.isChained = false;
+        prevMessage = m;
+      } else {
+        prevMessage.isChained = prevMessage.sender.id == m.sender.id;
+        prevMessage = m;
+      }
+
       if (!m.seen) {
         unseenMessages.add(new MessageSeenDto(id: m.id,
             senderPhoneNumber: m.sender.countryCode.dialCode + m.sender.phoneNumber));
