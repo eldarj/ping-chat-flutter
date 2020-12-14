@@ -37,9 +37,7 @@ class DateTimeUtil {
     var dateFormat = new DateFormat('hh:mm');
     var prefix = '';
 
-    if (date.day == now.day) {
-      prefix = 'Today, ';
-    } else if (date.day == now.day - 1) {
+    if (date.day == now.day - 1) {
       prefix = 'Yesterday, ';
     }
 

@@ -1,57 +1,57 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/util/other/date-time.util.dart';
 
 class MessageStatusRow extends StatelessWidget {
-  final String text;
-
-  final MainAxisAlignment mainAlignment;
+  final int timestamp;
 
   final bool sent;
   final bool received;
   final bool seen;
 
+  final bool displayPlaceholderCheckmark;
   final bool displaySeen;
 
-  const MessageStatusRow({Key key, this.seen, this.sent, this.received,
-    this.text, this.mainAlignment = MainAxisAlignment.start,
-    this.displaySeen = true}) : super(key: key);
+  final double iconSize = 13;
+
+  const MessageStatusRow({Key key, this.timestamp, this.sent, this.received, this.seen,
+    this.displaySeen = true, this.displayPlaceholderCheckmark = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     Widget statusIconWidget;
 
     if (displaySeen) {
-      if (seen) {
+      if (displayPlaceholderCheckmark) {
+        statusIconWidget = Icon(Icons.check, color: Colors.grey, size: iconSize);
+      } else if (seen) {
         statusIconWidget = Stack(children: [
-          Icon(Icons.check, color: Colors.green, size: 15),
-          Container(margin: EdgeInsets.only(left: 5), child: Icon(Icons.check, color: Colors.green, size: 15))
+          Icon(Icons.check, color: Colors.green, size: iconSize),
+          Container(margin: EdgeInsets.only(left: 5), child: Icon(Icons.check, color: Colors.green, size: iconSize))
         ]);
       } else if (received) {
         statusIconWidget = Stack(children: [
-          Icon(Icons.check, color: Colors.grey, size: 15),
-          Container(margin: EdgeInsets.only(left: 5), child: Icon(Icons.check, color: Colors.grey, size: 15))
+          Icon(Icons.check, color: Colors.grey, size: iconSize),
+          Container(margin: EdgeInsets.only(left: 5), child: Icon(Icons.check, color: Colors.grey, size: iconSize))
         ]);
       } else if (sent) {
-        statusIconWidget = Icon(Icons.check, color: Colors.grey, size: 13);
+        statusIconWidget = Icon(Icons.check, color: Colors.grey, size: iconSize);
       } else {
-        statusIconWidget = Icon(Icons.hourglass_empty, color: Colors.grey, size: 13);
+        statusIconWidget = Icon(Icons.hourglass_empty, color: Colors.grey, size: iconSize);
       }
     }
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: mainAlignment,
       children: <Widget>[
-        Text(text, style: TextStyle(color: CompanyColor.grey, fontSize: 13)),
         displaySeen ? Container(
-            height: 15,
-            width: 20,
             margin: EdgeInsets.only(right: 2.5),
-            alignment: Alignment.center,
             child: statusIconWidget
         ) : Container(),
+        Text(DateTimeUtil.convertTimestampToChatFriendlyDate(timestamp),
+            style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
       ],
     );
   }

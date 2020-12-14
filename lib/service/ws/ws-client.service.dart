@@ -29,11 +29,11 @@ class WsClientService {
   Publisher<MessageDto> sendingMessagesPub = new Publisher(ws: _wsFunc);
 
   Publisher<MessageSeenDto> outgoingReceivedPub = new Publisher(ws: _wsFunc);
-  Publisher<MessageSeenDto> outgoingSeenPub = new Publisher(ws: _wsFunc);
+  Publisher<List<MessageSeenDto>> outgoingSeenPub = new Publisher(ws: _wsFunc);
 
   Publisher<MessageDto> incomingSentPub = new Publisher();
   Publisher<int> incomingReceivedPub = new Publisher();
-  Publisher<int> incomingSeenPub = new Publisher();
+  Publisher<List<dynamic>> incomingSeenPub = new Publisher();
 
   _initializeWsHandlers() async {
     String userToken = await UserService.getToken();
@@ -44,8 +44,8 @@ class WsClientService {
       });
 
       _wsClient.subscribe(destination: '/user/messages/seen', callback: (frame) async {
-        int messageId = json.decode(frame.body);
-        incomingSeenPub.subject.add(messageId);
+        List<dynamic> seenMessageIds = json.decode(frame.body);
+        incomingSeenPub.subject.add(seenMessageIds);
       });
 
       _wsClient.subscribe(destination: '/user/messages/sent', callback: (frame) async {
@@ -72,8 +72,8 @@ sendMessage(MessageDto messageDto) {
   wsClientService.sendingMessagesPub.sendEvent(messageDto, '/messages/send');
 }
 
-sendSeenStatus(MessageSeenDto messageSeenDto) {
-  wsClientService.outgoingSeenPub.sendEvent(messageSeenDto, '/messages/seen');
+sendSeenStatus(List<MessageSeenDto> seenMessages) {
+  wsClientService.outgoingSeenPub.sendEvent(seenMessages, '/messages/seen');
 }
 
 sendReceivedStatus(MessageSeenDto messageSeenDto) {

@@ -86,7 +86,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
-    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
+    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) async {
       setState(() {
         for(var i = chats.length - 1; i >= 0; i--){
           if (chats[i].sentTimestamp == message.sentTimestamp) {
@@ -99,7 +99,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
-    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) {
+    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) async {
       setState(() {
         for(var i = chats.length - 1; i >= 0; i--){
           if (chats[i].id == messageId) {
@@ -111,10 +111,12 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
-    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) {
+    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_IDENTIFIER, (List<dynamic> seenMessagesIds) async {
       setState(() {
+        // TODO: Change to map
+        int lastSeenMessageId = seenMessagesIds.last;
         for(var i = chats.length - 1; i >= 0; i--){
-          if (chats[i].id == messageId) {
+          if (chats[i].id == lastSeenMessageId) {
             setState(() {
               chats[i].seen = true;
             });
@@ -302,15 +304,17 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                     Container(
                                         child: Text(peerContactName, style: TextStyle(fontSize: 18,
                                             fontWeight: FontWeight.bold, color: Colors.black87))),
-                                    MessageStatusRow(text: message.text, displaySeen: displaySeen, sent: message.sent, received: message.received, seen: message.seen)
+                                    Text(message.text,
+                                        overflow: TextOverflow.ellipsis, maxLines: 2,
+                                        style: TextStyle(color: Colors.grey.shade500)),
                                   ]
                               ),
                             )
                           ],
                         ),
                       ),
-                      Text('$messageSent',
-                          style: TextStyle(fontSize: 12, color: Colors.grey))
+                      MessageStatusRow(timestamp: message.sentTimestamp, displaySeen: displaySeen,
+                          sent: message.sent, received: message.received, seen: message.seen),
                     ],
                   ),
                 )

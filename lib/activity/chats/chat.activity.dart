@@ -57,7 +57,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
   List<MessageDto> messages = new List();
   bool isLoadingOnScroll = false;
   int pageNumber = 1;
-  int pageSize = 50;
+  int pageSize = 2;
+
+  bool previousWasPeerMessage;
+  DateTime previousMessageDate;
 
   onInit() async {
     user = await UserService.getUser();
@@ -72,11 +75,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
         messages.insert(0, message);
       });
 
-      sendSeenStatus(new MessageSeenDto(id: message.id,
-          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
+      sendSeenStatus([new MessageSeenDto(id: message.id,
+          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber)]);
     });
 
-    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
+    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) async {
       setState(() {
         for(var i = messages.length - 1; i >= 0; i--){
           if (messages[i].sentTimestamp == message.sentTimestamp) {
@@ -89,7 +92,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       });
     });
 
-    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) {
+    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) async {
       setState(() {
         for(var i = messages.length - 1; i >= 0; i--){
           if (messages[i].id == messageId) {
@@ -101,13 +104,17 @@ class ChatActivityState extends BaseState<ChatActivity> {
       });
     });
 
-    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) {
+    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_IDENTIFIER, (List<dynamic> seenMessagesIds) async {
+      // TODO: Change to map
+      await Future.delayed(Duration(milliseconds: 500));
       setState(() {
-        for(var i = messages.length - 1; i >= 0; i--){
-          if (messages[i].id == messageId) {
-            setState(() {
-              messages[i].seen = true;
-            });
+        for (var k = seenMessagesIds.length - 1; k >= 0; k--) {
+          for(var i = messages.length - 1; i >= 0; i--){
+            if (messages[i].id == seenMessagesIds[k]) {
+              setState(() {
+                messages[i].seen = true;
+              });
+            }
           }
         }
       });
@@ -209,12 +216,15 @@ class ChatActivityState extends BaseState<ChatActivity> {
     if (!displayLoader) {
       if (messages != null && messages.length > 0) {
         widget = Expanded(
-          child: ListView.builder(
-            reverse: true,
-            itemCount: messages == null ? 0 : messages.length,
-            itemBuilder: (context, index) {
-              return buildSingleMessage(messages[index]);
-            },
+          child: Container(
+            padding: EdgeInsets.only(bottom: 20),
+            child: ListView.builder(
+              reverse: true,
+              itemCount: messages == null ? 0 : messages.length,
+              itemBuilder: (context, index) {
+                return buildSingleMessage(messages[index]);
+              },
+            ),
           ),
         );
       } else {
@@ -231,67 +241,88 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   Widget buildSingleMessage(MessageDto message) {
+    double width = MediaQuery.of(context).size.width - 150;
+
     bool isPeerMessage = user.id != message.sender.id;
+
+    bool displayTimestamp = true;
+    final thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
+
+    if (previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
+        && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage) {
+      displayTimestamp = false;
+    }
+
+    previousWasPeerMessage = isPeerMessage;
+    previousMessageDate = thisMessageDate;
+
     if (isPeerMessage) {
-      return Row(
-        children: <Widget>[
-          Container(
-            width: 200.0,
-            margin: EdgeInsets.all(10),
-            padding: EdgeInsets.all(0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(0),
-                  bottomLeft: Radius.circular(0),
-                  topRight: Radius.circular(10),
-                  bottomRight: Radius.circular(10)),
-              boxShadow: [BoxShadow(color: Colors.grey.shade200, blurRadius: 1, spreadRadius: 1)],
-            ),
-            child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                      padding: EdgeInsets.only(left: 10, top: 10, right: 10, bottom: 0),
-                      child: Text(message.text)),
-                  Container(
-                      margin: EdgeInsets.only(right: 5, bottom: 2.5),
-                      alignment: Alignment.bottomRight,
-                      child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(message.sentTimestamp),
-                        style: TextStyle(color: CompanyColor.grey, fontSize: 12),
-                      )),
-                ]),
-          )
-        ],
-        mainAxisAlignment: MainAxisAlignment.start,
+      return Container(
+        margin: EdgeInsets.only(left: 10, right: 10, bottom: displayTimestamp ? 20 : 5),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                  decoration: BoxDecoration(
+                    color: Color.fromRGBO(239, 239, 239, 1),
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(0),
+                        bottomLeft: Radius.circular(0),
+                        topRight: Radius.circular(10),
+                        bottomRight: Radius.circular(10)),
+                    boxShadow: [BoxShadow(color: Colors.grey.shade200,
+                        blurRadius: 0, spreadRadius: 0,
+                        offset: Offset.fromDirection(1.3, 0.5)
+                    )],
+                  ),
+                  constraints: BoxConstraints(maxWidth: width),
+                  padding: EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 15),
+                  child: Text(message.text, style: TextStyle(fontSize: 16))),
+              displayTimestamp ? SizedOverflowBox(
+                  alignment: Alignment.centerLeft,
+                  size: Size(50, 0),
+                  child: Container(
+                    margin: EdgeInsets.only(left: 2, top: 15),
+                    child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(message.sentTimestamp),
+                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                    ),
+                  )) : Container(),
+            ]),
       );
     } else {
-      return Row(
-        children: <Widget>[
-          Container(
-            width: 200.0,
-            margin: EdgeInsets.all(10),
-            padding: EdgeInsets.all(0),
-            decoration: BoxDecoration(
-                color: CompanyColor.myMessageBackground,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(10),
-                    bottomLeft: Radius.circular(10),
-                    topRight: Radius.circular(0),
-                    bottomRight: Radius.circular(0)),
-                border: Border.all(color: CompanyColor.myMessageBorder, width: 1),
-                boxShadow: [BoxShadow(color: Colors.grey.shade100, blurRadius: 1, spreadRadius: 1)]
-            ),
-            child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                      padding: EdgeInsets.only(left: 10, top: 10, right: 10, bottom: 0),
-                      child: Text(message.text, style: TextStyle(fontSize: 15))),
-                  MessageStatusRow(
-                      text: DateTimeUtil.convertTimestampToChatFriendlyDate(message.sentTimestamp),
-                      mainAlignment: MainAxisAlignment.end,
-                      sent: message.sent, received: message.received, seen: message.seen),
-                ]),
+      return Container(
+          margin: EdgeInsets.only(left: 10, right: 10, bottom: displayTimestamp ? 20 : 5),
+          padding: EdgeInsets.all(0),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                    decoration: BoxDecoration(
+                      color: Color.fromRGBO(235, 255, 220, 1),
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(10),
+                          bottomLeft: Radius.circular(10),
+                          topRight: Radius.circular(0),
+                          bottomRight: Radius.circular(0)),
+                      border: Border.all(color: CompanyColor.myMessageBorder, width: 1),
+                      boxShadow: [BoxShadow(color: Colors.grey.shade200,
+                          blurRadius: 0, spreadRadius: 0,
+                          offset: Offset.fromDirection(1.3, 0.5)
+                      )],
+                    ),
+                    constraints: BoxConstraints(maxWidth: width),
+                    padding: EdgeInsets.only(left: 15, top: 10, right: 10, bottom: 10),
+                    child: Text(message.text, style: TextStyle(fontSize: 16))),
+                displayTimestamp ? SizedOverflowBox(
+                  alignment: Alignment.centerRight,
+                  size: Size(50, 0),
+                  child: Container(
+                    margin: EdgeInsets.only(right: 1, top: 15),
+                    child: MessageStatusRow(timestamp: message.sentTimestamp,
+                        displayPlaceholderCheckmark: message.displayCheckMark,
+                        sent: message.sent, received: message.received, seen: message.seen),
+                  ),
+                ) : Container(),
+              ]
           )
-        ],
-        mainAxisAlignment: MainAxisAlignment.end,
       );
     }
   }
@@ -368,7 +399,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         ]));
   }
 
-  doSendMessage() {
+  doSendMessage() async {
     MessageDto message = new MessageDto();
     message.text = textEditingController.text;
     textEditingController.clear();
@@ -381,6 +412,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     message.sent = false;
     message.received = false;
     message.seen = false;
+    message.displayCheckMark = true;
 
     message.sentTimestamp = DateTime.now().millisecondsSinceEpoch;
     message.contactBindingId = widget.contactBindingId;
@@ -390,6 +422,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     sendMessage(message);
+
+    await Future.delayed(Duration(milliseconds: 500));
+
+    setState(() {
+      message.displayCheckMark = false;
+    });
   }
 
   Future doGetMessages({page = 1, clearRides = false, favouritesOnly = false}) async {
@@ -418,11 +456,25 @@ class ChatActivityState extends BaseState<ChatActivity> {
   onGetMessagesSuccess(result) {
     scaffold.removeCurrentSnackBar();
 
-    List filteredMessages = result['messages'];
+    List fetchedMessages = result['messages'];
 
-    filteredMessages.forEach((element) {
+    fetchedMessages.forEach((element) {
       messages.add(MessageDto.fromJson(element));
     });
+
+    List<MessageSeenDto> unseenMessages = new List();
+    messages.addAll(fetchedMessages.map((e) {
+      var m = MessageDto.fromJson(e);
+      if (!m.seen) {
+        unseenMessages.add(new MessageSeenDto(id: m.id,
+            senderPhoneNumber: m.sender.countryCode.dialCode + m.sender.phoneNumber));
+      }
+      return m;
+    }).toList());
+
+    if (unseenMessages.length > 0) {
+      sendSeenStatus(unseenMessages);
+    }
 
     setState(() {
       displayLoader = false;

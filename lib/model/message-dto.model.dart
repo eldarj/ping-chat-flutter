@@ -12,6 +12,8 @@ class MessageDto {
   bool received;
   bool seen;
 
+  bool displayCheckMark;
+
   String senderContactName;
   String receiverContactName;
 
@@ -26,7 +28,8 @@ class MessageDto {
   int contactBindingId;
 
   MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
-    this.senderContactName, this.receiverContactName, this.sentTimestamp, this.contactBindingId});
+    this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
+    this.contactBindingId});
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
     return MessageDto()
@@ -41,6 +44,7 @@ class MessageDto {
       ..sent = parsedJson['sent'] as bool
       ..received = parsedJson['received'] as bool
       ..seen = parsedJson['seen'] as bool
+      ..displayCheckMark = parsedJson['displayCheckMark'] == null ? false : parsedJson['displayCheckMark'] as bool
       ..senderContactName = parsedJson['senderContactName'] as String
       ..receiverContactName = parsedJson['receiverContactName'] as String
       ..senderOnline = parsedJson['senderOnline'] as bool
@@ -59,6 +63,7 @@ class MessageDto {
     'sent': sent,
     'received': received,
     'seen': seen,
+    'displayCheckMark': displayCheckMark,
     'senderContactName': senderContactName,
     'receiverContactName': receiverContactName,
     'senderOnline': senderOnline,
