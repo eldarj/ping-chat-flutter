@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/persistence/sticker.prefs.service.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 class StickerBar extends StatefulWidget {
@@ -16,7 +17,9 @@ class StickerBar extends StatefulWidget {
 
   final int contactBindingId;
 
-  const StickerBar({Key key, this.peer, this.myContactName, this.peerContactName, this.contactBindingId}) : super(key: key);
+  final Function(String) sendFunc;
+
+  const StickerBar({Key key, this.peer, this.myContactName, this.peerContactName, this.contactBindingId, this.sendFunc}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => StickerBarState();
@@ -116,10 +119,15 @@ class StickerBarState extends State<StickerBar> {
           ...stickers.entries.map((mapEntry) {
             return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
               ...mapEntry.value.map((stickerName) {
-                return Container(
-                    width: stickerSize, height: stickerSize,
-                    margin: EdgeInsets.all(5),
-                    child: Image.asset('static/graphic/sticker/' + stickerName));
+                return GestureDetector(
+                  onTap: () {
+                    widget.sendFunc(stickerName);
+                  },
+                  child: Container(
+                      width: stickerSize, height: stickerSize,
+                      margin: EdgeInsets.all(5),
+                      child: Image.asset('static/graphic/sticker/' + stickerName)),
+                );
               }).toList()
             ]);
           }).toList()
@@ -130,22 +138,5 @@ class StickerBarState extends State<StickerBar> {
       padding: EdgeInsets.only(left: 5, right: 5, top: 15, bottom: 15),
       height: 180.0,
     );
-  }
-
-  doSendStickerMessage() {
-    MessageDto message = new MessageDto();
-    message.text = "==pingsticker==";
-
-    message.receiver = widget.peer;
-    message.senderContactName = widget.myContactName;
-    message.receiverContactName = widget.peerContactName;
-
-    message.sent = false;
-    message.received = false;
-    message.seen = false;
-    message.displayCheckMark = true;
-
-    message.sentTimestamp = DateTime.now().millisecondsSinceEpoch;
-    message.contactBindingId = widget.contactBindingId;
   }
 }

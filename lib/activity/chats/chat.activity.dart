@@ -191,6 +191,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
               ),
               buildInputRow(),
               displayStickers ? StickerBar(
+                sendFunc: doSendEmoji,
                 peer: widget.peer,
                 myContactName: widget.myContactName,
                 peerContactName: widget.peerContactName,
@@ -267,10 +268,14 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     return Container(
       margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
-      child: MessageBubble(isPeerMessage: isPeerMessage, content: message.text, maxWidth: width,
+      child: MessageBubble(
+        isPeerMessage: isPeerMessage,
+        content: message.text,
+        maxWidth: width,
         displayTimestamp: displayTimestamp, sentTimestamp: message.sentTimestamp,
-        sent: message.sent, received: message.received, seen: message.seen,
-        displayCheckMark: message.displayCheckMark, chained: message.chained,
+        sent: message.sent, received: message.received, seen: message.seen, displayCheckMark: message.displayCheckMark,
+        chained: message.chained,
+        messageType: message.messageType,
       ),
     );
   }
@@ -350,10 +355,22 @@ class ChatActivityState extends BaseState<ChatActivity> {
         ]));
   }
 
-  doSendMessage() async {
+  doSendEmoji(stickerCode) {
+    MessageDto message = new MessageDto();
+    message.text = stickerCode;
+    message.messageType = 'STICKER';
+    _send(message);
+  }
+
+  doSendMessage() {
     MessageDto message = new MessageDto();
     message.text = textEditingController.text;
+    message.messageType = 'TEXT_MESSAGE';
     textEditingController.clear();
+    _send(message);
+  }
+
+  _send(message) async {
 
     message.receiver = widget.peer;
     message.senderContactName = widget.myContactName;

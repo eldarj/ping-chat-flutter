@@ -22,20 +22,40 @@ class MessageBubble extends StatelessWidget {
 
   final bool chained;
 
-  const MessageBubble({Key key, this.isPeerMessage, this.content, this.sentTimestamp, this.displayTimestamp,
-    this.maxWidth, this.sent, this.received, this.seen, this.displayCheckMark, this.chained = false}) : super(key: key);
+  final String messageType;
+
+  const MessageBubble({Key key, this.isPeerMessage,
+    this.content, this.sentTimestamp, this.displayTimestamp,
+    this.maxWidth,
+    this.sent, this.received, this.seen, this.displayCheckMark,
+    this.chained = false,
+    this.messageType
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    Widget messageWidget;
+    BoxDecoration messageDecoration;
+
+    if (messageType == 'STICKER') {
+      messageWidget = Container(
+          child: Image.asset('static/graphic/sticker/' + content, height: 100, width: 100));
+      messageDecoration = isPeerMessage ? peerBoxDecoration() : myStickerBoxDecoration();
+    } else {
+      messageWidget = Text(content, style: TextStyle(fontSize: 16));
+      messageDecoration = isPeerMessage ? peerBoxDecoration() : myTextBoxDecoration();
+    }
+
+
     return Container(
       margin: EdgeInsets.only(left: 10, right: 10, bottom: displayTimestamp ? 20 : 2.5),
       child: Column(crossAxisAlignment: isPeerMessage ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
             Container(
-                decoration: isPeerMessage ? peerBoxDecoration() : myBoxDecoration(),
+                decoration: messageDecoration,
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 padding: EdgeInsets.only(top: 7.5, bottom: 7.5, left: 10, right: 10),
-                child: Text(content, style: TextStyle(fontSize: 16))),
+                child: messageWidget),
             displayTimestamp ? SizedOverflowBox(
                 alignment: isPeerMessage ? Alignment.centerLeft : Alignment.centerRight,
                 size: Size(50, 0),
@@ -75,7 +95,7 @@ class MessageBubble extends StatelessWidget {
     )],
   );
 
-  BoxDecoration myBoxDecoration() => BoxDecoration(
+  BoxDecoration myTextBoxDecoration() => BoxDecoration(
     color: Color.fromRGBO(235, 255, 220, 1),
     border: Border.all(color: CompanyColor.myMessageBorder, width: 1),
     borderRadius: BorderRadius.only(
@@ -87,5 +107,9 @@ class MessageBubble extends StatelessWidget {
       offset: Offset.fromDirection(1, 0.3),
       blurRadius: 0, spreadRadius: 0,
     )],
+  );
+
+  BoxDecoration myStickerBoxDecoration() => BoxDecoration(
+    color: Colors.transparent,
   );
 }
