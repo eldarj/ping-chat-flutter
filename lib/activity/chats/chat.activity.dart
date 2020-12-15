@@ -76,6 +76,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
     userId = user.id;
     anotherUserId = widget.peer.id;
 
+    PresenceEvent presenceEvent = new PresenceEvent();
+    presenceEvent.userPhoneNumber = user.fullPhoneNumber;
+    presenceEvent.status = true;
+
+    sendPresenceEvent(presenceEvent);
+
     doGetMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
     userPresenceSubscriptionFn = wsClientService.subscribe('/users/${widget.peer.fullPhoneNumber}/status', (frame) async {
       PresenceEvent presenceEvent = PresenceEvent.fromJson(json.decode(frame.body));

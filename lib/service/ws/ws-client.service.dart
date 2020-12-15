@@ -20,9 +20,9 @@ class WsClientService {
     _initializeWsHandlers();
   }
 
-  static WsClient _wsClient;
+  static WsClient wsClient;
 
-  static WsClient _wsFunc() => _wsClient;
+  static WsClient _wsFunc() => wsClient;
 
   Publisher<int> userStatusPub = new Publisher();
 
@@ -40,23 +40,23 @@ class WsClientService {
 
   _initializeWsHandlers() async {
     String userToken = await UserService.getToken();
-    _wsClient = new WsClient(userToken, onConnectedFunc: () {
-      _wsClient.subscribe(destination: '/user/messages/receive', callback: (frame) async {
+    wsClient = new WsClient(userToken, onConnectedFunc: () {
+      wsClient.subscribe(destination: '/user/messages/receive', callback: (frame) async {
         MessageDto newMessage = MessageDto.fromJson(json.decode(frame.body));
         receivingMessagesPub.subject.add(newMessage);
       });
 
-      _wsClient.subscribe(destination: '/user/messages/seen', callback: (frame) async {
+      wsClient.subscribe(destination: '/user/messages/seen', callback: (frame) async {
         List<dynamic> seenMessageIds = json.decode(frame.body);
         incomingSeenPub.subject.add(seenMessageIds);
       });
 
-      _wsClient.subscribe(destination: '/user/messages/sent', callback: (frame) async {
+      wsClient.subscribe(destination: '/user/messages/sent', callback: (frame) async {
         MessageDto message = MessageDto.fromJson(json.decode(frame.body));
         incomingSentPub.subject.add(message);
       });
 
-      _wsClient.subscribe(destination: '/user/messages/received', callback: (frame) async {
+      wsClient.subscribe(destination: '/user/messages/received', callback: (frame) async {
         int messageId = json.decode(frame.body);
         incomingReceivedPub.subject.add(messageId);
       });
@@ -64,7 +64,7 @@ class WsClientService {
   }
 
   Function subscribe(destination, callback) {
-    return _wsClient.subscribe(destination: destination, callback: callback);
+    return wsClient.subscribe(destination: destination, callback: callback);
   }
 }
 
@@ -81,4 +81,8 @@ sendSeenStatus(List<MessageSeenDto> seenMessages) {
 
 sendReceivedStatus(MessageSeenDto messageSeenDto) {
   wsClientService.outgoingReceivedPub.sendEvent(messageSeenDto, '/messages/received');
+}
+
+sendPresenceEvent(PresenceEvent presenceEvent) {
+  WsClientService.wsClient.send('/users/status', presenceEvent);
 }
