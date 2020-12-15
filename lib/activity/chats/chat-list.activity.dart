@@ -304,9 +304,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                     Container(
                                         child: Text(peerContactName, style: TextStyle(fontSize: 18,
                                             fontWeight: FontWeight.bold, color: Colors.black87))),
-                                    Text(message.text,
-                                        overflow: TextOverflow.ellipsis, maxLines: 2,
-                                        style: TextStyle(color: Colors.grey.shade500)),
+                                    buildMessageContent(message)
                                   ]
                               ),
                             )
@@ -323,6 +321,25 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         ),
       ),
     );
+  }
+
+  buildMessageContent(message) {
+    Widget widget;
+
+    if (message.messageType == 'STICKER') {
+      widget = Row(
+        children: <Widget>[
+          Image.asset('static/graphic/icon/sticker.png', color: Colors.grey.shade500, height: 25, width: 25),
+          Text('Sticker', style: TextStyle(color: Colors.grey.shade500)),
+        ],
+      );
+    } else {
+      widget = Text(message.text,
+          overflow: TextOverflow.ellipsis, maxLines: 2,
+          style: TextStyle(color: Colors.grey.shade500));
+    }
+
+    return widget;
   }
 
   void getNextPageOnScroll() async {

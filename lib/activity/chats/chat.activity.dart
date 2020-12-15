@@ -54,7 +54,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displaySendButton = false;
   bool displayScrollLoader = false;
 
-  bool displayStickers = true;
+  bool displayStickers = false;
 
   int userId;
   int anotherUserId = 0;
@@ -62,7 +62,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   List<MessageDto> messages = new List();
   int totalMessages = 0;
   int pageNumber = 1;
-  int pageSize = 10;
+  int pageSize = 50;
 
   bool previousWasPeerMessage;
   DateTime previousMessageDate;

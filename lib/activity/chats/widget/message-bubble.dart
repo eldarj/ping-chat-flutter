@@ -38,12 +38,13 @@ class MessageBubble extends StatelessWidget {
     BoxDecoration messageDecoration;
 
     if (messageType == 'STICKER') {
+      var stickerSize = MediaQuery.of(context).size.width / 3;
       messageWidget = Container(
-          child: Image.asset('static/graphic/sticker/' + content, height: 100, width: 100));
-      messageDecoration = isPeerMessage ? peerBoxDecoration() : myStickerBoxDecoration();
+          child: Image.asset('static/graphic/sticker/' + content, height: stickerSize, width: stickerSize));
+      messageDecoration = stickerBoxDecoration();
     } else {
       messageWidget = Text(content, style: TextStyle(fontSize: 16));
-      messageDecoration = isPeerMessage ? peerBoxDecoration() : myTextBoxDecoration();
+      messageDecoration = isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
     }
 
 
@@ -81,7 +82,7 @@ class MessageBubble extends StatelessWidget {
         sent: sent, received: received, seen: seen),
   );
 
-  BoxDecoration peerBoxDecoration() => BoxDecoration(
+  BoxDecoration peerTextBoxDecoration() => BoxDecoration(
     color: Color.fromRGBO(239, 239, 239, 1),
     border: Border.all(color: Color.fromRGBO(234, 234, 234, 1), width: 1),
     borderRadius: BorderRadius.only(
@@ -109,7 +110,5 @@ class MessageBubble extends StatelessWidget {
     )],
   );
 
-  BoxDecoration myStickerBoxDecoration() => BoxDecoration(
-    color: Colors.transparent,
-  );
+  BoxDecoration stickerBoxDecoration() => BoxDecoration(color: Colors.transparent);
 }
