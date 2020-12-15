@@ -48,7 +48,8 @@ class ChatActivity extends StatefulWidget {
 class ChatActivityState extends BaseState<ChatActivity> {
   static const String STREAMS_LISTENER_IDENTIFIER = "ChatActivityListener";
 
-  final TextEditingController textEditingController = TextEditingController();
+  final TextEditingController textController = TextEditingController();
+  final FocusNode textFocusNode = new FocusNode();
 
   bool displayLoader = true;
   bool displaySendButton = false;
@@ -133,9 +134,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     KeyboardVisibilityNotification().addNewListener(
       onChange: (bool visible) {
-        displaySendButton = visible;
       },
     );
+
+    textFocusNode.addListener(() {
+      if (textFocusNode.hasFocus) {
+        setState(() {
+          displayStickers = false;
+          displaySendButton = true;
+        });
+      } else {
+        displaySendButton = false;
+      }
+    });
   }
 
   @override
@@ -293,6 +304,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 onTap: () {
                   setState(() {
                     displayStickers = !displayStickers;
+                    if (displayStickers) {
+                      FocusScope.of(context).requestFocus(new FocusNode());
+                    }
                   });
                 },
                 child: Container(
@@ -302,27 +316,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
           ),
           Expanded(child: Container(
             child: TextField(
+              textInputAction: TextInputAction.newline,
               onSubmitted: (value) {
-                // onSendMessage(textEditingController.text, 0);
+                textController.text += "asd";
               },
               style: TextStyle(fontSize: 15.0),
-              controller: textEditingController,
+              controller: textController,
+              focusNode: textFocusNode,
               decoration: InputDecoration.collapsed(
                 hintText: 'Vaša poruka...',
                 hintStyle: TextStyle(color: Colors.grey),
               ),
             ),
           )),
-          Container(
-            child: Container(
-              height: 30, width: 30,
-              decoration: BoxDecoration(
-                border: Border.all(color: CompanyColor.blueDark, width: 1.5),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(Icons.gif, color: CompanyColor.blueDark),
-            ),
-          ),
           Container(
             child: IconButton(
               icon: Icon(Icons.image),
@@ -363,11 +369,13 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   doSendMessage() {
-    MessageDto message = new MessageDto();
-    message.text = textEditingController.text;
-    message.messageType = 'TEXT_MESSAGE';
-    textEditingController.clear();
-    _send(message);
+    if (textController.text.length > 0) {
+      MessageDto message = new MessageDto();
+      message.text = textController.text;
+      message.messageType = 'TEXT_MESSAGE';
+      textController.clear();
+      _send(message);
+    }
   }
 
   _send(message) async {
@@ -459,7 +467,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         prevMessage = m;
       }
 
-      if (!m.seen) {
+      if (!m.seen && userId != m.sender.id) {
         unseenMessages.add(new MessageSeenDto(id: m.id,
             senderPhoneNumber: m.sender.countryCode.dialCode + m.sender.phoneNumber));
       }

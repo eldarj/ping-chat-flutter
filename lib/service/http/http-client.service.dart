@@ -30,6 +30,18 @@ class HttpClientService {
     return response;
   }
 
+  static Future<http.Response> getQuery(endpoint, queryMap) async {
+    var userToken = await UserService.getToken();
+
+    var response = await http.get(
+        Uri.http('192.168.1.4:8089', endpoint, queryMap),
+        headers: {'content-type': 'application/json', 'authorization': 'Bearer $userToken'}
+    ).timeout(Duration(seconds: 10));
+
+    return response;
+  }
+
+
   static Future<http.StreamedResponse> postMultipartFile(String url, String filename, File file,
       {String multipartFieldName: 'file'}) async
   {

@@ -6,6 +6,7 @@ import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/persistence/sticker.prefs.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 class StickerBar extends StatefulWidget {
@@ -30,6 +31,10 @@ class StickerBarState extends State<StickerBar> {
 
   int selectedIndex = 0;
 
+  Map recentStickers;
+
+  bool loadingRecent = true;
+
   Map stickersMap = {
     0: {},
     1: {
@@ -43,13 +48,16 @@ class StickerBarState extends State<StickerBar> {
     },
     3: {
       0: ['stitch1.png','stitch2.png','stitch3.png','stitch4.png','stitch5.png',],
-      1: ['stitch6.png','stitch7.png','stitch8.png','stitch9.png','stitch10.png',],
-      2: ['stitch11.png',],
+      1: ['stitch6.png','stitch8.png','stitch11.png','stitch10.png',],
     },
   };
 
   loadRecentStickers() async {
-    var recentStickers = await stickerService.loadRecent();
+    await Future.delayed(Duration(seconds: 1));
+    recentStickers = await stickerService.loadRecent();
+    setState(() {
+      loadingRecent = false;
+    });
   }
 
   @override
@@ -111,16 +119,27 @@ class StickerBarState extends State<StickerBar> {
   }
 
   buildStickerGrid() {
+    print(selectedIndex);
+    if (selectedIndex == 0) {
+      return !loadingRecent ? _buildStickers(recentStickers)
+          : Spinner();
+    } else {
+      return _buildStickers(stickersMap[selectedIndex]);
+    }
+  }
+
+  _buildStickers(stickers) {
     double stickerSize = (MediaQuery.of(context).size.width / 5) - 15;
-    var stickers = stickersMap[selectedIndex];
+
     return Container(
-      child: ListView(
+      child: stickers.length > 0 ? ListView(
         children: <Widget>[
           ...stickers.entries.map((mapEntry) {
             return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
               ...mapEntry.value.map((stickerName) {
                 return GestureDetector(
-                  onTap: () {
+                  onTap: () async {
+                    recentStickers = await stickerService.addRecent(stickerName);
                     widget.sendFunc(stickerName);
                   },
                   child: Container(
@@ -132,10 +151,10 @@ class StickerBarState extends State<StickerBar> {
             ]);
           }).toList()
         ],
-      ),
+      ) : Text('No stickers to display', style: TextStyle(color: Colors.grey.shade400)),
       decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.grey, width: 0.5))),
-      padding: EdgeInsets.only(left: 5, right: 5, top: 15, bottom: 15),
+          border: Border(top: BorderSide(color: Colors.grey.shade200, width: 0.5))),
+      padding: EdgeInsets.only(left: 5, right: 5, top: 0, bottom: 0),
       height: 180.0,
     );
   }

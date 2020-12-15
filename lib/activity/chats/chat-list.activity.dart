@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
+import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -47,9 +49,10 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   int pageSize = 50;
   int pageNumber = 1;
 
-  onInit() async {
+  Timer presenceTimer;
+
+  initListenersAndGetData() async {
     dynamic user = await UserService.getUser();
-    dynamic userToken = await UserService.getToken();
     userId = user.id;
 
     wsClientService.userStatusPub.addListener(STREAMS_LISTENER_IDENTIFIER, (item) {
@@ -128,30 +131,69 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
   }
 
-  onDispose() async {
+  initPresenceFetcher() async {
+    presenceTimer = Timer.periodic(Duration(minutes: 5), (Timer t) async {
+      List contactPhoneNumbers = chats.map((chat) {
+        return userId == chat.sender.id ? chat.receiver.countryCode.dialCode + chat.receiver.phoneNumber
+            : chat.sender.countryCode.dialCode + chat.sender.phoneNumber;
+      }).toList();
+
+      if (contactPhoneNumbers.length > 0) {
+        http.Response response = await HttpClientService.getQuery(
+            '/api/chat/presence', {'phoneNumbers': contactPhoneNumbers.join(',')});
+
+        if (response.statusCode != 200) {
+          throw new Exception();
+        }
+
+        List<dynamic> result = response.decode();
+        result.where((el) => el != null).forEach((element) {
+          PresenceEvent presenceEvent = PresenceEvent.fromJson(element);
+          // TODO: Replace with maps
+          chats.forEach((chat) {
+            if (userId == chat.sender.id) {
+              if (presenceEvent.userPhoneNumber == chat.receiver.countryCode.dialCode + chat.receiver.phoneNumber) {
+                chat.receiverOnline = presenceEvent.status;
+                chat.receiverLastOnlineTimestamp = presenceEvent.eventTimestamp;
+              }
+            } else {
+              if (presenceEvent.userPhoneNumber == chat.sender.countryCode.dialCode + chat.sender.phoneNumber) {
+                chat.senderOnline = presenceEvent.status;
+                chat.senderLastOnlineTimestamp = presenceEvent.eventTimestamp;
+              }
+            }
+          });
+        });
+      }
+    });
   }
 
   @override
   initState() {
     super.initState();
-    onInit();
+    initListenersAndGetData();
+    initPresenceFetcher();
   }
 
   @override
   deactivate() {
     super.deactivate();
+
+    presenceTimer.cancel();
+
     wsClientService.userStatusPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Chats'),
+        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Recent Chats'),
         drawer: NavigationDrawerComponent(),
         bottomNavigationBar: new BottomNavigationComponent(currentIndex: 0).build(context),
         body: Builder(builder: (context) {
@@ -240,7 +282,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
               messageContent: chat.text,
               seen: chat.seen,
               isOnline: isOnline,
-              statusLabel: isOnline ? 'Online' : DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
+              statusLabel: isOnline ? 'Online' : 'Last seen ' + DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
               messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp),
               displaySeen: userId == chat.sender.id,
               message: chat,
