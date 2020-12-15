@@ -68,8 +68,9 @@ class WsClientService {
 
 final wsClientService = WsClientService();
 
-sendMessage(MessageDto messageDto) {
-  wsClientService.sendingMessagesPub.sendEvent(messageDto, '/messages/send');
+sendMessage(MessageDto message) async {
+  message.sender = await UserService.getUser();
+  wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
 }
 
 sendSeenStatus(List<MessageSeenDto> seenMessages) {

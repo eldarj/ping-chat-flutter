@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/widget/chat-settings-menu.dart';
+import 'package:flutterping/activity/chats/widget/stickers/sticker-bar.dart';
 import 'package:flutterping/activity/chats/widget/message-bubble.dart';
 import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
@@ -28,6 +29,7 @@ import 'package:keyboard_visibility/keyboard_visibility.dart';
 
 class ChatActivity extends StatefulWidget {
   final ClientDto peer;
+
   final String peerContactName;
 
   final String myContactName;
@@ -46,30 +48,28 @@ class ChatActivity extends StatefulWidget {
 class ChatActivityState extends BaseState<ChatActivity> {
   static const String STREAMS_LISTENER_IDENTIFIER = "ChatActivityListener";
 
-  var displayLoader = true;
-
   final TextEditingController textEditingController = TextEditingController();
 
-  bool displaySendButtong = false;
+  bool displayLoader = true;
+  bool displaySendButton = false;
+  bool displayScrollLoader = false;
 
-  ClientDto user;
+  bool displayStickers = true;
+
+  int userId;
   int anotherUserId = 0;
 
   List<MessageDto> messages = new List();
   int totalMessages = 0;
-
-  bool isLoadingOnScroll = false;
-
   int pageNumber = 1;
   int pageSize = 10;
 
   bool previousWasPeerMessage;
   DateTime previousMessageDate;
 
-  ScrollController scrollViewColtroller = new ScrollController();
-
   onInit() async {
-    user = await UserService.getUser();
+    var user = await UserService.getUser();
+    userId = user.id;
     anotherUserId = widget.peer.id;
 
     doGetMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
@@ -133,7 +133,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     KeyboardVisibilityNotification().addNewListener(
       onChange: (bool visible) {
-        displaySendButtong = visible;
+        displaySendButton = visible;
       },
     );
   }
@@ -172,13 +172,30 @@ class ChatActivityState extends BaseState<ChatActivity> {
           return Container(
             color: Colors.white,
             child: Column(children: [
-              isLoadingOnScroll ? SizedOverflowBox(
-                  size: Size(100, 0),
-                  child: Container(
-                      padding: EdgeInsets.only(top: 50),
-                      child: Spinner(size: 20))) : Container(),
-              buildMessagesList(),
-              buildInputRow()
+              Flexible(
+                child: Stack(alignment: Alignment.topCenter, children: [
+                  buildMessagesList(),
+                  displayScrollLoader ? SizedOverflowBox(
+                      size: Size(100, 0),
+                      child: Container(
+                          padding: EdgeInsets.only(top: 50),
+                          child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(50)
+                              ),
+                              padding: EdgeInsets.all(10),
+                              child: Spinner(size: 20)))) : Container(),
+                ]),
+              ),
+              buildInputRow(),
+              displayStickers ? StickerBar(
+                peer: widget.peer,
+                myContactName: widget.myContactName,
+                peerContactName: widget.peerContactName,
+                contactBindingId: widget.contactBindingId,
+              ) : Container(),
             ]),
           );
         })
@@ -192,10 +209,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
       if (messages != null && messages.length > 0) {
         widget = NotificationListener<ScrollNotification>(
           onNotification: (ScrollNotification scrollInfo) {
-            if (!displayLoader) {
+            if (!displayScrollLoader) {
               if (scrollInfo is UserScrollNotification) {
                 UserScrollNotification userScrollNotification = scrollInfo as UserScrollNotification;
-                if (scrollInfo.metrics.pixels == scrollInfo.metrics.minScrollExtent
+                if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent
                     && userScrollNotification.direction == ScrollDirection.reverse) {
                   getNextPageOfMessagesOnScroll();
                 }
@@ -203,15 +220,16 @@ class ChatActivityState extends BaseState<ChatActivity> {
             }
             return true;
           },
-          child: Expanded(
+          child: Container(
             child: Container(
               color: Colors.transparent,
-              padding: EdgeInsets.only(bottom: 20),
               child: ListView.builder(
                 reverse: true,
                 itemCount: messages == null ? 0 : messages.length,
                 itemBuilder: (context, index) {
-                  return buildSingleMessage(messages[index], isLastMessage: index == 0);
+                  return buildSingleMessage(messages[index],
+                      isFirstMessage: index == messages.length - 1,
+                      isLastMessage: index == 0);
                 },
               ),
             ),
@@ -230,10 +248,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
     return widget;
   }
 
-  Widget buildSingleMessage(MessageDto message, {isLastMessage}) {
+  Widget buildSingleMessage(MessageDto message, {isLastMessage, isFirstMessage = false}) {
     double width = MediaQuery.of(context).size.width - 150;
 
-    bool isPeerMessage = user.id != message.sender.id;
+    bool isPeerMessage = userId != message.sender.id;
 
     bool displayTimestamp = true;
     final thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
@@ -247,10 +265,13 @@ class ChatActivityState extends BaseState<ChatActivity> {
     previousWasPeerMessage = isPeerMessage;
     previousMessageDate = thisMessageDate;
 
-    return MessageBubble(isPeerMessage: isPeerMessage, content: message.text, maxWidth: width,
-      displayTimestamp: displayTimestamp, sentTimestamp: message.sentTimestamp,
-      sent: message.sent, received: message.received, seen: message.seen,
-      displayCheckMark: message.displayCheckMark, chained: message.chained,
+    return Container(
+      margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
+      child: MessageBubble(isPeerMessage: isPeerMessage, content: message.text, maxWidth: width,
+        displayTimestamp: displayTimestamp, sentTimestamp: message.sentTimestamp,
+        sent: message.sent, received: message.received, seen: message.seen,
+        displayCheckMark: message.displayCheckMark, chained: message.chained,
+      ),
     );
   }
 
@@ -259,15 +280,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [Shadows.topShadow()],
-          borderRadius: BorderRadius.circular(20),
         ),
         width: MediaQuery.of(context).size.width,
         child: Row(children: [
           Container(
-            child: IconButton(
-              icon: Icon(Icons.tag_faces),
-              onPressed: () {},
-              color: CompanyColor.blueDark,
+            child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    displayStickers = !displayStickers;
+                  });
+                },
+                child: Container(
+                    height: 35, width: 50,
+                    child: Image.asset('static/graphic/icon/sticker.png', color: CompanyColor.blueDark))
             ),
           ),
           Expanded(child: Container(
@@ -307,7 +332,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
               color: CompanyColor.blueDark,
             ),
           ),
-          displaySendButtong ? IconButton(onPressed: doSendMessage, icon: Icon(Icons.send)) :
+          displaySendButton ? IconButton(onPressed: doSendMessage, icon: Icon(Icons.send)) :
           Container(
               margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
               height: 45, width: 45,
@@ -330,7 +355,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
     message.text = textEditingController.text;
     textEditingController.clear();
 
-    message.sender = user;
     message.receiver = widget.peer;
     message.senderContactName = widget.myContactName;
     message.receiverContactName = widget.peerContactName;
@@ -358,9 +382,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   void getNextPageOfMessagesOnScroll() async {
-    if (!isLoadingOnScroll) {
+    if (!displayScrollLoader) {
       setState(() {
-        isLoadingOnScroll = true;
+        displayScrollLoader = true;
       });
 
       await Future.delayed(Duration(seconds: 1));
@@ -370,7 +394,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         doGetMessages(page: pageNumber).then(onGetMessagesSuccess, onError: onGetMessagesError);
       } else {
         setState(() {
-          isLoadingOnScroll = false;
+          displayScrollLoader = false;
         });
       }
     }
@@ -385,7 +409,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     String url = '/api/messages'
         '?pageNumber=' + (page - 1).toString() +
         '&pageSize=' + pageSize.toString() +
-        '&userId=' + user.id.toString() +
+        '&userId=' + userId.toString() +
         '&anotherUserId=' + anotherUserId.toString();
 
     http.Response response = await HttpClientService.get(url);
@@ -431,7 +455,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     setState(() {
       displayLoader = false;
-      isLoadingOnScroll = false;
+      displayScrollLoader = false;
       isError = false;
     });
   }
@@ -440,7 +464,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     print(error);
     setState(() {
       displayLoader = false;
-      isLoadingOnScroll = false;
+      displayScrollLoader = false;
       isError = true;
     });
 

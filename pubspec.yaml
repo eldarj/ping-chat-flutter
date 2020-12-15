@@ -69,6 +69,7 @@ flutter:
     - static/graphic/icon/
     - static/graphic/client/
     - static/graphic/flag/
+    - static/graphic/sticker/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
