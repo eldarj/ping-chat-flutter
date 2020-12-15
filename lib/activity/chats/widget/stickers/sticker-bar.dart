@@ -119,7 +119,6 @@ class StickerBarState extends State<StickerBar> {
   }
 
   buildStickerGrid() {
-    print(selectedIndex);
     if (selectedIndex == 0) {
       return !loadingRecent ? _buildStickers(recentStickers)
           : Spinner();

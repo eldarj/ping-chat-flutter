@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
+import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/service/ws/publisher.dart';
 import 'package:flutterping/service/ws/ws-client.dart';
@@ -35,6 +36,8 @@ class WsClientService {
   Publisher<int> incomingReceivedPub = new Publisher();
   Publisher<List<dynamic>> incomingSeenPub = new Publisher();
 
+  Publisher<PresenceEvent> presencePub = new Publisher();
+
   _initializeWsHandlers() async {
     String userToken = await UserService.getToken();
     _wsClient = new WsClient(userToken, onConnectedFunc: () {
@@ -57,12 +60,11 @@ class WsClientService {
         int messageId = json.decode(frame.body);
         incomingReceivedPub.subject.add(messageId);
       });
-
-      _wsClient.subscribe(destination: '/users/status', callback: (frame) async {
-        print('USERS STATUS CHANGE');
-        print(1);
-      });
     });
+  }
+
+  Function subscribe(destination, callback) {
+    return _wsClient.subscribe(destination: destination, callback: callback);
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'country-code-dto.model.dart';
@@ -24,4 +25,6 @@ class ClientDto {
   factory ClientDto.fromJson(Map<String, dynamic> json) => _$ClientDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$ClientDtoToJson(this);
+
+  get fullPhoneNumber => countryCode.dialCode + phoneNumber;
 }

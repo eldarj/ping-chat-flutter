@@ -12,6 +12,7 @@ import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
+import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -34,11 +35,11 @@ class ChatActivity extends StatefulWidget {
 
   final String myContactName;
 
-  final String statusLabel;
+  String statusLabel;
 
   final int contactBindingId;
 
-  const ChatActivity({Key key, this.myContactName, this.peer,
+  ChatActivity({Key key, this.myContactName, this.peer,
     this.peerContactName, this.statusLabel, this.contactBindingId}) : super(key: key);
 
   @override
@@ -68,12 +69,23 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool previousWasPeerMessage;
   DateTime previousMessageDate;
 
+  Function userPresenceSubscriptionFn;
+
   onInit() async {
     var user = await UserService.getUser();
     userId = user.id;
     anotherUserId = widget.peer.id;
 
     doGetMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
+    userPresenceSubscriptionFn = wsClientService.subscribe('/users/${widget.peer.fullPhoneNumber}/status', (frame) async {
+      PresenceEvent presenceEvent = PresenceEvent.fromJson(json.decode(frame.body));
+
+      setState(() {
+        widget.statusLabel = presenceEvent.status ? 'Online' : 'Last seen ' +
+            DateTimeUtil.convertTimestampToTimeAgo(presenceEvent.eventTimestamp);
+        wsClientService.presencePub.subject.add(presenceEvent);
+      });
+    });
 
     wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
       setState(() {
@@ -152,6 +164,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
   @override
   void deactivate() {
     super.deactivate();
+
+    userPresenceSubscriptionFn();
+
     wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);

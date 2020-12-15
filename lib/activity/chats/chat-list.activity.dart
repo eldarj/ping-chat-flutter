@@ -127,12 +127,26 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         }
       });
     });
-
     doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
   }
 
   initPresenceFetcher() async {
-    presenceTimer = Timer.periodic(Duration(minutes: 5), (Timer t) async {
+    wsClientService.presencePub.addListener(STREAMS_LISTENER_IDENTIFIER, (PresenceEvent presenceEvent) {
+      chats.forEach((chat) {
+        if (presenceEvent.userPhoneNumber == chat.sender.fullPhoneNumber) {
+          chat.senderOnline = presenceEvent.status;
+          chat.senderLastOnlineTimestamp = presenceEvent.eventTimestamp;
+          setState(() { });
+        } else if (presenceEvent.userPhoneNumber == chat.receiver.fullPhoneNumber) {
+          chat.receiverOnline = presenceEvent.status;
+          chat.receiverLastOnlineTimestamp = presenceEvent.eventTimestamp;
+          setState(() { });
+        }
+      });
+    });
+
+    presenceTimer = Timer.periodic(Duration(seconds: 30), (Timer t) async {
+      print('RUN ME');
       List contactPhoneNumbers = chats.map((chat) {
         return userId == chat.sender.id ? chat.receiver.countryCode.dialCode + chat.receiver.phoneNumber
             : chat.sender.countryCode.dialCode + chat.sender.phoneNumber;
@@ -147,20 +161,21 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         }
 
         List<dynamic> result = response.decode();
+
+        String pox = 'asd';
+
         result.where((el) => el != null).forEach((element) {
           PresenceEvent presenceEvent = PresenceEvent.fromJson(element);
           // TODO: Replace with maps
           chats.forEach((chat) {
             if (userId == chat.sender.id) {
-              if (presenceEvent.userPhoneNumber == chat.receiver.countryCode.dialCode + chat.receiver.phoneNumber) {
-                chat.receiverOnline = presenceEvent.status;
-                chat.receiverLastOnlineTimestamp = presenceEvent.eventTimestamp;
-              }
-            } else {
-              if (presenceEvent.userPhoneNumber == chat.sender.countryCode.dialCode + chat.sender.phoneNumber) {
-                chat.senderOnline = presenceEvent.status;
-                chat.senderLastOnlineTimestamp = presenceEvent.eventTimestamp;
-              }
+              chat.receiverOnline = presenceEvent.status;
+              chat.receiverLastOnlineTimestamp = presenceEvent.eventTimestamp;
+              setState(() { });
+            } else if (userId == chat.receiver.id) {
+              chat.senderOnline = presenceEvent.status;
+              chat.senderLastOnlineTimestamp = presenceEvent.eventTimestamp;
+              setState(() { });
             }
           });
         });
@@ -188,12 +203,13 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.presencePub.removeListener(STREAMS_LISTENER_IDENTIFIER);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Recent Chats'),
+        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Poruke'),
         drawer: NavigationDrawerComponent(),
         bottomNavigationBar: new BottomNavigationComponent(currentIndex: 0).build(context),
         body: Builder(builder: (context) {
