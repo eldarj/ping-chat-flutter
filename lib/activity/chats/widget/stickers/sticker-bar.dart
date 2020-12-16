@@ -1,11 +1,7 @@
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/persistence/sticker.prefs.service.dart';
-import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
@@ -50,6 +46,10 @@ class StickerBarState extends State<StickerBar> {
       0: ['stitch1.png','stitch2.png','stitch3.png','stitch4.png','stitch5.png',],
       1: ['stitch6.png','stitch8.png','stitch11.png','stitch10.png',],
     },
+    4: {
+      0: ['shark1.png','shark2.png','shark3.png','shark4.png','simpson1.png'],
+      1: ['kid1.png','guy1.png','drake1.png','drake2.png']
+    }
   };
 
   loadRecentStickers() async {
@@ -87,6 +87,7 @@ class StickerBarState extends State<StickerBar> {
         buildToolbarButton(index: 1, image: 'panda0.ico', size: 30),
         buildToolbarButton(index: 2, image: 'mimi0.jpg', size: 45),
         buildToolbarButton(index: 3, image: 'stitch1.png', size: 55),
+        buildToolbarButton(index: 4, icon: Icons.sentiment_very_satisfied),
       ]),
     );
   }
