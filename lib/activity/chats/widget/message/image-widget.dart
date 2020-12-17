@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/message-dto.model.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
@@ -37,14 +36,7 @@ class ImageWidget extends StatelessWidget {
       margin: EdgeInsets.only(left: 10, right: 10, bottom: 20),
       child: Column(crossAxisAlignment: isPeerMessage ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
-            Container(
-              child: Container(
-                  child: Column(
-                    children: [
-                      isPeerMessage ? Container() : buildImageFromPath(message.filePath),
-                    ],
-                  )),
-            ),
+            message.deleted ? buildDeletedItem() : buildImage(),
             displayTimestamp ? SizedOverflowBox(
                 alignment: isPeerMessage ? Alignment.centerLeft : Alignment.centerRight,
                 size: Size(50, 0),
@@ -53,6 +45,40 @@ class ImageWidget extends StatelessWidget {
                   child: isPeerMessage ? peerMessageStatus() : myMessageStatus(),
                 )) : Container(),
           ]),
+    );
+  }
+
+  Container buildImage() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Container(
+          child: Column(
+            children: [
+              isPeerMessage ? Container() : buildImageFromPath(message.filePath),
+            ],
+          )),
+    );
+  }
+
+  buildDeletedItem() {
+    return Container(
+      child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          width: 200,
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: Row(
+              children: [
+                Container(child: Icon(Icons.close, color: Colors.grey.shade400, size: 17)),
+                Text('Deleted', style: TextStyle(color: Colors.grey.shade400))
+              ]
+          )),
     );
   }
 
@@ -90,18 +116,16 @@ class ImageWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: !message.isUploading ? () {
-        NavigatorUtil.push(scaffold, ImageViewer(file: File(message.filePath)));
+        NavigatorUtil.push(scaffold, ImageViewerActivity(sender: message.senderContactName, timestamp: message.sentTimestamp, file: File(message.filePath)));
       } : null,
       child: Stack(alignment: Alignment.center,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: BorderRadius.circular(15),
             child: wrappedImage,
           ),
           message.isUploading ? GestureDetector(
-              onTap: message.stopUploadFunc != null ? message.stopUploadFunc : () {
-                print('WHAAAAAAAAAAT');
-              },
+              onTap: message.stopUploadFunc,
               child: Container(
                   width: 100, height: 100,
                   child: UploadProgressIndicator(size: 50, progress: message.uploadProgress))) : Container(width: 0),

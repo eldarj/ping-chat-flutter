@@ -65,6 +65,17 @@ class HttpClientService {
     return request.send();
   }
 
+  static delete(String url) async {
+    var userToken = await UserService.getToken();
+
+    var response = await http.delete(
+      Uri.encodeFull(API_BASE_URL + url),
+      headers: {'authorization': 'Bearer $userToken'},
+    ).timeout(Duration(seconds: 10));
+
+    return response;
+  }
+
   // TODO: Remove - unused
   static void postStream(String url, String filename, File file) async {
     var userToken = await UserService.getToken();

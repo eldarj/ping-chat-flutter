@@ -43,12 +43,16 @@ class MessageDto {
 
   Function stopUploadFunc;
 
+  bool deleted;
+
   MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
     this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
     this.contactBindingId, this.chained,
     this.fileName, this.fileUrl, this.filePath,
     this.uploadProgress, this.stopUploadFunc, this.isUploading,
-    this.messageType});
+    this.messageType,
+    this.deleted = false,
+  });
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
     return MessageDto()
@@ -79,6 +83,7 @@ class MessageDto {
       ..uploadProgress = 0.0
       ..stopUploadFunc = null
       ..isUploading = false
+      ..deleted = parsedJson['deleted'] as bool
       ..messageType = parsedJson['messageType'] as String;
   }
 
@@ -104,5 +109,6 @@ class MessageDto {
     'fileUrl': fileUrl,
     'filePath': filePath,
     'messageType': messageType,
+    'deleted': deleted,
   };
 }

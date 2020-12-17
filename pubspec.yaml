@@ -41,6 +41,7 @@ dependencies:
   file_picker: ^1.13.3
   image_picker: ^0.6.7+15
   modal_bottom_sheet: ^1.0.0+1
+  share: ^0.6.5+4
   tus_client: ^0.0.4
   intl: ^0.16.1
   timeago: ^2.0.15

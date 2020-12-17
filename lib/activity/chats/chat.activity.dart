@@ -418,9 +418,14 @@ class ChatActivityState extends BaseState<ChatActivity> {
           message.filePath = filePath;
           message.fileUrl = fileUrl.toString();
           message.stopUploadFunc = () async {
-            message.isUploading = false;
+            setState(() {
+              message.deleted = true;
+              message.isUploading = false;
+            });
             await Future.delayed(Duration(seconds: 2));
             uploadClient.delete();
+
+            // hit delete message api endpoint
           };
           _send(message);
         },
