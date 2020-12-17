@@ -37,10 +37,17 @@ class MessageDto {
 
   String filePath;
 
+  bool isUploading;
+
+  double uploadProgress;
+
+  Function stopUploadFunc;
+
   MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
     this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
     this.contactBindingId, this.chained,
     this.fileName, this.fileUrl, this.filePath,
+    this.uploadProgress, this.stopUploadFunc, this.isUploading,
     this.messageType});
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
@@ -69,6 +76,9 @@ class MessageDto {
       ..fileName = parsedJson['fileName'] as String
       ..filePath = parsedJson['filePath'] as String
       ..fileUrl = parsedJson['fileUrl'] as String
+      ..uploadProgress = 0.0
+      ..stopUploadFunc = null
+      ..isUploading = false
       ..messageType = parsedJson['messageType'] as String;
   }
 

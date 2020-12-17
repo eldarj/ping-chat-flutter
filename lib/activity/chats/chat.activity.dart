@@ -313,7 +313,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
           message: message,
           isPeerMessage: isPeerMessage,
           displayTimestamp: displayTimestamp,
-          progressValue: 0.5, // TODO: Progress
         ),
       );
     } else {
@@ -375,16 +374,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
           Container(
             child: IconButton(
               icon: Icon(Icons.attachment),
-              onPressed: () {
-                showFloatingModalBottomSheet(
-                  context: context,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => ShareFilesModal(onSuccess: (fileName, filePath, fileUrl) {
-                    doSendFile(fileName, filePath, fileUrl);
-                  }),
-                );
-                // NavigatorUtil.push(context, DummyUploadActivity());
-              },
+              onPressed: buildShareBottomSheet,
               color: CompanyColor.blueDark,
             ),
           ),
@@ -413,13 +403,39 @@ class ChatActivityState extends BaseState<ChatActivity> {
         ]));
   }
 
-  doSendFile(fileName, filePath, fileUrl) {
+  buildShareBottomSheet() {
     MessageDto message = new MessageDto();
-    message.fileName = fileName;
-    message.filePath = filePath;
-    message.fileUrl = fileUrl.toString();
     message.messageType = 'IMAGE';
-    _send(message);
+    message.uploadProgress = 0.0;
+    message.isUploading = true;
+
+    showFloatingModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ShareFilesModal(
+        onPicked: (TusClient uploadClient, fileName, filePath, fileUrl) {
+          message.fileName = fileName;
+          message.filePath = filePath;
+          message.fileUrl = fileUrl.toString();
+          message.stopUploadFunc = () async {
+            message.isUploading = false;
+            await Future.delayed(Duration(seconds: 2));
+            uploadClient.delete();
+          };
+          _send(message);
+        },
+        onProgress: (progress) {
+          var _uploadProgress = progress / 100;
+          print('==== PROGRESS ' + _uploadProgress.toString());
+          setState(() {
+            message.uploadProgress = _uploadProgress;
+          });
+        },
+        onComplete: (response) {
+          message.isUploading = false;
+        },
+      ),
+    );
   }
 
   doSendEmoji(stickerCode) {

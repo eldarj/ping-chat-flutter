@@ -390,7 +390,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         ],
       );
     } else if (message.messageType == 'TEXT_MESSAGE') {
-      widget = Text(message.text,
+      widget = Text(message.text??'fixme',
           overflow: TextOverflow.ellipsis, maxLines: 2,
           style: TextStyle(color: Colors.grey.shade500));
     } else if (message.messageType == 'IMAGE') {

@@ -21,17 +21,11 @@ class ImageWidget extends StatelessWidget {
 
   final MessageDto message;
 
-  final bool loading;
-
-  double progressValue = 0;
-
   double imageSize = 0;
 
   ImageWidget({Key key, this.isPeerMessage,
-    this.loading = false,
     this.message,
     this.displayTimestamp,
-    this.progressValue
   }) : super(key: key);
 
   @override
@@ -78,14 +72,14 @@ class ImageWidget extends StatelessWidget {
 
   buildImageFromPath(String filePath) {
     Container image = Container(
-        color: isPeerMessage ? Colors.grey.shade100 : Colors.green.shade50,
+        color: isPeerMessage ? Colors.grey.shade100 : CompanyColor.myMessageBackground,
         constraints: BoxConstraints(
-            maxWidth: imageSize, maxHeight: imageSize, minHeight: 200, minWidth: 200
+            maxWidth: imageSize, maxHeight: imageSize, minHeight: 100, minWidth: 100
         ),
-        child: Image.file(File(message.filePath)));
+        child: Image.file(File(message.filePath, ), fit: BoxFit.cover));
 
     Widget wrappedImage;
-    if (loading) {
+    if (message.isUploading) {
       wrappedImage = ColorFiltered(
         colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.srcOver),
         child: image,
@@ -95,16 +89,22 @@ class ImageWidget extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () {
+      onTap: !message.isUploading ? () {
         NavigatorUtil.push(scaffold, ImageViewer(file: File(message.filePath)));
-      },
+      } : null,
       child: Stack(alignment: Alignment.center,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
             child: wrappedImage,
           ),
-          loading ? Container(child: UploadProgressIndicator(size: 50, value: progressValue)) : Container(width: 0),
+          message.isUploading ? GestureDetector(
+              onTap: message.stopUploadFunc != null ? message.stopUploadFunc : () {
+                print('WHAAAAAAAAAAT');
+              },
+              child: Container(
+                  width: 100, height: 100,
+                  child: UploadProgressIndicator(size: 50, progress: message.uploadProgress))) : Container(width: 0),
         ],
       ),
     );
