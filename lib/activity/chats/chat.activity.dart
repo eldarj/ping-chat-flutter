@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutterping/activity/chats/widget/dummyupload/dummy-upload.dart';
-import 'package:flutterping/activity/chats/widget/message/image-widget.dart';
+import 'package:flutterping/activity/chats/widget/message/image-message.component.dart';
+import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/activity/chats/widget/share/share-files.modal.dart';
 
@@ -11,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/widget/chat-settings-menu.dart';
 import 'package:flutterping/activity/chats/widget/stickers/sticker-bar.dart';
-import 'package:flutterping/activity/chats/widget/message/message-widget.dart';
+import 'package:flutterping/activity/chats/widget/message/message.component.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
@@ -25,6 +29,7 @@ import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
@@ -76,6 +81,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   DateTime previousMessageDate;
 
   Function userPresenceSubscriptionFn;
+
+  String picturesPath;
 
   onInit() async {
     var user = await UserService.getUser();
@@ -148,6 +155,14 @@ class ChatActivityState extends BaseState<ChatActivity> {
         }
       });
     });
+
+    wsClientService.updateMessagePub.addListener(STREAMS_LISTENER_IDENTIFIER, (MessageDto message) async {
+      messages.where((element) => element.id == message.id).forEach((element) {
+        setState(() {element = message;});
+      });
+    });
+
+    picturesPath = await new StorageIOService().getPicturesPath();
   }
 
   @override
@@ -183,6 +198,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.updateMessagePub.removeListener(STREAMS_LISTENER_IDENTIFIER);
   }
 
   @override
@@ -309,8 +325,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
     if (message.messageType == 'IMAGE') {
       messageWidget = Container(
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
-        child: ImageWidget(
+        child: ImageMessageComponent(
           message: message,
+          picturesPath: picturesPath,
           isPeerMessage: isPeerMessage,
           displayTimestamp: displayTimestamp,
         ),
@@ -318,7 +335,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     } else {
       messageWidget = Container(
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
-        child: MessageWidget(
+        child: MessageComponent(
           isPeerMessage: isPeerMessage,
           content: message.text,
           maxWidth: width,
@@ -530,6 +547,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
     return {'messages': result['page'], 'totalElements': result['totalElements']};
   }
 
+  doDownloadAndStoreImage(MessageDto message) async {
+    try {
+      await FlutterDownloader.enqueue(
+        url: message.fileUrl,
+        savedDir: picturesPath,
+        fileName: message.id.toString() + message.fileName,
+        showNotification: false,
+        openFileFromNotification: false,
+      );
+    } catch(exception) {
+    }
+  }
+
   onGetMessagesSuccess(result) async {
     scaffold.removeCurrentSnackBar();
 
@@ -541,6 +571,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     messages.addAll(fetchedMessages.map((e) {
       var m = MessageDto.fromJson(e);
 
+      // Set prevmessage and chaining (ui bubbling)
       if (prevMessage == null) {
         m.chained = false;
         prevMessage = m;
@@ -549,10 +580,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
         prevMessage = m;
       }
 
+      // Collect unseen messages to update status on API
       if (!m.seen && userId != m.sender.id) {
         unseenMessages.add(new MessageSeenDto(id: m.id,
             senderPhoneNumber: m.sender.countryCode.dialCode + m.sender.phoneNumber));
       }
+
+      if (m.messageType == 'IMAGE') {
+        bool imageExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
+        if (userId == m.receiver.id && !imageExists) {
+          doDownloadAndStoreImage(m);
+        }
+      }
+
       return m;
     }).toList());
 

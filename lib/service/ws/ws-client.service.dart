@@ -6,7 +6,7 @@ import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:flutterping/service/ws/publisher.dart';
+import 'package:flutterping/service/ws/ws-publisher.dart';
 import 'package:flutterping/service/ws/ws-client.dart';
 
 class WsClientService {
@@ -24,19 +24,20 @@ class WsClientService {
 
   static WsClient _wsFunc() => wsClient;
 
-  Publisher<int> userStatusPub = new Publisher();
+  WsPublisher<int> userStatusPub = new WsPublisher();
 
-  Publisher<MessageDto> receivingMessagesPub = new Publisher();
-  Publisher<MessageDto> sendingMessagesPub = new Publisher(ws: _wsFunc);
+  WsPublisher<MessageDto> updateMessagePub = new WsPublisher(); // TODO: Hook into WS
+  WsPublisher<MessageDto> receivingMessagesPub = new WsPublisher();
+  WsPublisher<MessageDto> sendingMessagesPub = new WsPublisher(ws: _wsFunc);
 
-  Publisher<MessageSeenDto> outgoingReceivedPub = new Publisher(ws: _wsFunc);
-  Publisher<List<MessageSeenDto>> outgoingSeenPub = new Publisher(ws: _wsFunc);
+  WsPublisher<MessageSeenDto> outgoingReceivedPub = new WsPublisher(ws: _wsFunc);
+  WsPublisher<List<MessageSeenDto>> outgoingSeenPub = new WsPublisher(ws: _wsFunc);
 
-  Publisher<MessageDto> incomingSentPub = new Publisher();
-  Publisher<int> incomingReceivedPub = new Publisher();
-  Publisher<List<dynamic>> incomingSeenPub = new Publisher();
+  WsPublisher<MessageDto> incomingSentPub = new WsPublisher();
+  WsPublisher<int> incomingReceivedPub = new WsPublisher();
+  WsPublisher<List<dynamic>> incomingSeenPub = new WsPublisher();
 
-  Publisher<PresenceEvent> presencePub = new Publisher();
+  WsPublisher<PresenceEvent> presencePub = new WsPublisher();
 
   _initializeWsHandlers() async {
     String userToken = await UserService.getToken();

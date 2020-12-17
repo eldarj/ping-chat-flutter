@@ -21,10 +21,13 @@ class ImageMessageComponent extends StatelessWidget {
 
   final MessageDto message;
 
+  final String picturesPath;
+
   double imageSize = 0;
 
   ImageMessageComponent({Key key, this.isPeerMessage,
     this.message,
+    this.picturesPath,
     this.displayTimestamp,
   }) : super(key: key);
 
@@ -58,7 +61,7 @@ class ImageMessageComponent extends StatelessWidget {
       child: Container(
           child: Column(
             children: [
-              isPeerMessage ? Container() : buildImageFromPath(message.filePath),
+              isPeerMessage ? buildImageFromPath(picturesPath + '/' + message.id.toString() + message.fileName) : buildImageFromPath(message.filePath),
             ],
           )),
     );

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' show basename;
 import 'package:flutter/cupertino.dart';
@@ -16,6 +17,7 @@ import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share/share.dart';
 
+// TODO: Change to stateless
 class ImageViewerActivity extends StatefulWidget {
   final File file;
 
@@ -113,11 +115,11 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
     });
 
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.success('Izbrisali ste sadržaj.'));
+    scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste datoteku.'));
 
     await Future.delayed(Duration(seconds: 2));
 
-    Navigator.pop(context);
+    Navigator.pop(context, {'deleted': true});
   }
 
   onDeleteError(error) {

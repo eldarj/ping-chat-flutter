@@ -1,4 +1,5 @@
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/service/persistence/storage.io.service.dart';
 
 class MessageDto {
   int id;

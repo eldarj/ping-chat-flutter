@@ -41,7 +41,7 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
       headers: {'Authorization': 'Bearer $userToken'},
     );
 
-    widget.onPicked(fileUploadClient, fileName, file.path, Uri.parse(API_BASE_URL + DATA_SPACE_ENDPOINT + '/' + fileName));
+    widget.onPicked(fileUploadClient, fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName));
 
 
     widget.onProgress(5);
