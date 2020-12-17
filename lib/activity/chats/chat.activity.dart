@@ -1,3 +1,7 @@
+import 'package:flutterping/activity/chats/widget/dummyupload/dummy-upload.dart';
+import 'package:flutterping/activity/chats/widget/message/image-widget.dart';
+import 'package:flutterping/shared/modal/floating-modal.dart';
+import 'package:flutterping/activity/chats/widget/share/share-files.modal.dart';
 
 
 import 'dart:convert';
@@ -7,8 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/widget/chat-settings-menu.dart';
 import 'package:flutterping/activity/chats/widget/stickers/sticker-bar.dart';
-import 'package:flutterping/activity/chats/widget/message-bubble.dart';
-import 'package:flutterping/activity/chats/widget/message-status-row.dart';
+import 'package:flutterping/activity/chats/widget/message/message-widget.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
@@ -22,11 +25,14 @@ import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:keyboard_visibility/keyboard_visibility.dart';
+import 'package:tus_client/tus_client.dart';
 
 class ChatActivity extends StatefulWidget {
   final ClientDto peer;
@@ -298,18 +304,34 @@ class ChatActivityState extends BaseState<ChatActivity> {
     previousWasPeerMessage = isPeerMessage;
     previousMessageDate = thisMessageDate;
 
-    return Container(
-      margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
-      child: MessageBubble(
-        isPeerMessage: isPeerMessage,
-        content: message.text,
-        maxWidth: width,
-        displayTimestamp: displayTimestamp, sentTimestamp: message.sentTimestamp,
-        sent: message.sent, received: message.received, seen: message.seen, displayCheckMark: message.displayCheckMark,
-        chained: message.chained,
-        messageType: message.messageType,
-      ),
-    );
+    Widget messageWidget;
+
+    if (message.messageType == 'IMAGE') {
+      messageWidget = Container(
+        margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
+        child: ImageWidget(
+          message: message,
+          isPeerMessage: isPeerMessage,
+          displayTimestamp: displayTimestamp,
+          progressValue: 0.5, // TODO: Progress
+        ),
+      );
+    } else {
+      messageWidget = Container(
+        margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
+        child: MessageWidget(
+          isPeerMessage: isPeerMessage,
+          content: message.text,
+          maxWidth: width,
+          displayTimestamp: displayTimestamp, sentTimestamp: message.sentTimestamp,
+          sent: message.sent, received: message.received, seen: message.seen, displayCheckMark: message.displayCheckMark,
+          chained: message.chained,
+          messageType: message.messageType,
+        ),
+      );
+    }
+
+    return messageWidget;
   }
 
   Widget buildInputRow() {
@@ -352,8 +374,17 @@ class ChatActivityState extends BaseState<ChatActivity> {
           )),
           Container(
             child: IconButton(
-              icon: Icon(Icons.image),
-              onPressed: () {},
+              icon: Icon(Icons.attachment),
+              onPressed: () {
+                showFloatingModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => ShareFilesModal(onSuccess: (fileName, filePath, fileUrl) {
+                    doSendFile(fileName, filePath, fileUrl);
+                  }),
+                );
+                // NavigatorUtil.push(context, DummyUploadActivity());
+              },
               color: CompanyColor.blueDark,
             ),
           ),
@@ -380,6 +411,15 @@ class ChatActivityState extends BaseState<ChatActivity> {
               )
           ),
         ]));
+  }
+
+  doSendFile(fileName, filePath, fileUrl) {
+    MessageDto message = new MessageDto();
+    message.fileName = fileName;
+    message.filePath = filePath;
+    message.fileUrl = fileUrl.toString();
+    message.messageType = 'IMAGE';
+    _send(message);
   }
 
   doSendEmoji(stickerCode) {

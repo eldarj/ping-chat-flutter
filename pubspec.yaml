@@ -38,7 +38,10 @@ dependencies:
   permission_handler: ^5.0.1+1
   flutter_slidable: ^0.5.7
   cached_network_image: ^2.2.0
+  file_picker: ^1.13.3
   image_picker: ^0.6.7+15
+  modal_bottom_sheet: ^1.0.0+1
+  tus_client: ^0.0.4
   intl: ^0.16.1
   timeago: ^2.0.15
   keyboard_visibility: ^0.5.6
@@ -46,8 +49,6 @@ dependencies:
   rxdart: ^0.24.1
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -31,9 +31,17 @@ class MessageDto {
 
   String messageType;
 
+  String fileName;
+
+  String fileUrl;
+
+  String filePath;
+
   MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
     this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
-    this.contactBindingId, this.chained, this.messageType});
+    this.contactBindingId, this.chained,
+    this.fileName, this.fileUrl, this.filePath,
+    this.messageType});
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
     return MessageDto()
@@ -58,6 +66,9 @@ class MessageDto {
       ..sentTimestamp = parsedJson['sentTimestamp'] as int
       ..contactBindingId = parsedJson['contactBindingId'] as int
       ..chained = parsedJson['chained'] == null ? false : parsedJson['chained'] as bool
+      ..fileName = parsedJson['fileName'] as String
+      ..filePath = parsedJson['filePath'] as String
+      ..fileUrl = parsedJson['fileUrl'] as String
       ..messageType = parsedJson['messageType'] as String;
   }
 
@@ -79,6 +90,9 @@ class MessageDto {
     'sentTimestamp': sentTimestamp,
     'contactBindingId': contactBindingId,
     'chained': chained,
+    'fileName': fileName,
+    'fileUrl': fileUrl,
+    'filePath': filePath,
     'messageType': messageType,
   };
 }

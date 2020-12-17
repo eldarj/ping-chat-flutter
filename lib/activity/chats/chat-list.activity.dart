@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +7,6 @@ import 'package:flutterping/activity/chats/chat.activity.dart';
 import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
-import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -19,7 +18,6 @@ import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
-import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/base/base.state.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
@@ -391,10 +389,19 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           Text('Sticker', style: TextStyle(color: Colors.grey.shade500)),
         ],
       );
-    } else {
+    } else if (message.messageType == 'TEXT_MESSAGE') {
       widget = Text(message.text,
           overflow: TextOverflow.ellipsis, maxLines: 2,
           style: TextStyle(color: Colors.grey.shade500));
+    } else if (message.messageType == 'IMAGE') {
+      widget = Row(
+        children: <Widget>[
+          Container(
+              margin: EdgeInsets.only(right: 5),
+              child: Icon(Icons.photo_size_select_large, color: Colors.grey.shade500, size: 15)),
+          Text('Image', style: TextStyle(color: Colors.grey.shade500)),
+        ],
+      );
     }
 
     return widget;
