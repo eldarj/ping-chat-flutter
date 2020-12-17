@@ -3,10 +3,10 @@ import 'dart:async';
 
 import 'package:rxdart/rxdart.dart';
 
-class Publisher<T> {
+class WsPublisher<T> {
   Function wsClientGetter;
 
-  Publisher({ Function ws }) {
+  WsPublisher({ Function ws }) {
     this.wsClientGetter = ws;
   }
 

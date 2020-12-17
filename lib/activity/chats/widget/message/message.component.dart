@@ -5,7 +5,7 @@ import 'package:flutterping/activity/chats/widget/message-status-row.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 
-class MessageWidget extends StatelessWidget {
+class MessageComponent extends StatelessWidget {
   final bool isPeerMessage;
 
   final String content;
@@ -24,7 +24,7 @@ class MessageWidget extends StatelessWidget {
 
   final String messageType;
 
-  const MessageWidget({Key key, this.isPeerMessage,
+  const MessageComponent({Key key, this.isPeerMessage,
     this.content, this.sentTimestamp, this.displayTimestamp,
     this.maxWidth,
     this.sent, this.received, this.seen, this.displayCheckMark,

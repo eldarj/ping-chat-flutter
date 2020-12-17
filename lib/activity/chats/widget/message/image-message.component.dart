@@ -1,6 +1,7 @@
 
 import 'dart:io';
 import 'package:flutterping/activity/data-space/widget/image-viewer.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,7 +12,7 @@ import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 
-class ImageWidget extends StatelessWidget {
+class ImageMessageComponent extends StatelessWidget {
   BuildContext scaffold;
 
   final bool isPeerMessage;
@@ -22,7 +23,7 @@ class ImageWidget extends StatelessWidget {
 
   double imageSize = 0;
 
-  ImageWidget({Key key, this.isPeerMessage,
+  ImageMessageComponent({Key key, this.isPeerMessage,
     this.message,
     this.displayTimestamp,
   }) : super(key: key);
@@ -75,8 +76,8 @@ class ImageWidget extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: Row(
               children: [
-                Container(child: Icon(Icons.close, color: Colors.grey.shade400, size: 17)),
-                Text('Deleted', style: TextStyle(color: Colors.grey.shade400))
+                Container(child: Icon(Icons.close, color: Colors.grey.shade400, size: 16)),
+                Text('Poruka izbrisana', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey.shade400))
               ]
           )),
     );
@@ -115,8 +116,12 @@ class ImageWidget extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: !message.isUploading ? () {
-        NavigatorUtil.push(scaffold, ImageViewerActivity(sender: message.senderContactName, timestamp: message.sentTimestamp, file: File(message.filePath)));
+      onTap: !message.isUploading ? () async {
+        var result = await NavigatorUtil.push(scaffold, ImageViewerActivity(sender: message.senderContactName, timestamp: message.sentTimestamp, file: File(message.filePath)));
+        if (result != null && result['deleted'] == true) {
+          message.deleted = true;
+          wsClientService.updateMessagePub.subject.add(message);
+        }
       } : null,
       child: Stack(alignment: Alignment.center,
         children: [
