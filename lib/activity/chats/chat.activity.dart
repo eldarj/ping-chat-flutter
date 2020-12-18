@@ -182,8 +182,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.updateMessagePub.addListener(STREAMS_LISTENER_ID, (MessageDto message) async {
-      messages.where((element) => element.id == message.id).forEach((element) {
-        setState(() {element = message;});
+      messages.where((m) => m.id == message.id).forEach((m) {
+        setState(() {m = message;});
+        if (m.deleted) {
+
+        }
       });
     });
   }

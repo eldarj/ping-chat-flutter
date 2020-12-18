@@ -4,6 +4,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutterping/activity/landing/landing.activity.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutterping/shared/dropdown-banner/dropdown-banner.component.dart';
 
 void main() {
   runApp(MyApp());
@@ -24,12 +25,15 @@ class MyApp extends StatelessWidget {
     );
 
     return MaterialApp(
+        home: Scaffold(
+            body: Builder(builder: (context) => LandingActivity())
+        ),
         debugShowCheckedModeBanner: false,
         title: 'Ping',
-        initialRoute: '/',
-        routes: {
-          '/': (context) => LandingActivity()
-        },
+        // initialRoute: '/',
+        // routes: {
+        //   '/': (context) => LandingActivity()
+        // },
         theme: themeData
     );
   }

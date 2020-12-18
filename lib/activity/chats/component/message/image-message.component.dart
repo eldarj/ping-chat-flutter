@@ -1,6 +1,6 @@
 
 import 'dart:io';
-import 'package:flutterping/activity/data-space/widget/image-viewer.dart';
+import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';

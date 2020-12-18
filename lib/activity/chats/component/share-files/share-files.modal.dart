@@ -51,15 +51,14 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
       });
       await Future.delayed(Duration(seconds: 2));
       fileUploadClient.delete();
-      // hit delete message api endpoint
     };
     // widget.onPicked(fileUploadClient, fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName));
 
 
     widget.onProgress(message, 10);
-    await Future.delayed(Duration(milliseconds: 150));
+    await Future.delayed(Duration(milliseconds: 500));
     widget.onProgress(message, 30);
-    await Future.delayed(Duration(milliseconds: 150));
+    await Future.delayed(Duration(milliseconds: 500));
 
     // HANDLE ON COMPLETE ETC HERE
     try {

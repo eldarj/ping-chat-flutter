@@ -49,6 +49,7 @@ dependencies:
   rxdart: ^0.24.1
   flutter_downloader: ^1.5.2
   path_provider: ^1.6.24
+  dart_notification_center: ^1.0.0+1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
