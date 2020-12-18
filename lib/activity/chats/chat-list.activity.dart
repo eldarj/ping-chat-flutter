@@ -33,7 +33,7 @@ class ChatListActivity extends StatefulWidget {
 }
 
 class ChatListActivityState extends BaseState<ChatListActivity> {
-  static const String STREAMS_LISTENER_IDENTIFIER = "ChatListListener";
+  static const String STREAMS_LISTENER_ID = "ChatListListener";
 
   bool displayLoader = true;
 
@@ -53,11 +53,11 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     dynamic user = await UserService.getUser();
     userId = user.id;
 
-    wsClientService.userStatusPub.addListener(STREAMS_LISTENER_IDENTIFIER, (item) {
+    wsClientService.userStatusPub.addListener(STREAMS_LISTENER_ID, (item) {
       print(item);
     });
 
-    wsClientService.sendingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (MessageDto message) {
+    wsClientService.sendingMessagesPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
       chats.forEach((chat) => {
         if (chat.contactBindingId == message.contactBindingId) {
           setState(() {
@@ -73,7 +73,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
-    wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
+    wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_ID, (message) {
       chats.forEach((chat) => {
         if (chat.contactBindingId == message.contactBindingId) {
           setState(() {
@@ -83,12 +83,13 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             chat.senderContactName = message.senderContactName;
             chat.receiverContactName = message.receiverContactName;
             chat.sentTimestamp = message.sentTimestamp;
+            chat.messageType = message.messageType;
           })
         }
       });
     });
 
-    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) async {
+    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_ID, (message) async {
       setState(() {
         for(var i = chats.length - 1; i >= 0; i--){
           if (chats[i].sentTimestamp == message.sentTimestamp) {
@@ -101,7 +102,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
-    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) async {
+    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_ID, (messageId) async {
       setState(() {
         for(var i = chats.length - 1; i >= 0; i--){
           if (chats[i].id == messageId) {
@@ -113,7 +114,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
-    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_IDENTIFIER, (List<dynamic> seenMessagesIds) async {
+    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_ID, (List<dynamic> seenMessagesIds) async {
       setState(() {
         // TODO: Change to map
         int lastSeenMessageId = seenMessagesIds.last;
@@ -130,7 +131,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }
 
   initPresenceFetcher() async {
-    wsClientService.presencePub.addListener(STREAMS_LISTENER_IDENTIFIER, (PresenceEvent presenceEvent) {
+    wsClientService.presencePub.addListener(STREAMS_LISTENER_ID, (PresenceEvent presenceEvent) {
       chats.forEach((chat) {
         if (presenceEvent.userPhoneNumber == chat.sender.fullPhoneNumber) {
           chat.senderOnline = presenceEvent.status;
@@ -194,14 +195,14 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
     presenceTimer.cancel();
 
-    wsClientService.userStatusPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.presencePub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.userStatusPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.presencePub.removeListener(STREAMS_LISTENER_ID);
   }
 
   @override

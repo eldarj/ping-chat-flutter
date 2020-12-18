@@ -78,6 +78,7 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
         },
       );
     } catch (exception) {
+      print('Error uploading image');
       print(exception); //TODO: Handling
     }
   }

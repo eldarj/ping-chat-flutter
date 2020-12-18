@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:flutterping/activity/data-space/widget/image-viewer.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -101,12 +102,17 @@ class ImageMessageComponent extends StatelessWidget {
   );
 
   buildImageFromPath(String filePath) {
+    bool fileExists = File(filePath).existsSync();
     Container image = Container(
         color: isPeerMessage ? Colors.grey.shade100 : CompanyColor.myMessageBackground,
         constraints: BoxConstraints(
             maxWidth: imageSize, maxHeight: imageSize, minHeight: 100, minWidth: 100
         ),
-        child: Image.file(File(message.filePath, ), fit: BoxFit.cover));
+        child: message.isDownloadingImage ? Container(
+            height: 50, width: 50,
+            alignment: Alignment.center,
+            child: Spinner())
+            : fileExists ? Image.file(File(filePath), fit: BoxFit.cover) : Text('TODO: fixme'));
 
     Widget wrappedImage;
     if (message.isUploading) {
@@ -120,7 +126,10 @@ class ImageMessageComponent extends StatelessWidget {
 
     return GestureDetector(
       onTap: !message.isUploading ? () async {
-        var result = await NavigatorUtil.push(scaffold, ImageViewerActivity(sender: message.senderContactName, timestamp: message.sentTimestamp, file: File(message.filePath)));
+        var result = await NavigatorUtil.push(scaffold,
+            ImageViewerActivity(sender: message.senderContactName,
+                timestamp: message.sentTimestamp,
+                file: File(filePath)));
         if (result != null && result['deleted'] == true) {
           message.deleted = true;
           wsClientService.updateMessagePub.subject.add(message);

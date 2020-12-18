@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +14,12 @@ import 'package:flutterping/activity/chats/component/message/message.component.d
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
 import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/message-download-progress.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/service/message-receiving.service.dart';
 import 'package:flutterping/service/message-sending.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -34,6 +38,11 @@ import 'package:http/http.dart' as http;
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:tus_client/tus_client.dart';
+
+void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+  final SendPort send = IsolateNameServer.lookupPortByName('CHAT_ACTIVITY_DOWNLOADER_PORT_KEY');
+  send.send([id, status]);
+}
 
 class ChatActivity extends StatefulWidget {
   final ClientDto peer;
@@ -57,7 +66,8 @@ class ChatActivity extends StatefulWidget {
 }
 
 class ChatActivityState extends BaseState<ChatActivity> {
-  static const String STREAMS_LISTENER_IDENTIFIER = "ChatActivityListener";
+  static const String CHAT_ACTIVITY_DOWNLOADER_PORT_ID = "CHAT_ACTIVITY_DOWNLOADER_PORT_KEY";
+  static const String STREAMS_LISTENER_ID = "ChatActivityListener";
 
   final TextEditingController textController = TextEditingController();
   final FocusNode textFocusNode = new FocusNode();
@@ -82,6 +92,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   String picturesPath;
 
   onInit() async {
+    picturesPath = await new StorageIOService().getPicturesPath();
+
     var user = await UserService.getUser();
     userId = user.id;
 
@@ -102,7 +114,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
       });
     });
 
-    wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) {
+    wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) async {
+      if (message.messageType == 'IMAGE') {
+        message.isDownloadingImage = true;
+        message.downloadTaskId = await doDownloadAndStoreImage(message);
+      }
+
       setState(() {
         messages.insert(0, message);
       });
@@ -111,7 +128,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
           senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber)]);
     });
 
-    wsClientService.sendingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) async {
+    wsClientService.sendingMessagesPub.addListener(STREAMS_LISTENER_ID, (message) async {
       setState(() {
         messages.insert(0, message);
       });
@@ -123,7 +140,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       });
     });
 
-    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) async {
+    wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_ID, (message) async {
       setState(() {
         for(var i = messages.length - 1; i >= 0; i--){
           if (messages[i].sentTimestamp == message.sentTimestamp) {
@@ -136,7 +153,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       });
     });
 
-    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_IDENTIFIER, (messageId) async {
+    wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_ID, (messageId) async {
       setState(() {
         for(var i = messages.length - 1; i >= 0; i--){
           if (messages[i].id == messageId) {
@@ -148,7 +165,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       });
     });
 
-    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_IDENTIFIER, (List<dynamic> seenMessagesIds) async {
+    wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_ID, (List<dynamic> seenMessagesIds) async {
       // TODO: Change to map
       await Future.delayed(Duration(milliseconds: 500));
       setState(() {
@@ -164,13 +181,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
       });
     });
 
-    wsClientService.updateMessagePub.addListener(STREAMS_LISTENER_IDENTIFIER, (MessageDto message) async {
+    wsClientService.updateMessagePub.addListener(STREAMS_LISTENER_ID, (MessageDto message) async {
       messages.where((element) => element.id == message.id).forEach((element) {
         setState(() {element = message;});
       });
     });
-
-    picturesPath = await new StorageIOService().getPicturesPath();
   }
 
   @override
@@ -178,6 +193,24 @@ class ChatActivityState extends BaseState<ChatActivity> {
     super.initState();
 
     onInit();
+
+    ReceivePort _port = ReceivePort();
+    IsolateNameServer.registerPortWithName(_port.sendPort, CHAT_ACTIVITY_DOWNLOADER_PORT_ID);
+    _port.listen((dynamic data) {
+      String downloadTaskId = data[0];
+      DownloadTaskStatus status = data[1];
+
+      if (status == DownloadTaskStatus.complete) {
+        messages.where((message) => message.downloadTaskId == downloadTaskId).forEach((message) async {
+          await Future.delayed(Duration(seconds: 1));
+          setState(() {
+            message.isDownloadingImage = false;
+          });
+        });
+      }
+    });
+
+    FlutterDownloader.registerCallback(downloadCallback);
 
     KeyboardVisibilityNotification().addNewListener(
       onChange: (bool visible) {
@@ -202,12 +235,14 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     userPresenceSubscriptionFn();
 
-    wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
-    wsClientService.updateMessagePub.removeListener(STREAMS_LISTENER_IDENTIFIER);
+    wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.updateMessagePub.removeListener(STREAMS_LISTENER_ID);
+
+    IsolateNameServer.removePortNameMapping(CHAT_ACTIVITY_DOWNLOADER_PORT_ID);
   }
 
   @override
@@ -474,9 +509,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
     }
   }
 
-  void doDownloadAndStoreImage(MessageDto message) async {
+  doDownloadAndStoreImage(MessageDto message) async {
     try {
-      await FlutterDownloader.enqueue(
+      return await FlutterDownloader.enqueue(
         url: message.fileUrl,
         savedDir: picturesPath,
         fileName: message.id.toString() + message.fileName,
@@ -484,6 +519,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
         openFileFromNotification: false,
       );
     } catch(exception) {
+      print('Error downloading image on init.');
+      print(exception);
     }
   }
 
@@ -511,6 +548,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   onGetMessagesSuccess(result) async {
+    print('-- ON GET MESSAGES SUCCESS --');
     scaffold.removeCurrentSnackBar();
 
     List fetchedMessages = result['messages'];
@@ -518,8 +556,17 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     MessageDto prevMessage;
     List<MessageSeenDto> unseenMessages = new List();
-    messages.addAll(fetchedMessages.map((e) {
+    var preparedMessages = fetchedMessages.map((e) async {
       var m = MessageDto.fromJson(e);
+
+      // Download new images (TODO: Adjust downloading and displayin images)
+      if (m.messageType == 'IMAGE') {
+        bool imageExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
+        if (userId == m.receiver.id && !imageExists) {
+          m.isDownloadingImage = true;
+          m.downloadTaskId = await doDownloadAndStoreImage(m);
+        }
+      }
 
       // Set prevmessage and chaining (ui bubbling)
       if (prevMessage == null) {
@@ -535,16 +582,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
         unseenMessages.add(new MessageSeenDto(id: m.id,
             senderPhoneNumber: m.sender.countryCode.dialCode + m.sender.phoneNumber));
       }
-
-      if (m.messageType == 'IMAGE') {
-        bool imageExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
-        if (userId == m.receiver.id && !imageExists) {
-          doDownloadAndStoreImage(m);
-        }
-      }
-
       return m;
-    }).toList());
+    }).toList();
+
+    messages.addAll(await Future.wait(preparedMessages));
 
     if (unseenMessages.length > 0) {
       sendSeenStatus(unseenMessages);

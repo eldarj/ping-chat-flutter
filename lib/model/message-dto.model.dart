@@ -46,6 +46,12 @@ class MessageDto {
 
   bool deleted;
 
+  bool isDownloadingImage;
+
+  int downloadProgress;
+
+  String downloadTaskId;
+
   MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
     this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
     this.contactBindingId, this.chained,
@@ -53,6 +59,8 @@ class MessageDto {
     this.uploadProgress, this.stopUploadFunc, this.isUploading,
     this.messageType,
     this.deleted = false,
+    this.isDownloadingImage = false,
+    this.downloadProgress = 0,
   });
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
