@@ -11,7 +11,7 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/exception/custom-exception.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:http/http.dart' as http;

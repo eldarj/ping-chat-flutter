@@ -6,7 +6,7 @@ import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class PolicyActivity extends StatefulWidget {

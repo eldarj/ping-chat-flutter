@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/chat.activity.dart';
-import 'package:flutterping/activity/chats/widget/message-status-row.dart';
+import 'package:flutterping/activity/chats/component/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
@@ -18,7 +18,7 @@ import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
@@ -67,6 +67,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             chat.senderContactName = message.senderContactName;
             chat.receiverContactName = message.receiverContactName;
             chat.sentTimestamp = message.sentTimestamp;
+            chat.messageType = message.messageType;
           })
         }
       });

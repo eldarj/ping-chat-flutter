@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';

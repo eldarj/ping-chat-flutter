@@ -6,7 +6,7 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/chats/widget/message-status-row.dart';
+import 'package:flutterping/activity/chats/component/message-status-row.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';

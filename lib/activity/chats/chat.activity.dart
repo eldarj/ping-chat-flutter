@@ -1,41 +1,36 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:flutterping/activity/chats/widget/dummyupload/dummy-upload.dart';
-import 'package:flutterping/activity/chats/widget/message/image-message.component.dart';
-import 'package:flutterping/service/persistence/storage.io.service.dart';
-import 'package:flutterping/shared/modal/floating-modal.dart';
-import 'package:flutterping/activity/chats/widget/share/share-files.modal.dart';
-
-
-import 'dart:convert';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutterping/activity/chats/widget/chat-settings-menu.dart';
-import 'package:flutterping/activity/chats/widget/stickers/sticker-bar.dart';
-import 'package:flutterping/activity/chats/widget/message/message.component.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutterping/activity/chats/component/chat-settings-menu.dart';
+import 'package:flutterping/activity/chats/component/message/image-message.component.dart';
+import 'package:flutterping/activity/chats/component/message/message.component.dart';
+import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
+import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
-import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/service/message-sending.service.dart';
+import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:flutterping/util/other/date-time.util.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/other/date-time.util.dart';
+import 'package:flutterping/util/widget/base.state.dart';
+import 'package:http/http.dart' as http;
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 import 'package:tus_client/tus_client.dart';
 
@@ -46,12 +41,15 @@ class ChatActivity extends StatefulWidget {
 
   final String myContactName;
 
-  String statusLabel;
-
   final int contactBindingId;
 
+  final MessageSendingService messageSendingService;
+
+  String statusLabel;
+
   ChatActivity({Key key, this.myContactName, this.peer,
-    this.peerContactName, this.statusLabel, this.contactBindingId}) : super(key: key);
+    this.peerContactName, this.statusLabel, this.contactBindingId})
+      : messageSendingService = new MessageSendingService(peer, peerContactName, myContactName, contactBindingId), super(key: key);
 
   @override
   State<StatefulWidget> createState() => ChatActivityState();
@@ -66,11 +64,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displayLoader = true;
   bool displaySendButton = false;
   bool displayScrollLoader = false;
-
   bool displayStickers = false;
 
   int userId;
-  int anotherUserId = 0;
 
   List<MessageDto> messages = new List();
   int totalMessages = 0;
@@ -87,7 +83,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
   onInit() async {
     var user = await UserService.getUser();
     userId = user.id;
-    anotherUserId = widget.peer.id;
 
     PresenceEvent presenceEvent = new PresenceEvent();
     presenceEvent.userPhoneNumber = user.fullPhoneNumber;
@@ -113,6 +108,18 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
       sendSeenStatus([new MessageSeenDto(id: message.id,
           senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber)]);
+    });
+
+    wsClientService.sendingMessagesPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) async {
+      setState(() {
+        messages.insert(0, message);
+      });
+
+      await Future.delayed(Duration(milliseconds: 500));
+
+      setState(() {
+        message.displayCheckMark = false;
+      });
     });
 
     wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_IDENTIFIER, (message) async {
@@ -194,6 +201,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     userPresenceSubscriptionFn();
 
+    wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
     wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_IDENTIFIER);
@@ -269,7 +277,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 UserScrollNotification userScrollNotification = scrollInfo as UserScrollNotification;
                 if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent
                     && userScrollNotification.direction == ScrollDirection.reverse) {
-                  getNextPageOfMessagesOnScroll();
+                  doGetPageOnScroll();
                 }
               }
             }
@@ -421,19 +429,14 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   buildShareBottomSheet() {
-    MessageDto message = new MessageDto();
-    message.messageType = 'IMAGE';
-    message.uploadProgress = 0.0;
-    message.isUploading = true;
+    MessageDto message;
 
     showFloatingModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => ShareFilesModal(
         onPicked: (TusClient uploadClient, fileName, filePath, fileUrl) {
-          message.fileName = fileName;
-          message.filePath = filePath;
-          message.fileUrl = fileUrl.toString();
+          message = widget.messageSendingService.prepareImage(fileName, filePath, fileUrl.toString());
           message.stopUploadFunc = () async {
             setState(() {
               message.deleted = true;
@@ -441,10 +444,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
             });
             await Future.delayed(Duration(seconds: 2));
             uploadClient.delete();
-
             // hit delete message api endpoint
           };
-          _send(message);
         },
         onProgress: (progress) {
           var _uploadProgress = progress / 100;
@@ -455,57 +456,24 @@ class ChatActivityState extends BaseState<ChatActivity> {
         },
         onComplete: (response) {
           message.isUploading = false;
+          widget.messageSendingService.sendImage(message);
         },
       ),
     );
   }
 
-  doSendEmoji(stickerCode) {
-    MessageDto message = new MessageDto();
-    message.text = stickerCode;
-    message.messageType = 'STICKER';
-    _send(message);
+  doSendEmoji(stickerCode) async {
+    widget.messageSendingService.sendSticker(stickerCode);
   }
 
   doSendMessage() {
     if (textController.text.length > 0) {
-      MessageDto message = new MessageDto();
-      message.text = textController.text;
-      message.messageType = 'TEXT_MESSAGE';
+      widget.messageSendingService.sendTextMessage(textController.text);
       textController.clear();
-      _send(message);
     }
   }
 
-  _send(message) async {
-
-    message.receiver = widget.peer;
-    message.senderContactName = widget.myContactName;
-    message.receiverContactName = widget.peerContactName;
-
-    message.sent = false;
-    message.received = false;
-    message.seen = false;
-    message.displayCheckMark = true;
-    message.chained = messages.first.sender == message.sender;
-
-    message.sentTimestamp = DateTime.now().millisecondsSinceEpoch;
-    message.contactBindingId = widget.contactBindingId;
-
-    setState(() {
-      messages.insert(0, message);
-    });
-
-    sendMessage(message);
-
-    await Future.delayed(Duration(milliseconds: 500));
-
-    setState(() {
-      message.displayCheckMark = false;
-    });
-  }
-
-  void getNextPageOfMessagesOnScroll() async {
+  void doGetPageOnScroll() async {
     if (!displayScrollLoader) {
       setState(() {
         displayScrollLoader = true;
@@ -524,30 +492,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     }
   }
 
-  Future doGetMessages({page = 1, clearRides = false, favouritesOnly = false}) async {
-    if (clearRides) {
-      messages.clear();
-      pageNumber = 1;
-    }
-
-    String url = '/api/messages'
-        '?pageNumber=' + (page - 1).toString() +
-        '&pageSize=' + pageSize.toString() +
-        '&userId=' + userId.toString() +
-        '&anotherUserId=' + anotherUserId.toString();
-
-    http.Response response = await HttpClientService.get(url);
-
-    if(response.statusCode != 200) {
-      throw new Exception();
-    }
-
-    dynamic result = response.decode();
-
-    return {'messages': result['page'], 'totalElements': result['totalElements']};
-  }
-
-  doDownloadAndStoreImage(MessageDto message) async {
+  void doDownloadAndStoreImage(MessageDto message) async {
     try {
       await FlutterDownloader.enqueue(
         url: message.fileUrl,
@@ -558,6 +503,29 @@ class ChatActivityState extends BaseState<ChatActivity> {
       );
     } catch(exception) {
     }
+  }
+
+  Future doGetMessages({page = 1, clearRides = false, favouritesOnly = false}) async {
+    if (clearRides) {
+      messages.clear();
+      pageNumber = 1;
+    }
+
+    String url = '/api/messages'
+        '?pageNumber=' + (page - 1).toString() +
+        '&pageSize=' + pageSize.toString() +
+        '&userId=' + userId.toString() +
+        '&anotherUserId=' + widget.peer.id.toString();
+
+    http.Response response = await HttpClientService.get(url);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    dynamic result = response.decode();
+
+    return {'messages': result['page'], 'totalElements': result['totalElements']};
   }
 
   onGetMessagesSuccess(result) async {

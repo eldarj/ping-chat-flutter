@@ -16,7 +16,7 @@ import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:intl/intl.dart';

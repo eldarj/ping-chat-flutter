@@ -72,7 +72,6 @@ class WsClientService {
 final wsClientService = WsClientService();
 
 sendMessage(MessageDto message) async {
-  message.sender = await UserService.getUser();
   wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
 }
 

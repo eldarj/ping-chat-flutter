@@ -11,7 +11,7 @@ import 'package:flutterping/shared/component/round-profile-image.component.dart'
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/drawer/partial/logout.dialog.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class NavigationDrawerLeading {

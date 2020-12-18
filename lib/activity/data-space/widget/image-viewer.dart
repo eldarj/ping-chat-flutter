@@ -12,7 +12,7 @@ import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share/share.dart';

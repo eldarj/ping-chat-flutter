@@ -15,7 +15,7 @@ import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/base/base.state.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
