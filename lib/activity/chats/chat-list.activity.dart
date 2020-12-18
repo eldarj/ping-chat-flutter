@@ -35,9 +35,9 @@ class ChatListActivity extends StatefulWidget {
 class ChatListActivityState extends BaseState<ChatListActivity> {
   static const String STREAMS_LISTENER_IDENTIFIER = "ChatListListener";
 
-  var displayLoader = true;
+  bool displayLoader = true;
 
-  int userId = 0;
+  int userId;
 
   List<MessageDto> chats = new List();
   int totalChatsLoaded = 0;
@@ -145,7 +145,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
 
     presenceTimer = Timer.periodic(Duration(seconds: 30), (Timer t) async {
-      print('RUN ME');
       List contactPhoneNumbers = chats.map((chat) {
         return userId == chat.sender.id ? chat.receiver.countryCode.dialCode + chat.receiver.phoneNumber
             : chat.sender.countryCode.dialCode + chat.sender.phoneNumber;

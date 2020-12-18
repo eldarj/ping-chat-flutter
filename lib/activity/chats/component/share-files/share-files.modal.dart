@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/service/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:path/path.dart';
 import 'package:file_picker/file_picker.dart';
@@ -12,12 +14,11 @@ import 'package:tus_client/tus_client.dart';
 import '../../../../shared/modal/floating-modal.dart';
 
 class ShareFilesModal extends StatefulWidget {
-  final Function onPicked;
-  final Function onProgress;
-  final Function onComplete;
-  final Function onError;
+  final Function(MessageDto, double) onProgress;
 
-  const ShareFilesModal({Key key, this.onPicked, this.onProgress, this.onComplete, this.onError}) : super(key: key);
+  final MessageSendingService messageSendingService;
+
+  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ShareFilesModalState();
@@ -41,33 +42,43 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
       headers: {'Authorization': 'Bearer $userToken'},
     );
 
-    widget.onPicked(fileUploadClient, fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName));
+    // ADD IMAGE LOCALLY
+    MessageDto message = widget.messageSendingService.addPreparedImage(fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString());
+    message.stopUploadFunc = () async {
+      setState(() {
+        message.deleted = true;
+        message.isUploading = false;
+      });
+      await Future.delayed(Duration(seconds: 2));
+      fileUploadClient.delete();
+      // hit delete message api endpoint
+    };
+    // widget.onPicked(fileUploadClient, fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName));
 
 
-    widget.onProgress(5);
-    await Future.delayed(Duration(milliseconds: 1000));
-    widget.onProgress(15);
-    await Future.delayed(Duration(milliseconds: 1000));
-    widget.onProgress(30);
-    await Future.delayed(Duration(milliseconds: 1000));
+    widget.onProgress(message, 10);
+    await Future.delayed(Duration(milliseconds: 150));
+    widget.onProgress(message, 30);
+    await Future.delayed(Duration(milliseconds: 150));
 
+    // HANDLE ON COMPLETE ETC HERE
     try {
       await fileUploadClient.upload(
         onComplete: (response) async {
-          if (widget.onComplete != null)
-            widget.onComplete(response);
+          await Future.delayed(Duration(milliseconds: 250));
+          message.isUploading = false;
+          widget.messageSendingService.sendImage(message);
         },
         onProgress: (progress) {
           if (widget.onProgress != null) {
-            if (progress < 30)
-              progress = 30;
-            widget.onProgress(progress);
+            if (progress > 30) {
+              widget.onProgress(message, progress);
+            }
           }
         },
       );
     } catch (exception) {
-      if (widget.onError != null)
-        widget.onError(exception);
+      print(exception); //TODO: Handling
     }
   }
 

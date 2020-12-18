@@ -1,5 +1,3 @@
-
-
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -44,7 +42,7 @@ class MessageSendingService {
     return message;
   }
 
-  MessageDto prepareImage(String fileName, String filePath, String fileUrl, {chained: false}) {
+  MessageDto addPreparedImage(String fileName, String filePath, String fileUrl, {chained: false}) {
     MessageDto message = _create(chained: chained);
     message.messageType = 'IMAGE';
     message.fileName = fileName;

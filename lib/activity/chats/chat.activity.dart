@@ -32,6 +32,7 @@ import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
 import 'package:keyboard_visibility/keyboard_visibility.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:tus_client/tus_client.dart';
 
 class ChatActivity extends StatefulWidget {
@@ -428,37 +429,18 @@ class ChatActivityState extends BaseState<ChatActivity> {
         ]));
   }
 
-  buildShareBottomSheet() {
-    MessageDto message;
-
-    showFloatingModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ShareFilesModal(
-        onPicked: (TusClient uploadClient, fileName, filePath, fileUrl) {
-          message = widget.messageSendingService.prepareImage(fileName, filePath, fileUrl.toString());
-          message.stopUploadFunc = () async {
-            setState(() {
-              message.deleted = true;
-              message.isUploading = false;
-            });
-            await Future.delayed(Duration(seconds: 2));
-            uploadClient.delete();
-            // hit delete message api endpoint
-          };
-        },
-        onProgress: (progress) {
-          var _uploadProgress = progress / 100;
-          print('==== PROGRESS ' + _uploadProgress.toString());
-          setState(() {
-            message.uploadProgress = _uploadProgress;
-          });
-        },
-        onComplete: (response) {
-          message.isUploading = false;
-          widget.messageSendingService.sendImage(message);
-        },
-      ),
+  buildShareBottomSheet() async {
+    await showCustomModalBottomSheet(
+        context: context,
+        builder: (context) => ShareFilesModal(messageSendingService: widget.messageSendingService,
+            onProgress: (message, progress) {
+              setState(() {
+                message.uploadProgress = progress / 100;
+              });
+            }
+        ),
+        containerWidget: (_, animation, child) => FloatingModal(child: child),
+        expand: false
     );
   }
 
