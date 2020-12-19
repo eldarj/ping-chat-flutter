@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutterping/activity/chats/component/chat-settings-menu.dart';
 import 'package:flutterping/activity/chats/component/message/image-message.component.dart';
+import 'package:flutterping/activity/chats/component/message/message-wrapper.component.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
 import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
@@ -141,53 +142,49 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_ID, (message) async {
-      setState(() {
-        for(var i = messages.length - 1; i >= 0; i--){
-          if (messages[i].sentTimestamp == message.sentTimestamp) {
-            setState(() {
-              messages[i].id = message.id;
-              messages[i].sent = true;
-            });
-          }
+      for(var i = messages.length - 1; i >= 0; i--){
+        if (messages[i].sentTimestamp == message.sentTimestamp) { // TODO: Check why sentTimestamp
+          setState(() {
+            messages[i].id = message.id;
+            messages[i].sent = true;
+          });
         }
-      });
+      }
     });
 
     wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_ID, (messageId) async {
-      setState(() {
-        for(var i = messages.length - 1; i >= 0; i--){
-          if (messages[i].id == messageId) {
-            setState(() {
-              messages[i].received = true;
-            });
-          }
+      for(var i = messages.length - 1; i >= 0; i--){
+        if (messages[i].id == messageId) {
+          setState(() {
+            messages[i].received = true;
+          });
         }
-      });
+      }
     });
 
     wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_ID, (List<dynamic> seenMessagesIds) async {
       // TODO: Change to map
       await Future.delayed(Duration(milliseconds: 500));
-      setState(() {
-        for (var k = seenMessagesIds.length - 1; k >= 0; k--) {
-          for(var i = messages.length - 1; i >= 0; i--){
-            if (messages[i].id == seenMessagesIds[k]) {
-              setState(() {
-                messages[i].seen = true;
-              });
-            }
+      for (var k = seenMessagesIds.length - 1; k >= 0; k--) {
+        for(var i = messages.length - 1; i >= 0; i--){
+          if (messages[i].id == seenMessagesIds[k]) {
+            setState(() {
+              messages[i].seen = true;
+            });
           }
         }
-      });
+      }
     });
 
-    wsClientService.updateMessagePub.addListener(STREAMS_LISTENER_ID, (MessageDto message) async {
-      messages.where((m) => m.id == message.id).forEach((m) {
-        setState(() {m = message;});
-        if (m.deleted) {
-
+    wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
+      String pox = 'asd';
+      for(var i = messages.length - 1; i >= 0; i--){
+        if (messages[i].id == message.id) {
+          setState(() {
+            messages[i].deleted = true;
+          });
         }
-      });
+      }
     });
   }
 
@@ -243,7 +240,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.updateMessagePub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
 
     IsolateNameServer.removePortNameMapping(CHAT_ACTIVITY_DOWNLOADER_PORT_ID);
   }
@@ -351,12 +348,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   Widget buildSingleMessage(MessageDto message, {isLastMessage, isFirstMessage = false}) {
-    double width = MediaQuery.of(context).size.width - 150;
-
-    bool isPeerMessage = userId != message.sender.id;
-
     bool displayTimestamp = true;
-    final thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
+    bool isPeerMessage = userId != message.sender.id;
+    DateTime thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
 
     if (previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
         && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage
@@ -367,34 +361,13 @@ class ChatActivityState extends BaseState<ChatActivity> {
     previousWasPeerMessage = isPeerMessage;
     previousMessageDate = thisMessageDate;
 
-    Widget messageWidget;
-
-    if (message.messageType == 'IMAGE') {
-      messageWidget = Container(
-        margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
-        child: ImageMessageComponent(
-          message: message,
-          picturesPath: picturesPath,
-          isPeerMessage: isPeerMessage,
-          displayTimestamp: displayTimestamp,
-        ),
-      );
-    } else {
-      messageWidget = Container(
-        margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
-        child: MessageComponent(
-          isPeerMessage: isPeerMessage,
-          content: message.text,
-          maxWidth: width,
-          displayTimestamp: displayTimestamp, sentTimestamp: message.sentTimestamp,
-          sent: message.sent, received: message.received, seen: message.seen, displayCheckMark: message.displayCheckMark,
-          chained: message.chained,
-          messageType: message.messageType,
-        ),
-      );
-    }
-
-    return messageWidget;
+    return MessageWrapperComponent(
+      margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
+      message: message,
+      isPeerMessage: isPeerMessage,
+      displayTimestamp: displayTimestamp,
+      picturesPath: picturesPath,
+    );
   }
 
   Widget buildInputRow() {
@@ -563,7 +536,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       var m = MessageDto.fromJson(e);
 
       // Download new images (TODO: Adjust downloading and displayin images)
-      if (m.messageType == 'IMAGE') {
+      if (m.messageType == 'IMAGE' && !m.deleted) {
         bool imageExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
         if (userId == m.receiver.id && !imageExists) {
           m.isDownloadingImage = true;
@@ -620,3 +593,4 @@ class ChatActivityState extends BaseState<ChatActivity> {
     }));
   }
 }
+

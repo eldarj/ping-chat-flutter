@@ -26,7 +26,6 @@ class WsClientService {
 
   WsPublisher<int> userStatusPub = new WsPublisher();
 
-  WsPublisher<MessageDto> updateMessagePub = new WsPublisher(); // TODO: Hook into WS
   WsPublisher<MessageDto> receivingMessagesPub = new WsPublisher();
   WsPublisher<MessageDto> sendingMessagesPub = new WsPublisher(ws: _wsFunc);
 
@@ -38,6 +37,8 @@ class WsClientService {
   WsPublisher<List<dynamic>> incomingSeenPub = new WsPublisher();
 
   WsPublisher<PresenceEvent> presencePub = new WsPublisher();
+
+  WsPublisher<MessageDto> messageDeletedPub = new WsPublisher(ws: _wsFunc);
 
   _initializeWsHandlers() async {
     String userToken = await UserService.getToken();
@@ -61,6 +62,11 @@ class WsClientService {
         int messageId = json.decode(frame.body);
         incomingReceivedPub.subject.add(messageId);
       });
+
+      wsClient.subscribe(destination: '/user/messages/deleted', callback: (frame) async {
+        MessageDto message = MessageDto.fromJson(json.decode(frame.body));
+        messageDeletedPub.subject.add(message);
+      });
     });
   }
 
@@ -70,10 +76,6 @@ class WsClientService {
 }
 
 final wsClientService = WsClientService();
-
-sendMessage(MessageDto message) async {
-  wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
-}
 
 sendSeenStatus(List<MessageSeenDto> seenMessages) {
   wsClientService.outgoingSeenPub.sendEvent(seenMessages, '/messages/seen');

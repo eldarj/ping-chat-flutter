@@ -27,7 +27,7 @@ class MessageSendingService {
     message.messageType = 'TEXT_MESSAGE';
     message.text = text;
 
-    sendMessage(message);
+    wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
 
     return message;
   }
@@ -37,7 +37,7 @@ class MessageSendingService {
     message.messageType = 'STICKER';
     message.text = stickerCode;
 
-    sendMessage(message);
+    wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
 
     return message;
   }

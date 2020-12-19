@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/component/message-status-row.dart';
+import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 
@@ -24,12 +25,15 @@ class MessageComponent extends StatelessWidget {
 
   final String messageType;
 
+  final MessageDto message;
+
   const MessageComponent({Key key, this.isPeerMessage,
     this.content, this.sentTimestamp, this.displayTimestamp,
     this.maxWidth,
     this.sent, this.received, this.seen, this.displayCheckMark,
     this.chained = false,
-    this.messageType
+    this.messageType,
+    this.message
   }) : super(key: key);
 
   @override

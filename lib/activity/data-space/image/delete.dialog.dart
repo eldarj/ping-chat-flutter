@@ -1,6 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 
 class DeleteImageAlertDialog extends StatelessWidget {
   final Color bgColor;
@@ -15,7 +16,7 @@ class DeleteImageAlertDialog extends StatelessWidget {
   DeleteImageAlertDialog({
     this.title,
     this.message,
-    this.circularBorderRadius = 15.0,
+    this.circularBorderRadius = 5.0,
     this.bgColor = Colors.white,
     this.positiveBtnText,
     this.negativeBtnText,
@@ -36,7 +37,7 @@ class DeleteImageAlertDialog extends StatelessWidget {
         negativeBtnText != null
             ? FlatButton(
           child: Text(negativeBtnText),
-          textColor: Theme.of(context).accentColor,
+          textColor: CompanyColor.grey,
           onPressed: () {
             Navigator.of(context).pop();
             if (onNegativePressed != null) {
@@ -48,8 +49,9 @@ class DeleteImageAlertDialog extends StatelessWidget {
         positiveBtnText != null
             ? FlatButton(
           child: Text(positiveBtnText),
-          textColor: Theme.of(context).accentColor,
+          textColor: CompanyColor.blueDark,
           onPressed: () {
+            Navigator.of(context).pop();
             if (onPostivePressed != null) {
               onPostivePressed();
             }

@@ -7,6 +7,7 @@ import 'package:flutterping/activity/chats/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message-status-row.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -53,6 +54,11 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     dynamic user = await UserService.getUser();
     userId = user.id;
 
+    wsClientService.receivingMessagesPub.addListener("ROOT_LEVEL_LISTENER", (message) {
+      sendReceivedStatus(new MessageSeenDto(id: message.id,
+          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
+    });
+
     wsClientService.userStatusPub.addListener(STREAMS_LISTENER_ID, (item) {
       print(item);
     });
@@ -84,6 +90,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             chat.receiverContactName = message.receiverContactName;
             chat.sentTimestamp = message.sentTimestamp;
             chat.messageType = message.messageType;
+            chat.deleted = message.deleted;
           })
         }
       });
@@ -103,30 +110,37 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
 
     wsClientService.incomingReceivedPub.addListener(STREAMS_LISTENER_ID, (messageId) async {
-      setState(() {
-        for(var i = chats.length - 1; i >= 0; i--){
-          if (chats[i].id == messageId) {
-            setState(() {
-              chats[i].received = true;
-            });
-          }
+      for(var i = chats.length - 1; i >= 0; i--){
+        if (chats[i].id == messageId) {
+          setState(() {
+            chats[i].received = true;
+          });
         }
-      });
+      }
     });
 
     wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_ID, (List<dynamic> seenMessagesIds) async {
-      setState(() {
-        // TODO: Change to map
-        int lastSeenMessageId = seenMessagesIds.last;
-        for(var i = chats.length - 1; i >= 0; i--){
-          if (chats[i].id == lastSeenMessageId) {
-            setState(() {
-              chats[i].seen = true;
-            });
-          }
+      // TODO: Change to map
+      int lastSeenMessageId = seenMessagesIds.last;
+      for(var i = chats.length - 1; i >= 0; i--){
+        if (chats[i].id == lastSeenMessageId) {
+          setState(() {
+            chats[i].seen = true;
+          });
         }
-      });
+      }
     });
+
+    wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
+      for(var i = chats.length - 1; i >= 0; i--){
+        if (chats[i].contactBindingId == message.contactBindingId) {
+          setState(() {
+            chats[i].deleted = true;
+          });
+        }
+      }
+    });
+
     doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
   }
 
@@ -203,6 +217,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.presencePub.removeListener(STREAMS_LISTENER_ID);
+    wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
   }
 
   @override
@@ -383,7 +398,18 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   buildMessageContent(message) {
     Widget widget;
 
-    if (message.messageType == 'STICKER') {
+    if (message.deleted) {
+      widget = Text('Deleted', style: TextStyle(fontStyle: FontStyle.italic));
+    } else if (message.messageType == 'IMAGE') {
+      widget = Row(
+        children: <Widget>[
+          Container(
+              margin: EdgeInsets.only(right: 5),
+              child: Icon(Icons.photo_size_select_large, color: Colors.grey.shade500, size: 15)),
+          Text('Image', style: TextStyle(color: Colors.grey.shade500)),
+        ],
+      );
+    } else if (message.messageType == 'STICKER') {
       widget = Row(
         children: <Widget>[
           Image.asset('static/graphic/icon/sticker.png', color: Colors.grey.shade500, height: 25, width: 25),
@@ -394,15 +420,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       widget = Text(message.text??'fixme',
           overflow: TextOverflow.ellipsis, maxLines: 2,
           style: TextStyle(color: Colors.grey.shade500));
-    } else if (message.messageType == 'IMAGE') {
-      widget = Row(
-        children: <Widget>[
-          Container(
-              margin: EdgeInsets.only(right: 5),
-              child: Icon(Icons.photo_size_select_large, color: Colors.grey.shade500, size: 15)),
-          Text('Image', style: TextStyle(color: Colors.grey.shade500)),
-        ],
-      );
     }
 
     return widget;

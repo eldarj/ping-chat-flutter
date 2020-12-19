@@ -43,8 +43,8 @@ class ImageMessageComponent extends StatelessWidget {
           children: [
             message.deleted ? buildDeletedItem() : buildImage(),
             displayTimestamp ? SizedOverflowBox(
-                alignment: isPeerMessage ? Alignment.centerLeft : Alignment.centerRight,
                 size: Size(50, 0),
+                alignment: isPeerMessage ? Alignment.centerLeft : Alignment.centerRight,
                 child: Container(
                   margin: EdgeInsets.only(left: 2.5, right: 2.5, top: 15),
                   child: isPeerMessage ? peerMessageStatus() : myMessageStatus(),
@@ -62,7 +62,8 @@ class ImageMessageComponent extends StatelessWidget {
       child: Container(
           child: Column(
             children: [
-              isPeerMessage ? buildImageFromPath(picturesPath + '/' + message.id.toString() + message.fileName) : buildImageFromPath(message.filePath),
+              isPeerMessage ? buildImageFromPath(picturesPath + '/' + message.id.toString() + message.fileName)
+                  : buildImageFromPath(message.filePath),
             ],
           )),
     );
@@ -112,7 +113,8 @@ class ImageMessageComponent extends StatelessWidget {
             height: 50, width: 50,
             alignment: Alignment.center,
             child: Spinner())
-            : fileExists ? Image.file(File(filePath), fit: BoxFit.cover) : Text('TODO: fixme'));
+            : fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
+            : Text('TODO: fixme' + isPeerMessage.toString()));
 
     Widget wrappedImage;
     if (message.isUploading) {
@@ -126,14 +128,18 @@ class ImageMessageComponent extends StatelessWidget {
 
     return GestureDetector(
       onTap: !message.isUploading ? () async {
-        var result = await NavigatorUtil.push(scaffold,
-            ImageViewerActivity(sender: message.senderContactName,
+        NavigatorUtil.push(scaffold,
+            ImageViewerActivity(message: message, sender: message.senderContactName,
                 timestamp: message.sentTimestamp,
                 file: File(filePath)));
-        if (result != null && result['deleted'] == true) {
-          message.deleted = true;
-          wsClientService.updateMessagePub.subject.add(message);
-        }
+
+        // var result = await NavigatorUtil.push(scaffold,
+        //     ImageViewerActivity(messageId: message.id, sender: message.senderContactName,
+        //         timestamp: message.sentTimestamp,
+        //         file: File(filePath)));
+        // if (result != null && result['deleted'] == true) {
+        //   message.deleted = true;
+        // }
       } : null,
       child: Stack(alignment: Alignment.center,
         children: [
