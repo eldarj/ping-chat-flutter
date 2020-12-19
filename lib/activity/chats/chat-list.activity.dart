@@ -3,8 +3,8 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/chats/chat.activity.dart';
-import 'package:flutterping/activity/chats/component/message-status-row.dart';
+import 'package:flutterping/activity/chats/component/single-chat/chat.activity.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
@@ -314,7 +314,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
               isOnline: isOnline,
               statusLabel: isOnline ? 'Online' : 'Last seen ' + DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
               messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp),
-              displaySeen: userId == chat.sender.id,
+              displayStatusIcon: userId == chat.sender.id,
               message: chat,
             );
           },
@@ -325,7 +325,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
 
   Widget buildSingleConversationRow({ClientDto contact, String profile, String peerContactName, String myContactName,
-    String messageContent, bool displaySeen = true, bool seen = true, String messageSent, bool isOnline = false,
+    String messageContent, bool displayStatusIcon = true, bool seen = true, String messageSent, bool isOnline = false,
     String statusLabel = '', int contactBindingId = 0, MessageDto message
   }) {
     return GestureDetector(
@@ -383,8 +383,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                           ],
                         ),
                       ),
-                      MessageStatusRow(timestamp: message.sentTimestamp, displaySeen: displaySeen,
-                          sent: message.sent, received: message.received, seen: message.seen),
+                      MessageStatus(message.sentTimestamp, message.sent, message.received, message.seen,
+                          displayStatusIcon: displayStatusIcon),
                     ],
                   ),
                 )

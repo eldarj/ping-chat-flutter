@@ -9,10 +9,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutterping/activity/chats/component/chat-settings-menu.dart';
-import 'package:flutterping/activity/chats/component/message/image-message.component.dart';
-import 'package:flutterping/activity/chats/component/message/message-wrapper.component.dart';
+import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
+import 'package:flutterping/activity/chats/component/single-chat/partial/chat-input-row.component.dart';
 import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-download-progress.model.dart';
@@ -177,7 +177,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
-      String pox = 'asd';
       for(var i = messages.length - 1; i >= 0; i--){
         if (messages[i].id == message.id) {
           setState(() {
@@ -218,13 +217,18 @@ class ChatActivityState extends BaseState<ChatActivity> {
     );
 
     textFocusNode.addListener(() {
+      print('---------------------------------------------------');
+      print(textFocusNode.hasFocus.toString());
+      print('---------------------------------------------------');
       if (textFocusNode.hasFocus) {
         setState(() {
           displayStickers = false;
           displaySendButton = true;
         });
       } else {
-        displaySendButton = false;
+        setState(() {
+          displaySendButton = false;
+        });
       }
     });
   }
@@ -287,7 +291,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
                               child: Spinner(size: 20)))) : Container(),
                 ]),
               ),
-              buildInputRow(),
+              SingleChatInputRow(textController, textFocusNode, displayStickers, displaySendButton,
+                  doSendMessage, onOpenShareBottomSheet, onOpenStickerBar),
               displayStickers ? StickerBar(
                 sendFunc: doSendEmoji,
                 peer: widget.peer,
@@ -361,7 +366,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     previousWasPeerMessage = isPeerMessage;
     previousMessageDate = thisMessageDate;
 
-    return MessageWrapperComponent(
+    return MessageComponent(
       margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
       message: message,
       isPeerMessage: isPeerMessage,
@@ -370,77 +375,18 @@ class ChatActivityState extends BaseState<ChatActivity> {
     );
   }
 
-  Widget buildInputRow() {
-    return Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [Shadows.topShadow()],
-        ),
-        width: MediaQuery.of(context).size.width,
-        child: Row(children: [
-          Container(
-            child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    displayStickers = !displayStickers;
-                    if (displayStickers) {
-                      FocusScope.of(context).requestFocus(new FocusNode());
-                    }
-                  });
-                },
-                child: Container(
-                    height: 35, width: 50,
-                    child: Image.asset('static/graphic/icon/sticker.png', color: CompanyColor.blueDark))
-            ),
-          ),
-          Expanded(child: Container(
-            child: TextField(
-              textInputAction: TextInputAction.newline,
-              onSubmitted: (value) {
-                textController.text += "asd";
-              },
-              style: TextStyle(fontSize: 15.0),
-              controller: textController,
-              focusNode: textFocusNode,
-              decoration: InputDecoration.collapsed(
-                hintText: 'Vaša poruka...',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
-            ),
-          )),
-          Container(
-            child: IconButton(
-              icon: Icon(Icons.attachment),
-              onPressed: buildShareBottomSheet,
-              color: CompanyColor.blueDark,
-            ),
-          ),
-          Container(
-            child: IconButton(
-              icon: Icon(Icons.photo_camera),
-              onPressed: () {},
-              color: CompanyColor.blueDark,
-            ),
-          ),
-          displaySendButton ? IconButton(onPressed: doSendMessage, icon: Icon(Icons.send)) :
-          Container(
-              margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
-              height: 45, width: 45,
-              decoration: BoxDecoration(
-                color: CompanyColor.blueDark,
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: IconButton(
-                icon: Icon(Icons.mic),
-                iconSize: 18,
-                onPressed: () {},
-                color: Colors.white,
-              )
-          ),
-        ]));
+  onOpenStickerBar() {
+    setState(() {
+      displayStickers = !displayStickers;
+      if (displayStickers) {
+        FocusScope.of(context).requestFocus(new FocusNode());
+      }
+    });
   }
 
-  buildShareBottomSheet() async {
+  onOpenShareBottomSheet() async {
+    FocusScope.of(context).requestFocus(new FocusNode());
+    await Future.delayed(Duration(milliseconds: 250));
     await showCustomModalBottomSheet(
         context: context,
         builder: (context) => ShareFilesModal(messageSendingService: widget.messageSendingService,
@@ -466,7 +412,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     }
   }
 
-  void doGetPageOnScroll() async {
+  doGetPageOnScroll() async {
     if (!displayScrollLoader) {
       setState(() {
         displayScrollLoader = true;

@@ -10,6 +10,8 @@ const String _BANNERCHANNEL = 'createDropdownBanner';
 
 typedef void _IntCallback(int id);
 
+
+// TODO: FIX SET STATE ISSUE OR DELETE
 /// DropdownBanner manages the creation and animation of banner elements
 /// that are useful for displaying warnings and updates to users.
 class DropdownBanner extends StatefulWidget {

@@ -1,9 +1,8 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 
-class MessageStatusRow extends StatelessWidget {
+class _MessageStatusRow extends StatelessWidget {
   final int timestamp;
 
   final bool sent;
@@ -15,7 +14,7 @@ class MessageStatusRow extends StatelessWidget {
 
   final double iconSize = 13;
 
-  const MessageStatusRow({Key key, this.timestamp, this.sent, this.received, this.seen,
+  const _MessageStatusRow({Key key, this.timestamp, this.sent, this.received, this.seen,
     this.displaySeen = true, this.displayPlaceholderCheckmark = false}) : super(key: key);
 
   @override

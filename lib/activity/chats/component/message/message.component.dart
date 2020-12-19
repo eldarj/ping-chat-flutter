@@ -1,118 +1,199 @@
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/chats/component/message-status-row.dart';
+import 'package:flutterping/activity/chats/component/message/message-status-row.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
+import 'package:flutterping/main.dart';
 import 'package:flutterping/model/message-dto.model.dart';
-import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/other/date-time.util.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:http/http.dart' as http;
 
-class MessageComponent extends StatelessWidget {
-  final bool isPeerMessage;
-
-  final String content;
-
-  final double maxWidth;
-
-  final int sentTimestamp;
-  final bool displayTimestamp;
-
-  final bool sent;
-  final bool received;
-  final bool seen;
-  final bool displayCheckMark;
-
-  final bool chained;
-
-  final String messageType;
-
+class MessageComponent extends StatefulWidget {
   final MessageDto message;
 
-  const MessageComponent({Key key, this.isPeerMessage,
-    this.content, this.sentTimestamp, this.displayTimestamp,
-    this.maxWidth,
-    this.sent, this.received, this.seen, this.displayCheckMark,
-    this.chained = false,
-    this.messageType,
-    this.message
-  }) : super(key: key);
+  final bool displayTimestamp;
+
+  final EdgeInsets margin;
+
+  final String picturesPath;
+
+  final bool isPeerMessage;
+
+  const MessageComponent({Key key, this.message, this.isPeerMessage, this.displayTimestamp, this.margin, this.picturesPath}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => MessageComponentState();
+}
+
+class MessageComponentState extends State<MessageComponent> {
+  ScaffoldState scaffold;
+
+  double maxWidth = DEVICE_MEDIA_SIZE.width - 150;
+
+  Function tapDownHandler;
+
+  initTapDownHandler() {
+    if (widget.message.deleted) {
+      tapDownHandler = null;
+
+    } else if (widget.message.messageType == 'IMAGE' && !widget.message.isUploading) {
+      String filePath = widget.isPeerMessage
+          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          : widget.message.filePath;
+
+      tapDownHandler = (TapDownDetails details) async {
+        NavigatorUtil.push(context,
+            ImageViewerActivity(message: widget.message, sender: widget.message.senderContactName,
+                timestamp: widget.message.sentTimestamp,
+                file: File(filePath)));
+      };
+
+    } else if (widget.message.messageType == 'STICKER') {
+      tapDownHandler = (TapDownDetails details) {
+        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
+          PopupMenuItem(
+            value: 'DELETE',
+            child: Text("Delete"),
+          ),
+        ]);
+      };
+
+    } else {
+      tapDownHandler = (TapDownDetails details) {
+        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
+          PopupMenuItem(
+            value: 'EDITfixorremove',
+            child: Text("Edit"),
+          ),
+          PopupMenuItem(
+            value: 'DELETE',
+            child: Text("Delete"),
+          ),
+        ]);
+      };
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initTapDownHandler();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget messageWidget;
-    BoxDecoration messageDecoration;
+    scaffold = Scaffold.of(context);
 
-    if (messageType == 'STICKER') {
-      var stickerSize = MediaQuery.of(context).size.width / 3;
-      messageWidget = Container(
-          child: Image.asset('static/graphic/sticker/' + content, height: stickerSize, width: stickerSize));
-      messageDecoration = stickerBoxDecoration();
-    } else {
-      messageWidget = Text(content, style: TextStyle(fontSize: 16));
-      messageDecoration = isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
-    }
-
-
-    return Container(
-      margin: EdgeInsets.only(left: 10, right: 10, bottom: displayTimestamp ? 20 : 2.5),
-      child: Column(crossAxisAlignment: isPeerMessage ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-          children: [
-            Container(
-                decoration: messageDecoration,
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                padding: EdgeInsets.only(top: 7.5, bottom: 7.5, left: 10, right: 10),
-                child: messageWidget),
-            displayTimestamp ? SizedOverflowBox(
-                alignment: isPeerMessage ? Alignment.centerLeft : Alignment.centerRight,
-                size: Size(50, 0),
-                child: Container(
-                  margin: EdgeInsets.only(left: 2.5, right: 2.5, top: 15),
-                  child: isPeerMessage ? peerMessageStatus() : myMessageStatus(),
-                )) : Container(),
-          ]),
+    return GestureDetector(
+      onTapDown: tapDownHandler,
+      child: Container(
+        margin: widget.margin,
+        child: Container(
+          margin: EdgeInsets.only(left: 5, right: 5, bottom: widget.displayTimestamp ? 20 : 2.5),
+          child: Column(crossAxisAlignment: widget.isPeerMessage ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+              children: [
+                buildMessageContent(maxWidth),
+                MessageStatusRow(widget.isPeerMessage,
+                    widget.message.sentTimestamp,
+                    widget.message.displayCheckMark,
+                    widget.displayTimestamp,
+                    widget.message.sent,
+                    widget.message.received,
+                    widget.message.seen),
+              ]),
+        ),
+      ),
     );
   }
 
-  Widget peerMessageStatus() => Container(
-    margin: EdgeInsets.only(left: 2.5),
-    child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp),
-      style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-    ),
-  );
+  buildMessageContent(double maxWidth) {
+    double size = maxWidth;
 
-  Widget myMessageStatus() => Container(
-    margin: EdgeInsets.only(right: 2.5),
-    child: MessageStatusRow(timestamp: sentTimestamp,
-        displayPlaceholderCheckmark: displayCheckMark,
-        sent: sent, received: received, seen: seen),
-  );
+    Widget messageWidget;
+    BoxDecoration messageDecoration;
 
-  BoxDecoration peerTextBoxDecoration() => BoxDecoration(
-    color: Color.fromRGBO(239, 239, 239, 1),
-    border: Border.all(color: Color.fromRGBO(234, 234, 234, 1), width: 1),
-    borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(chained ? 15 : 0),
-        bottomLeft: Radius.circular(10),
-        topRight: Radius.circular(10),
-        bottomRight: Radius.circular(10)),
-    boxShadow: [BoxShadow(color: Colors.grey.shade300,
-      offset: Offset.fromDirection(1, 0.3),
-      blurRadius: 0, spreadRadius: 0,
-    )],
-  );
+    var messagePadding = EdgeInsets.only(top: 7.5, bottom: 7.5, left: 10, right: 10);
 
-  BoxDecoration myTextBoxDecoration() => BoxDecoration(
-    color: Color.fromRGBO(235, 255, 220, 1),
-    border: Border.all(color: CompanyColor.myMessageBorder, width: 1),
-    borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(10),
-        bottomLeft: Radius.circular(10),
-        topRight: Radius.circular(chained ? 15 : 0),
-        bottomRight: Radius.circular(15)),
-    boxShadow: [BoxShadow(color: Colors.grey.shade300,
-      offset: Offset.fromDirection(1, 0.3),
-      blurRadius: 0, spreadRadius: 0,
-    )],
-  );
+    if (widget.message.deleted) {
+      size = 150;
+      messageWidget = MessageDeleted();
+      messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
 
-  BoxDecoration stickerBoxDecoration() => BoxDecoration(color: Colors.transparent);
+    } else if (widget.message.messageType == 'IMAGE') {
+      size = DEVICE_MEDIA_SIZE.width / 1.25;
+      String filePath = widget.isPeerMessage
+          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          : widget.message.filePath;
+
+      messagePadding = EdgeInsets.all(0);
+      messageDecoration = imageDecoration();
+      messageWidget = MessageImage(size, filePath, widget.isPeerMessage,
+          widget.message.isDownloadingImage, widget.message.isUploading, widget.message.uploadProgress,
+          widget.message.stopUploadFunc);
+
+    } else if (widget.message.messageType == 'STICKER') {
+      messageWidget = MessageSticker(widget.message.text);
+      messageDecoration = stickerBoxDecoration();
+
+    } else {
+      messageWidget = MessageText(widget.message.text);
+      messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
+    }
+
+    return Container(
+        decoration: messageDecoration,
+        constraints: BoxConstraints(maxWidth: size),
+        padding: messagePadding,
+        child: messageWidget);
+  }
+
+  onMessageTapDown(TapDownDetails details, MessageDto message, bool isPeerMessage, items) async {
+    FocusScope.of(context).requestFocus(new FocusNode());
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(isPeerMessage ? 0 : 1, details.globalPosition.dy, 0, 0),
+      elevation: 8.0,
+      items: items,
+    ).then((value) {
+      if (value == 'EDIT') {
+
+      } else if (value == 'DELETE') {
+        doDeleteMessage(message).then(onDeleteMessageSuccess, onError: onDeleteMessageError);
+      }
+    });
+  }
+
+  Future doDeleteMessage(message) async {
+    String url = '/api/messages/' + message.id.toString();
+
+    http.Response response = await HttpClientService.delete(url);
+
+    if (response.statusCode != 200) {
+      throw Exception();
+    }
+
+    return message;
+  }
+
+  onDeleteMessageSuccess(message) async {
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste poruku.'));
+
+    await Future.delayed(Duration(seconds: 2));
+
+    message.deleted = true;
+    wsClientService.messageDeletedPub.sendEvent(message, '/messages/deleted');
+  }
+
+  onDeleteMessageError(error) {
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error());
+  }
 }
