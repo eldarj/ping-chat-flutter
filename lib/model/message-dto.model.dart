@@ -52,6 +52,8 @@ class MessageDto {
 
   String downloadTaskId;
 
+  int totalUnreadMessages;
+
   MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
     this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
     this.contactBindingId, this.chained,
@@ -61,6 +63,7 @@ class MessageDto {
     this.deleted = false,
     this.isDownloadingImage = false,
     this.downloadProgress = 0,
+    this.totalUnreadMessages = 0,
   });
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
@@ -76,7 +79,9 @@ class MessageDto {
       ..sent = parsedJson['sent'] as bool
       ..received = parsedJson['received'] as bool
       ..seen = parsedJson['seen'] as bool
-      ..displayCheckMark = parsedJson['displayCheckMark'] == null ? false : parsedJson['displayCheckMark'] as bool
+      ..displayCheckMark = parsedJson['displayCheckMark'] == null
+          ? false
+          : parsedJson['displayCheckMark'] as bool
       ..senderContactName = parsedJson['senderContactName'] as String
       ..receiverContactName = parsedJson['receiverContactName'] as String
       ..senderOnline = parsedJson['senderOnline'] as bool
@@ -85,7 +90,9 @@ class MessageDto {
       ..receiverLastOnlineTimestamp = parsedJson['receiverLastOnlineTimestamp'] as int
       ..sentTimestamp = parsedJson['sentTimestamp'] as int
       ..contactBindingId = parsedJson['contactBindingId'] as int
-      ..chained = parsedJson['chained'] == null ? false : parsedJson['chained'] as bool
+      ..chained = parsedJson['chained'] == null
+          ? false
+          : parsedJson['chained'] as bool
       ..fileName = parsedJson['fileName'] as String
       ..filePath = parsedJson['filePath'] as String
       ..fileUrl = parsedJson['fileUrl'] as String
@@ -93,6 +100,9 @@ class MessageDto {
       ..stopUploadFunc = null
       ..isUploading = false
       ..deleted = parsedJson['deleted'] as bool
+      ..totalUnreadMessages = parsedJson['totalUnreadMessages'] == null
+          ? 0
+          : parsedJson['totalUnreadMessages'] as int
       ..messageType = parsedJson['messageType'] as String;
   }
 

@@ -20,12 +20,13 @@ import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/service/message-receiving.service.dart';
-import 'package:flutterping/service/message-sending.service.dart';
+import 'package:flutterping/service/messaging/image-download.publisher.dart';
+import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
-import 'package:flutterping/shared/app-bar/base.app-bar.dart';
+import 'package:flutterping/shared/app-bar/base.app-bar.dart';import 'package:flutterping/service/messaging/unread-message.publisher.dart';
+
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
@@ -217,9 +218,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
     );
 
     textFocusNode.addListener(() {
-      print('---------------------------------------------------');
-      print(textFocusNode.hasFocus.toString());
-      print('---------------------------------------------------');
       if (textFocusNode.hasFocus) {
         setState(() {
           displayStickers = false;
@@ -473,7 +471,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   onGetMessagesSuccess(result) async {
-    print('-- ON GET MESSAGES SUCCESS --');
     scaffold.removeCurrentSnackBar();
 
     List fetchedMessages = result['messages'];
@@ -515,6 +512,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
     if (unseenMessages.length > 0) {
       sendSeenStatus(unseenMessages);
     }
+
+    unreadMessagePublisher.subject.add(widget.contactBindingId);
 
     setState(() {
       displayLoader = false;

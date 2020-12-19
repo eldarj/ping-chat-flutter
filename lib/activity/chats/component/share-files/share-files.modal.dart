@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutterping/model/message-dto.model.dart';
-import 'package:flutterping/service/message-sending.service.dart';
+import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:path/path.dart';
 import 'package:file_picker/file_picker.dart';

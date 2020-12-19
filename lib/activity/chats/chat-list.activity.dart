@@ -9,6 +9,7 @@ import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
+import 'package:flutterping/service/messaging/unread-message.publisher.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -19,6 +20,7 @@ import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
@@ -54,11 +56,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     dynamic user = await UserService.getUser();
     userId = user.id;
 
-    wsClientService.receivingMessagesPub.addListener("ROOT_LEVEL_LISTENER", (message) {
-      sendReceivedStatus(new MessageSeenDto(id: message.id,
-          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
-    });
-
     wsClientService.userStatusPub.addListener(STREAMS_LISTENER_ID, (item) {
       print(item);
     });
@@ -80,6 +77,9 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
 
     wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_ID, (message) {
+      sendReceivedStatus(new MessageSeenDto(id: message.id,
+          senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
+
       chats.forEach((chat) => {
         if (chat.contactBindingId == message.contactBindingId) {
           setState(() {
@@ -91,6 +91,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             chat.sentTimestamp = message.sentTimestamp;
             chat.messageType = message.messageType;
             chat.deleted = message.deleted;
+            chat.totalUnreadMessages = message.totalUnreadMessages;
           })
         }
       });
@@ -139,6 +140,16 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           });
         }
       }
+    });
+
+    unreadMessagePublisher.addListener(STREAMS_LISTENER_ID, (contactBindingId) {
+      chats.forEach((chat) => {
+        if (chat.contactBindingId == contactBindingId) {
+          setState(() {
+            chat.totalUnreadMessages = 0;
+          })
+        }
+      });
     });
 
     doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
@@ -218,6 +229,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.presencePub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
+
+    unreadMessagePublisher.removeListener(STREAMS_LISTENER_ID);
   }
 
   @override
@@ -383,8 +396,22 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                           ],
                         ),
                       ),
-                      MessageStatus(message.sentTimestamp, message.sent, message.received, message.seen,
-                          displayStatusIcon: displayStatusIcon),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          MessageStatus(message.sentTimestamp, message.sent, message.received, message.seen,
+                              displayStatusIcon: displayStatusIcon),
+                          message.totalUnreadMessages > 0 ? Container(
+                              height: 15, width: 15, alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  color: CompanyColor.bluePrimary),
+                              child: Text(message.totalUnreadMessages.toString(),
+                                  style: TextStyle(fontSize: 12, color: Colors.white))
+                          ) : Container(),
+                        ],
+                      ),
                     ],
                   ),
                 )
