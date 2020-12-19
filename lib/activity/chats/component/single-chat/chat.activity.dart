@@ -406,9 +406,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   doSendMessage() {
+    print('send my message');
     if (textController.text.length > 0) {
       widget.messageSendingService.sendTextMessage(textController.text);
-      textController.clear();
+      setState(() {
+        textController.clear();
+      });
     }
   }
 

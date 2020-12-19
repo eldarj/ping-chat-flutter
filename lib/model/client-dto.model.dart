@@ -32,19 +32,17 @@ class ClientDto {
       ..profileImagePath = json['profileImagePath'] as String;
   }
 
-  Map<String, dynamic> toJson(ClientDto instance) {
-    return <String, dynamic>{
-      'id': instance.id,
-      'phoneNumber': instance.phoneNumber,
-      'countryCode': instance.countryCode,
-      'firstName': instance.firstName,
-      'lastName': instance.lastName,
-      'displayMyFullName': instance.displayMyFullName,
-      'joinedTimestamp': instance.joinedTimestamp,
-      'isActive': instance.isActive,
-      'profileImagePath': instance.profileImagePath,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'phoneNumber': phoneNumber,
+    'countryCode': countryCode,
+    'firstName': firstName,
+    'lastName': lastName,
+    'displayMyFullName': displayMyFullName,
+    'joinedTimestamp': joinedTimestamp,
+    'isActive': isActive,
+    'profileImagePath': profileImagePath,
+  };
 
   get fullPhoneNumber => countryCode.dialCode + phoneNumber;
 }
