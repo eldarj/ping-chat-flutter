@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutterping/activity/chats/component/message/message-status-row.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
@@ -15,7 +14,6 @@ import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
-import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
@@ -31,7 +29,12 @@ class MessageComponent extends StatefulWidget {
 
   final bool isPeerMessage;
 
-  const MessageComponent({Key key, this.message, this.isPeerMessage, this.displayTimestamp, this.margin, this.picturesPath}) : super(key: key);
+  const MessageComponent({Key key,
+    this.message,
+    this.isPeerMessage,
+    this.displayTimestamp,
+    this.margin,
+    this.picturesPath}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => MessageComponentState();
@@ -42,24 +45,19 @@ class MessageComponentState extends State<MessageComponent> {
 
   double maxWidth = DEVICE_MEDIA_SIZE.width - 150;
 
-  Function tapDownHandler;
-
   @override
   Widget build(BuildContext context) {
     scaffold = Scaffold.of(context);
 
     return GestureDetector(
-      onTapDown: (details) {
-        Function f = resolveTapDownHandler();
-        f(details);
-      },
+      onTapDown: resolveMessageTapHandler(),
       child: Container(
         margin: widget.margin,
         child: Container(
           margin: EdgeInsets.only(left: 5, right: 5, bottom: widget.displayTimestamp ? 20 : 2.5),
           child: Column(crossAxisAlignment: widget.isPeerMessage ? CrossAxisAlignment.start : CrossAxisAlignment.end,
               children: [
-                buildMessageContent(maxWidth),
+                buildMessageContent(),
                 MessageStatusRow(widget.isPeerMessage,
                     widget.message.sentTimestamp,
                     widget.message.displayCheckMark,
@@ -73,58 +71,9 @@ class MessageComponentState extends State<MessageComponent> {
     );
   }
 
-  buildMessageContent(double maxWidth) {
-    double size = maxWidth;
-
-    Widget messageWidget;
-    BoxDecoration messageDecoration;
-
-    var messagePadding = EdgeInsets.only(top: 7.5, bottom: 7.5, left: 10, right: 10);
-
-    if (widget.message.deleted) {
-      size = 150;
-      messageWidget = MessageDeleted();
-      messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
-
-    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType)) {
-      String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
-          : widget.message.filePath;
-
-      messageWidget = buildMessageMedia(size, widget.message, filePath, widget.message.isDownloadingFile,
-          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
-      messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
-
-    } else if (widget.message.messageType == 'IMAGE') {
-      size = DEVICE_MEDIA_SIZE.width / 1.25;
-      String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
-          : widget.message.filePath;
-
-      messagePadding = EdgeInsets.all(0);
-      messageDecoration = imageDecoration();
-      messageWidget = MessageImage(size, filePath, widget.isPeerMessage,
-          widget.message.isDownloadingFile, widget.message.isUploading, widget.message.uploadProgress);
-
-    } else if (widget.message.messageType == 'STICKER') {
-      messageWidget = MessageSticker(widget.message.text);
-      messageDecoration = stickerBoxDecoration();
-
-    } else {
-      messageWidget = MessageText(widget.message.text);
-      messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
-    }
-
+  buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
     return Container(
-        decoration: messageDecoration,
-        constraints: BoxConstraints(maxWidth: size), // TODO: Checkmax height
-        padding: messagePadding,
-        child: messageWidget);
-  }
-
-  buildMessageMedia(width, MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
-    return Container(
-        constraints: BoxConstraints(maxWidth: width, minWidth: width),
+        constraints: BoxConstraints(maxWidth: maxWidth, minWidth: maxWidth),
         child: Row(
           children: [
             Container(
@@ -143,7 +92,7 @@ class MessageComponentState extends State<MessageComponent> {
                   child: Icon(Icons.ondemand_video, color: Colors.blueGrey)),
             ),
             Container(
-              width: width - 100,
+              width: maxWidth - 100,
               alignment: Alignment.center,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,6 +104,99 @@ class MessageComponentState extends State<MessageComponent> {
             )
           ],
         ));
+  }
+
+  buildMessageContent() {
+    Widget _messageWidget;
+
+    BoxDecoration messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
+
+    if (widget.message.deleted) {
+      _messageWidget = MessageDeleted();
+
+    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
+      String filePath = widget.isPeerMessage
+          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          : widget.message.filePath;
+
+      _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
+          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
+
+    } else if (widget.message.messageType == 'IMAGE') {
+      String filePath = widget.isPeerMessage
+          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          : widget.message.filePath;
+
+      _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
+          widget.message.uploadProgress);
+      messageDecoration = imageDecoration();
+
+    } else if (widget.message.messageType == 'STICKER') {
+      _messageWidget = MessageSticker(widget.message.text);
+      messageDecoration = stickerBoxDecoration();
+
+    } else {
+      _messageWidget = MessageText(widget.message.text);
+    }
+
+    return Container(
+        decoration: messageDecoration,
+        constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
+        child: _messageWidget);
+  }
+
+  resolveMessageTapHandler() {
+    Function messageTapHandler;
+
+    if (widget.message.deleted) {
+      messageTapHandler = (_) {};
+    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
+      String filePath = widget.isPeerMessage
+          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          : widget.message.filePath;
+
+      messageTapHandler = (_) async {
+        OpenFile.open(filePath);
+      };
+
+    } else if (widget.message.messageType == 'IMAGE') {
+      String filePath = widget.isPeerMessage
+          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          : widget.message.filePath;
+
+      if (widget.message.isUploading) {
+        messageTapHandler = (_) async {
+          setState(() {
+            widget.message.deleted = true;
+            widget.message.isUploading = false;
+          });
+          widget.message.stopUploadFunc();
+        };
+      } else {
+        messageTapHandler = (_) async {
+          NavigatorUtil.push(context,
+              ImageViewerActivity(message: widget.message, sender: widget.message.senderContactName,
+                  timestamp: widget.message.sentTimestamp,
+                  file: File(filePath)));
+        };
+      }
+
+    } else if (widget.message.messageType == 'STICKER') {
+      messageTapHandler = (details) {
+        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
+          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
+        ]);
+      };
+
+    } else {
+      messageTapHandler = (details) {
+        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
+          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
+        ]);
+      };
+    }
+
+    return messageTapHandler;
   }
 
   onMessageTapDown(details, MessageDto message, bool isPeerMessage, items) async {
@@ -198,47 +240,5 @@ class MessageComponentState extends State<MessageComponent> {
   onDeleteMessageError(error) {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error());
-  }
-
-  resolveTapDownHandler() {
-    if (['MEDIA', 'FILE'].contains(widget.message.messageType) && !widget.message.isUploading) {
-      var MEDIA_FILE_TAP_HANDLER = (_) async {
-        String filePath = widget.isPeerMessage
-            ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
-            : widget.message.filePath;
-        OpenFile.open(filePath);
-      };
-      tapDownHandler = MEDIA_FILE_TAP_HANDLER;
-    } else if (widget.message.messageType == 'IMAGE') {
-      if (!widget.message.isUploading) {
-        String filePath = widget.isPeerMessage
-            ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
-            : widget.message.filePath;
-        tapDownHandler = (_) async {
-          NavigatorUtil.push(context,
-              ImageViewerActivity(message: widget.message, sender: widget.message.senderContactName,
-                  timestamp: widget.message.sentTimestamp,
-                  file: File(filePath)));
-        };
-      } else {
-        tapDownHandler = (_) async {
-          widget.message.stopUploadFunc();
-        };
-      }
-    } else if (widget.message.messageType == 'STICKER') {
-      tapDownHandler = (details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
-          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
-        ]);
-      };
-    } else if (widget.message.messageType == 'TEXT_MESSAGE') {
-      tapDownHandler = (details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
-          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
-        ]);
-      };
-    }
-
-    return tapDownHandler;
   }
 }

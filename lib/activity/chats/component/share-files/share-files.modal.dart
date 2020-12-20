@@ -51,10 +51,6 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
         Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString(), fileSize, fileType);
 
     message.stopUploadFunc = () async {
-      setState(() {
-        message.deleted = true;
-        message.isUploading = false;
-      });
       await Future.delayed(Duration(seconds: 2));
       fileUploadClient.delete();
     };

@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/chats/component/single-chat/chat.activity.dart';
+import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';

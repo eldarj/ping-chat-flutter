@@ -12,7 +12,7 @@ import 'package:flutterping/activity/chats/component/settings/chat-settings-menu
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
-import 'package:flutterping/activity/chats/component/single-chat/partial/chat-input-row.component.dart';
+import 'package:flutterping/activity/chats/single-chat/partial/chat-input-row.component.dart';
 import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-download-progress.model.dart';
@@ -214,6 +214,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     KeyboardVisibilityNotification().addNewListener(
       onChange: (bool visible) {
+        setState(() {
+          displaySendButton = visible;
+        });
       },
     );
 
@@ -371,7 +374,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
     previousWasPeerMessage = isPeerMessage;
     previousMessageDate = thisMessageDate;
 
+    String widgetKey = message.text != null ? message.text : message.fileName;
     return MessageComponent(
+      key: new Key(widgetKey),
       margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
       message: message,
       isPeerMessage: isPeerMessage,
@@ -411,7 +416,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   doSendMessage() {
-    print('send my message');
     if (textController.text.length > 0) {
       widget.messageSendingService.sendTextMessage(textController.text);
       setState(() {

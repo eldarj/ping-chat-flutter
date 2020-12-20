@@ -786,6 +786,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.8"
+  stop_watch_timer:
+    dependency: "direct main"
+    description:
+      name: stop_watch_timer
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.0+1"
   stream_channel:
     dependency: transitive
     description:
