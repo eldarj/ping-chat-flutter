@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/component/message/message-status-row.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
@@ -12,8 +13,12 @@ import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
 
 class MessageComponent extends StatefulWidget {
   final MessageDto message;
@@ -39,60 +44,15 @@ class MessageComponentState extends State<MessageComponent> {
 
   Function tapDownHandler;
 
-  initTapDownHandler() {
-    if (widget.message.deleted) {
-      tapDownHandler = null;
-
-    } else if (widget.message.messageType == 'IMAGE' && !widget.message.isUploading) {
-      String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
-          : widget.message.filePath;
-
-      tapDownHandler = (TapDownDetails details) async {
-        NavigatorUtil.push(context,
-            ImageViewerActivity(message: widget.message, sender: widget.message.senderContactName,
-                timestamp: widget.message.sentTimestamp,
-                file: File(filePath)));
-      };
-
-    } else if (widget.message.messageType == 'STICKER') {
-      tapDownHandler = (TapDownDetails details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
-          PopupMenuItem(
-            value: 'DELETE',
-            child: Text("Delete"),
-          ),
-        ]);
-      };
-
-    } else {
-      tapDownHandler = (TapDownDetails details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
-          PopupMenuItem(
-            value: 'EDITfixorremove',
-            child: Text("Edit"),
-          ),
-          PopupMenuItem(
-            value: 'DELETE',
-            child: Text("Delete"),
-          ),
-        ]);
-      };
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initTapDownHandler();
-  }
-
   @override
   Widget build(BuildContext context) {
     scaffold = Scaffold.of(context);
 
     return GestureDetector(
-      onTapDown: tapDownHandler,
+      onTapDown: (details) {
+        Function f = resolveTapDownHandler();
+        f(details);
+      },
       child: Container(
         margin: widget.margin,
         child: Container(
@@ -126,6 +86,15 @@ class MessageComponentState extends State<MessageComponent> {
       messageWidget = MessageDeleted();
       messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
 
+    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType)) {
+      String filePath = widget.isPeerMessage
+          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          : widget.message.filePath;
+
+      messageWidget = buildMessageMedia(size, widget.message, filePath, widget.message.isDownloadingFile,
+          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
+      messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
+
     } else if (widget.message.messageType == 'IMAGE') {
       size = DEVICE_MEDIA_SIZE.width / 1.25;
       String filePath = widget.isPeerMessage
@@ -135,8 +104,7 @@ class MessageComponentState extends State<MessageComponent> {
       messagePadding = EdgeInsets.all(0);
       messageDecoration = imageDecoration();
       messageWidget = MessageImage(size, filePath, widget.isPeerMessage,
-          widget.message.isDownloadingImage, widget.message.isUploading, widget.message.uploadProgress,
-          widget.message.stopUploadFunc);
+          widget.message.isDownloadingFile, widget.message.isUploading, widget.message.uploadProgress);
 
     } else if (widget.message.messageType == 'STICKER') {
       messageWidget = MessageSticker(widget.message.text);
@@ -149,12 +117,47 @@ class MessageComponentState extends State<MessageComponent> {
 
     return Container(
         decoration: messageDecoration,
-        constraints: BoxConstraints(maxWidth: size),
+        constraints: BoxConstraints(maxWidth: size), // TODO: Checkmax height
         padding: messagePadding,
         child: messageWidget);
   }
 
-  onMessageTapDown(TapDownDetails details, MessageDto message, bool isPeerMessage, items) async {
+  buildMessageMedia(width, MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
+    return Container(
+        constraints: BoxConstraints(maxWidth: width, minWidth: width),
+        child: Row(
+          children: [
+            Container(
+              margin: EdgeInsets.only(right: 10),
+              child: isUploading ? GestureDetector(onTap: stopUploadFunc, child: Container(
+                  width: 50, height: 50, child: UploadProgressIndicator(size: 50, progress: uploadProgress))) :
+              isDownloadingFile ? Container(height: 50, width: 50,
+                  alignment: Alignment.center,
+                  child: Spinner()) :
+              Container(
+                  width: 50, height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(color: Colors.blueGrey),
+                  ),
+                  child: Icon(Icons.ondemand_video, color: Colors.blueGrey)),
+            ),
+            Container(
+              width: width - 100,
+              alignment: Alignment.center,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(message.fileName + widget.message.messageType),
+                    Text(message.fileSizeFormatted(), style: TextStyle(color: Colors.grey)),
+                  ]),
+            )
+          ],
+        ));
+  }
+
+  onMessageTapDown(details, MessageDto message, bool isPeerMessage, items) async {
     FocusScope.of(context).requestFocus(new FocusNode());
     showMenu(
       context: context,
@@ -195,5 +198,47 @@ class MessageComponentState extends State<MessageComponent> {
   onDeleteMessageError(error) {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error());
+  }
+
+  resolveTapDownHandler() {
+    if (['MEDIA', 'FILE'].contains(widget.message.messageType) && !widget.message.isUploading) {
+      var MEDIA_FILE_TAP_HANDLER = (_) async {
+        String filePath = widget.isPeerMessage
+            ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+            : widget.message.filePath;
+        OpenFile.open(filePath);
+      };
+      tapDownHandler = MEDIA_FILE_TAP_HANDLER;
+    } else if (widget.message.messageType == 'IMAGE') {
+      if (!widget.message.isUploading) {
+        String filePath = widget.isPeerMessage
+            ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+            : widget.message.filePath;
+        tapDownHandler = (_) async {
+          NavigatorUtil.push(context,
+              ImageViewerActivity(message: widget.message, sender: widget.message.senderContactName,
+                  timestamp: widget.message.sentTimestamp,
+                  file: File(filePath)));
+        };
+      } else {
+        tapDownHandler = (_) async {
+          widget.message.stopUploadFunc();
+        };
+      }
+    } else if (widget.message.messageType == 'STICKER') {
+      tapDownHandler = (details) {
+        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
+          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
+        ]);
+      };
+    } else if (widget.message.messageType == 'TEXT_MESSAGE') {
+      tapDownHandler = (details) {
+        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
+          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
+        ]);
+      };
+    }
+
+    return tapDownHandler;
   }
 }

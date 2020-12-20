@@ -29,10 +29,9 @@ class MessageImage extends StatelessWidget {
       this.size,
       this.filePath,
       this.isPeerMessage,
-      this.isDownloadingImage,
+      this.isDownloadingFile,
       this.isUploading,
       this.uploadProgress,
-      this.stopUploadFunc,
       {Key key})
       : super(key: key);
 
@@ -42,23 +41,20 @@ class MessageImage extends StatelessWidget {
 
   final dynamic isPeerMessage;
 
-  final dynamic isDownloadingImage;
+  final dynamic isDownloadingFile;
 
   final dynamic isUploading;
 
   final dynamic uploadProgress;
-
-  final dynamic stopUploadFunc;
 
   @override
   Widget build(BuildContext _context) => messageImage(
       size,
       filePath,
       isPeerMessage,
-      isDownloadingImage,
+      isDownloadingFile,
       isUploading,
-      uploadProgress,
-      stopUploadFunc);
+      uploadProgress);
 }
 
 class MessageDeleted extends StatelessWidget {

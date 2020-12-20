@@ -8,6 +8,7 @@ import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class LandingActivity extends StatefulWidget {
   @override
@@ -23,6 +24,7 @@ class _LandingActivityState extends BaseState<LandingActivity> {
 
   loadActivity() async {
     var user = await UserService.getUser();
+    await Permission.microphone.request();
     if (user == null) {
       NavigatorUtil.push(context, PolicyActivity());
       return;

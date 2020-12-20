@@ -16,6 +16,11 @@ Widget messageText(String text) {
 }
 
 @swidget
+Widget messageMedia() {
+  return Container(child: Text('MEDIA'));
+}
+
+@swidget
 Widget messageSticker(text) {
   double size = DEVICE_MEDIA_SIZE.width / 3;
   return Container(
@@ -24,7 +29,7 @@ Widget messageSticker(text) {
 }
 
 @swidget
-Widget messageImage(size, filePath, isPeerMessage, isDownloadingImage, isUploading, uploadProgress, stopUploadFunc, ) {
+Widget messageImage(size, filePath, isPeerMessage, isDownloadingFile, isUploading, uploadProgress) {
   bool fileExists = File(filePath).existsSync();
 
   Container image = Container(
@@ -32,7 +37,7 @@ Widget messageImage(size, filePath, isPeerMessage, isDownloadingImage, isUploadi
       constraints: BoxConstraints(
           maxWidth: size, maxHeight: size, minHeight: 100, minWidth: 100
       ),
-      child: isDownloadingImage ? Container(
+      child: isDownloadingFile ? Container(
           height: 50, width: 50,
           alignment: Alignment.center,
           child: Spinner())
@@ -56,11 +61,9 @@ Widget messageImage(size, filePath, isPeerMessage, isDownloadingImage, isUploadi
             borderRadius: BorderRadius.circular(15),
             child: colorFilteredImage,
           ),
-          isUploading ? GestureDetector(
-              onTap: stopUploadFunc,
-              child: Container(
-                  width: 100, height: 100,
-                  child: UploadProgressIndicator(size: 50, progress: uploadProgress))) : Container(width: 0),
+          isUploading ? Container(
+              width: 100, height: 100,
+              child: UploadProgressIndicator(size: 50, progress: uploadProgress)) : Container(width: 0),
         ],
       ));
 }

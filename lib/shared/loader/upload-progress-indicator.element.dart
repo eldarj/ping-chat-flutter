@@ -32,7 +32,7 @@ class UploadProgressIndicator extends StatelessWidget {
                 },
               ),
             ),
-            Icon(Icons.close, color: Colors.white, size: 30),
+            Icon(Icons.close, color: color, size: 30),
           ],
         ),
       ),

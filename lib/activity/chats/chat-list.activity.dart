@@ -427,6 +427,24 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
     if (message.deleted) {
       widget = Text('Deleted', style: TextStyle(fontStyle: FontStyle.italic));
+    } else if (message.messageType == 'MEDIA') {
+      widget = Row(
+        children: <Widget>[
+          Container(
+              margin: EdgeInsets.only(right: 5),
+              child: Icon(Icons.ondemand_video, color: Colors.grey.shade500, size: 15)),
+          Text('Media', style: TextStyle(color: Colors.grey.shade500)),
+        ],
+      );
+    } else if (message.messageType == 'FILE') {
+      widget = Row(
+        children: <Widget>[
+          Container(
+              margin: EdgeInsets.only(right: 5),
+              child: Icon(Icons.insert_drive_file, color: Colors.grey.shade500, size: 15)),
+          Text('File', style: TextStyle(color: Colors.grey.shade500)),
+        ],
+      );
     } else if (message.messageType == 'IMAGE') {
       widget = Row(
         children: <Widget>[

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:flutterping/activity/chats/component/chat-settings-menu.dart';
+import 'package:flutterping/activity/chats/component/settings/chat-settings-menu.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
@@ -117,9 +117,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) async {
-      if (message.messageType == 'IMAGE') {
-        message.isDownloadingImage = true;
-        message.downloadTaskId = await doDownloadAndStoreImage(message);
+      if (['IMAGE', 'MEDIA', 'FILE'].contains(message.messageType)) {
+        message.isDownloadingFile = true;
+        message.downloadTaskId = await doDownloadAndStoreFile(message);
       }
 
       setState(() {
@@ -204,7 +204,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         messages.where((message) => message.downloadTaskId == downloadTaskId).forEach((message) async {
           await Future.delayed(Duration(seconds: 1));
           setState(() {
-            message.isDownloadingImage = false;
+            message.isDownloadingFile = false;
           });
         });
       }
@@ -289,8 +289,15 @@ class ChatActivityState extends BaseState<ChatActivity> {
                               child: Spinner(size: 20)))) : Container(),
                 ]),
               ),
-              SingleChatInputRow(textController, textFocusNode, displayStickers, displaySendButton,
-                  doSendMessage, onOpenShareBottomSheet, onOpenStickerBar),
+              SingleChatInputRow(inputTextController: textController,
+                inputTextFocusNode: textFocusNode, displayStickers: displayStickers, displaySendButton: displaySendButton,
+                doSendMessage: doSendMessage, onOpenShareBottomSheet: onOpenShareBottomSheet, onOpenStickerBar: onOpenStickerBar,
+                messageSendingService: widget.messageSendingService, onProgress: (message, progress) {
+                  setState(() {
+                    message.uploadProgress = progress / 100;
+                  });
+                },
+              ),
               displayStickers ? StickerBar(
                 sendFunc: doSendEmoji,
                 peer: widget.peer,
@@ -432,7 +439,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     }
   }
 
-  doDownloadAndStoreImage(MessageDto message) async {
+  doDownloadAndStoreFile(MessageDto message) async {
     try {
       return await FlutterDownloader.enqueue(
         url: message.fileUrl,
@@ -442,7 +449,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         openFileFromNotification: false,
       );
     } catch(exception) {
-      print('Error downloading image on init.');
+      print('Error downloading file on init.');
       print(exception);
     }
   }
@@ -481,12 +488,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
     var preparedMessages = fetchedMessages.map((e) async {
       var m = MessageDto.fromJson(e);
 
-      // Download new images (TODO: Adjust downloading and displayin images)
-      if (m.messageType == 'IMAGE' && !m.deleted) {
-        bool imageExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
-        if (userId == m.receiver.id && !imageExists) {
-          m.isDownloadingImage = true;
-          m.downloadTaskId = await doDownloadAndStoreImage(m);
+      // Download new file
+      if (['IMAGE', 'MEDIA', 'FILE'].contains(m.messageType) && !m.deleted) {
+        bool fileExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
+        if (userId == m.receiver.id && !fileExists) {
+          m.isDownloadingFile = true;
+          m.downloadTaskId = await doDownloadAndStoreFile(m);
         }
       }
 

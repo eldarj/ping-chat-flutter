@@ -1,5 +1,6 @@
+import 'package:filesize/filesize.dart';
 import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/service/persistence/storage.io.service.dart';
+
 
 class MessageDto {
   int id;
@@ -38,6 +39,8 @@ class MessageDto {
 
   String filePath;
 
+  int fileSizeBytes;
+
   bool isUploading;
 
   double uploadProgress;
@@ -46,7 +49,7 @@ class MessageDto {
 
   bool deleted;
 
-  bool isDownloadingImage;
+  bool isDownloadingFile;
 
   int downloadProgress;
 
@@ -54,14 +57,18 @@ class MessageDto {
 
   int totalUnreadMessages;
 
+  fileSizeFormatted() {
+    return filesize(fileSizeBytes);
+  }
+
   MessageDto({this.id, this.text, this.sender, this.receiver, this.sent, this.received, this.seen,
     this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
     this.contactBindingId, this.chained,
-    this.fileName, this.fileUrl, this.filePath,
+    this.fileName, this.fileUrl, this.filePath, this.fileSizeBytes,
     this.uploadProgress, this.stopUploadFunc, this.isUploading,
     this.messageType,
     this.deleted = false,
-    this.isDownloadingImage = false,
+    this.isDownloadingFile = false,
     this.downloadProgress = 0,
     this.totalUnreadMessages = 0,
   });
@@ -96,6 +103,9 @@ class MessageDto {
       ..fileName = parsedJson['fileName'] as String
       ..filePath = parsedJson['filePath'] as String
       ..fileUrl = parsedJson['fileUrl'] as String
+      ..fileSizeBytes = parsedJson['fileSizeBytes'] == null
+          ? 0
+          : parsedJson['fileSizeBytes'] as int
       ..uploadProgress = 0.0
       ..stopUploadFunc = null
       ..isUploading = false
@@ -127,6 +137,7 @@ class MessageDto {
     'fileName': fileName,
     'fileUrl': fileUrl,
     'filePath': filePath,
+    'fileSizeBytes': fileSizeBytes,
     'messageType': messageType,
     'deleted': deleted,
   };

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/util/other/file-type-resolver.util.dart';
 import 'package:path/path.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -32,6 +33,8 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
     file = await FilePicker.getFile(onFileLoading: (status) {});
 
     var fileName = basename(file.path);
+    var fileType = FileTypeResolverUtil.resolve(extension(fileName));
+    var fileSize = file.lengthSync();
 
     var userToken = await UserService.getToken();
 
@@ -42,8 +45,11 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
       headers: {'Authorization': 'Bearer $userToken'},
     );
 
-    // ADD IMAGE LOCALLY
-    MessageDto message = widget.messageSendingService.addPreparedImage(fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString());
+
+    // ADD FILE LOCALLY
+    MessageDto message = widget.messageSendingService.addPreparedFile(fileName, file.path,
+        Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString(), fileSize, fileType);
+
     message.stopUploadFunc = () async {
       setState(() {
         message.deleted = true;
@@ -53,7 +59,6 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
       fileUploadClient.delete();
     };
     // widget.onPicked(fileUploadClient, fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName));
-
 
     widget.onProgress(message, 10);
     await Future.delayed(Duration(milliseconds: 500));
@@ -66,7 +71,7 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
         onComplete: (response) async {
           await Future.delayed(Duration(milliseconds: 250));
           message.isUploading = false;
-          widget.messageSendingService.sendImage(message);
+          widget.messageSendingService.sendFile(message);
         },
         onProgress: (progress) {
           if (widget.onProgress != null) {
@@ -77,7 +82,7 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
         },
       );
     } catch (exception) {
-      print('Error uploading image');
+      print('Error uploading file');
       print(exception); //TODO: Handling
     }
   }

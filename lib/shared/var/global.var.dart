@@ -6,9 +6,13 @@ class CompanyColor {
   static Color bluePrimary = Color.fromRGBO(38, 197, 221, 1); // #26CFDD
   static const Color blueDark = Color.fromRGBO(28, 166, 197, 1); // #63CFD9
 
-  static Color accentGreen = Color.fromRGBO(0, 102, 116, 1);
   static Color accentGreenLight = Color(0xff1bb29f);
+  static Color accentGreen = Color.fromRGBO(0, 102, 116, 1);
   static Color accentGreenDark = Color.fromRGBO(47, 72, 88, 1);
+
+  static Color accentPurpleLight = Color.fromRGBO(97, 82, 157, 1);
+  static Color accentPurple = Color.fromRGBO(79, 69, 110, 1);
+  static Color accentPurpleDark = Color.fromRGBO(63, 58, 96, 1);
 
   static Color red = Color.fromRGBO(231, 76, 60, 1);
   static Color green = Colors.green.shade400;

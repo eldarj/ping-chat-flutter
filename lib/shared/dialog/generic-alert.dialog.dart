@@ -1,9 +1,8 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
-class DeleteImageAlertDialog extends StatelessWidget {
+class GenericAlertDialog extends StatelessWidget {
   final Color bgColor;
   final String title;
   final String message;
@@ -13,7 +12,7 @@ class DeleteImageAlertDialog extends StatelessWidget {
   final Function onNegativePressed;
   final double circularBorderRadius;
 
-  DeleteImageAlertDialog({
+  GenericAlertDialog({
     this.title,
     this.message,
     this.circularBorderRadius = 5.0,

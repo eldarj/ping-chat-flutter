@@ -50,6 +50,9 @@ dependencies:
   path_provider: ^1.6.24
   dart_notification_center: ^1.0.0+1
   functional_widget: ^0.8.0
+  open_file: ^3.0.3
+  filesize: ^1.0.4
+  flutter_audio_recorder: ^0.5.5
 
 dev_dependencies:
   functional_widget: ^0.8.0

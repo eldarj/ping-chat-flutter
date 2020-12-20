@@ -42,12 +42,14 @@ class MessageSendingService {
     return message;
   }
 
-  MessageDto addPreparedImage(String fileName, String filePath, String fileUrl, {chained: false}) {
+  MessageDto addPreparedFile(String fileName, String filePath, String fileUrl,
+      int fileSize, String messageType, {chained: false}) {
     MessageDto message = _create(chained: chained);
-    message.messageType = 'IMAGE';
+    message.messageType = messageType;
     message.fileName = fileName;
     message.filePath = filePath;
     message.fileUrl = fileUrl;
+    message.fileSizeBytes = fileSize;
     message.uploadProgress = 0.0;
     message.isUploading = true;
 
@@ -56,7 +58,7 @@ class MessageSendingService {
     return message;
   }
 
-  void sendImage(MessageDto message) {
+  void sendFile(MessageDto message) {
     WsClientService.wsClient.send('/messages/send', message);
   }
 

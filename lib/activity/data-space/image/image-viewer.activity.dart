@@ -1,20 +1,14 @@
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-import 'package:flutterping/activity/data-space/image/delete.dialog.dart';
+import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
-import 'package:flutterping/shared/dropdown-banner/dropdown-banner.component.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' show basename;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:photo_view/photo_view.dart';
@@ -86,7 +80,7 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                         }, icon: Icon(Icons.share), color: Colors.white),
                         LoadingButton(color: Colors.transparent, child: Icon(Icons.delete, color: Colors.white),
                             displayLoader: displayLoader, onPressed: () {
-                              var dialog = DeleteImageAlertDialog(
+                              var dialog = GenericAlertDialog(
                                   title: "Izbriši sliku",
                                   message: "Ukoliko je kontakt aktivirao direktno spremanje na uređaj,"
                                       " datoteku neće biti moguće izbrisati sa istog.",
