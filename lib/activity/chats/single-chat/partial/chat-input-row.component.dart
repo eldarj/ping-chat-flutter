@@ -10,11 +10,13 @@ import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/util/other/file-type-resolver.util.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:tus_client/tus_client.dart';
+import 'package:flutterping/util/extension/duration.extension.dart';
 
 class SingleChatInputRow extends StatefulWidget {
   final MessageSendingService messageSendingService;
@@ -39,32 +41,41 @@ class SingleChatInputRow extends StatefulWidget {
   State<StatefulWidget> createState() => SingleChatInputRowState();
 }
 
-class SingleChatInputRowState extends State<SingleChatInputRow> with SingleTickerProviderStateMixin {
+class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProviderStateMixin {
   bool isRecording = false;
   var recorder;
 
-  AnimationController _animationController;
+  AnimationController _fadeInAnimationController;
+  Animation<double> _fadeInAnimation;
+
+  AnimationController _blinkingAnimationController;
 
   StopWatchTimer _stopWatchTimer;
 
-  String minutes = '0';
-  String seconds = '0';
+  String recordingDuration = '0:0:0';
 
+  StorageIOService storageIOService;
   @override
   initState() {
     super.initState();
-    _animationController = new AnimationController(vsync: this, duration: Duration(milliseconds: 500));
-    _animationController.repeat(reverse: true);
+    storageIOService = new StorageIOService();
+
+    _blinkingAnimationController = new AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    _blinkingAnimationController.repeat(reverse: true);
+
+    _fadeInAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 500),
+        vsync: this,
+        value: 0,
+        lowerBound: 0,
+        upperBound: 1
+    );
+    _fadeInAnimation = CurvedAnimation(parent: _fadeInAnimationController, curve: Curves.fastOutSlowIn);
 
     _stopWatchTimer = StopWatchTimer(
-      onChangeRawMinute: (value) {
-        setState(() {
-          minutes = value < 10 ? '0' + value.toString() : value.toString();
-        });
-      },
       onChangeRawSecond: (value) {
         setState(() {
-          seconds = value < 10 ? '0' + value.toString() : value.toString();
+          recordingDuration = Duration(seconds: value).format();
         });
       },
     );
@@ -74,91 +85,79 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with SingleTicke
   @override
   void dispose() {
     _stopWatchTimer.dispose();
-    _animationController.dispose();
+    _blinkingAnimationController.dispose();
+    _fadeInAnimationController.dispose();
     super.dispose();
   }
 
-  startRecording(context) async {
-    var storageIOService = new StorageIOService();
-    var s = await storageIOService.getPicturesPath();
-    var d = DateTime.now();
-    var path = s.toString() + "/recording-" + d.year.toString()
-        + d.month.toString()
-        + d.day.toString()
-        + d.hour.toString()
-        + d.minute.toString()
-        + d.second.toString() + ".mp4";
-    //
-    if (!isRecording) {
-      recorder = FlutterAudioRecorder(path); // .wav .aac .m4a
-      await recorder.initialized;
-      await recorder.start();
-      isRecording = true;
-    } else {
+  cancelRecording() async {
+    setState(() {
       isRecording = false;
-      var recording = await recorder.current(channel: 0);
-      var result = await recorder.stop();
-      File file = File(result.path);
-
-      var fileName = basename(file.path);
-      var fileType = FileTypeResolverUtil.resolve(extension(fileName));
-      var fileSize = file.lengthSync();
-
-      var userToken = await UserService.getToken();
-
-      TusClient fileUploadClient = TusClient(
-        Uri.parse(API_BASE_URL + DATA_SPACE_ENDPOINT),
-        file,
-        store: TusMemoryStore(),
-        headers: {'Authorization': 'Bearer $userToken'},
-      );
-
-      // ADD FILE LOCALLY
-      MessageDto message = widget.messageSendingService.addPreparedFile(fileName, file.path,
-          Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString(), fileSize, fileType);
-
-      message.stopUploadFunc = () async {
-        await Future.delayed(Duration(seconds: 2));
-        fileUploadClient.delete();
-      };
-      // widget.onPicked(fileUploadClient, fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName));
-
-      widget.onProgress(message, 10);
-      await Future.delayed(Duration(milliseconds: 500));
-      widget.onProgress(message, 30);
-      await Future.delayed(Duration(milliseconds: 500));
-
-      // HANDLE ON COMPLETE ETC HERE
-      try {
-        await fileUploadClient.upload(
-          onComplete: (response) async {
-            await Future.delayed(Duration(milliseconds: 250));
-            message.isUploading = false;
-            widget.messageSendingService.sendFile(message);
-          },
-          onProgress: (progress) {
-            if (widget.onProgress != null) {
-              if (progress > 30) {
-                widget.onProgress(message, progress);
-              }
-            }
-          },
-        );
-      } catch (exception) {
-        print('Error uploading file');
-        print(exception); //TODO: Handling
-      }
-      print('STOPPED RECORDING');
-    }
+    });
+    _fadeInAnimationController.animateBack(0);
+    await recorder.stop();
   }
 
-  // stopRecording(LongPressEndDetails longPressEndDetails) async {
-  //   bool isRecording = await AudioRecorder.isRecording;
-  //   if (isRecording) {
-  //     Recording recording = await AudioRecorder.stop();
-  //     print("Path : ${recording.path},  Format : ${recording.audioOutputFormat},  Duration : ${recording.duration},  Extension : ${recording.extension},");
-  //   }
-  // }
+  startRecording(context) async {
+    DateFormat formatter = DateFormat('yyyy-MM-dd-Hms');
+    var storagePath = await storageIOService.getPicturesPath();
+    var path = storagePath.toString() + "/recording-" + formatter.format(DateTime.now()) + ".mp4";
+
+    recorder = FlutterAudioRecorder(path); // .wav .aac .m4a
+    await recorder.initialized;
+    await recorder.start();
+  }
+
+  sendRecording() async {
+    var result = await recorder.stop();
+    File file = File(result.path);
+
+    var fileName = basename(file.path);
+    var fileType = FileTypeResolverUtil.resolve(extension(fileName));
+    var fileSize = file.lengthSync();
+
+    var userToken = await UserService.getToken();
+
+    TusClient fileUploadClient = TusClient(
+      Uri.parse(API_BASE_URL + DATA_SPACE_ENDPOINT),
+      file,
+      store: TusMemoryStore(),
+      headers: {'Authorization': 'Bearer $userToken'},
+    );
+
+    MessageDto message = widget.messageSendingService.addPreparedFile(fileName, file.path,
+        Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString(), fileSize, fileType);
+
+    message.stopUploadFunc = () async {
+      await Future.delayed(Duration(seconds: 2));
+      fileUploadClient.delete();
+    };
+
+    widget.onProgress(message, 10);
+    await Future.delayed(Duration(milliseconds: 500));
+    widget.onProgress(message, 30);
+    await Future.delayed(Duration(milliseconds: 500));
+
+    try {
+      await fileUploadClient.upload(
+        onComplete: (response) async {
+          await Future.delayed(Duration(milliseconds: 250));
+          message.isUploading = false;
+          widget.messageSendingService.sendFile(message);
+        },
+        onProgress: (progress) {
+          if (widget.onProgress != null) {
+            if (progress > 30) {
+              widget.onProgress(message, progress);
+            }
+          }
+        },
+      );
+    } catch (exception) {
+      print('Error uploading file');
+      print(exception); //TODO: Handling
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -247,27 +246,38 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with SingleTicke
         children: <Widget>[
           AnimatedContainer(
             duration: Duration(milliseconds: 500),
-            curve: Curves.fastOutSlowIn,
-            margin: EdgeInsets.only(right: isRecording ? 0 : 10,
-                left: 10,
-                bottom: isRecording ? 0 : 5),
+            curve: Curves.linear,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isRecording ? Colors.white : Colors.transparent,
               borderRadius: BorderRadius.circular(isRecording ? 0 : 50),
             ),
-            width: isRecording ? DEVICE_MEDIA_SIZE.width : 60, height: isRecording ? 55 : 45,
-            child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-              Container(
-                  margin: EdgeInsets.only(right: 5),
-                  child: FadeTransition(
-                    opacity: _animationController,
-                    child: Icon(Icons.fiber_manual_record,
-                        color: Colors.red,
-                        size: isRecording ? 14 : 0),
-                  )),
-              Text(minutes + ':' + seconds,
-                  style: TextStyle(fontSize: isRecording ? 14 : 0)),
-            ]),
+            width: isRecording ? DEVICE_MEDIA_SIZE.width : 150, height: 55,
+            child: FadeTransition(
+              opacity: _fadeInAnimation,
+              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Row(children: [
+                  Container(
+                      margin: EdgeInsets.only(right: 5),
+                      child: FadeTransition(
+                        opacity: _blinkingAnimationController,
+                        child: Icon(Icons.fiber_manual_record,
+                            color: Colors.red,
+                            size: isRecording ? 14 : 14),
+                      )),
+                  Text(recordingDuration,
+                      style: TextStyle(fontSize: isRecording ? 14 : 14))
+                ]),
+                Container(
+                  margin: EdgeInsets.only(right: isRecording ? 100 : 0),
+                  child: FlatButton(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      color: Colors.grey.shade200,
+                      onPressed: cancelRecording,
+                      child: Text('Cancel', style: TextStyle(fontSize: 14, color: Colors.grey.shade500))
+                  ),
+                ),
+              ]),
+            ),
           ),
           buildSendButton()
         ],
@@ -296,9 +306,13 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with SingleTicke
           onTap: () {
             setState(() {
               if (isRecording) {
+                _fadeInAnimationController.animateBack(0);
                 _stopWatchTimer.onExecute.add(StopWatchExecute.reset);
+                sendRecording();
               } else {
+                _fadeInAnimationController.forward();
                 _stopWatchTimer.onExecute.add(StopWatchExecute.start);
+                startRecording(context);
               }
 
               isRecording = !isRecording;
@@ -310,43 +324,6 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with SingleTicke
                 size: isRecording ? 26 : 30,
                 color: isRecording ? Colors.red : Colors.white),
           ),
-        ));
-  }
-
-  buildStopRecordingButton() {
-    return Container(
-        margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
-        height: 45, width: 45,
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(50),
-            border: Border.all(color: Colors.white, style: BorderStyle.solid, width: 2)
-        ),
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              isRecording = false;
-            });
-          },
-          child: Icon(Icons.fiber_manual_record, size: 18, color: Colors.red),
-        ));
-  }
-
-  buildStartRecordingButton() {
-    return Container(
-        margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
-        height: 45, width: 45,
-        decoration: BoxDecoration(
-          color: CompanyColor.blueDark,
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              isRecording = true;
-            });
-          },
-          child: Icon(Icons.mic, size: 18, color: Colors.white),
         ));
   }
 }
