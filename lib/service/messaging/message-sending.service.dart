@@ -43,7 +43,7 @@ class MessageSendingService {
   }
 
   MessageDto addPreparedFile(String fileName, String filePath, String fileUrl,
-      int fileSize, String messageType, {chained: false}) {
+      int fileSize, String messageType, {chained: false, recordingDuration}) {
     MessageDto message = _create(chained: chained);
     message.messageType = messageType;
     message.fileName = fileName;
@@ -52,6 +52,7 @@ class MessageSendingService {
     message.fileSizeBytes = fileSize;
     message.uploadProgress = 0.0;
     message.isUploading = true;
+    message.recordingDuration = recordingDuration;
 
     wsClientService.sendingMessagesPub.subject.add(message);
 

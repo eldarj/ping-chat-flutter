@@ -57,6 +57,8 @@ class MessageDto {
 
   int totalUnreadMessages;
 
+  String recordingDuration;
+
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
   }
@@ -71,6 +73,7 @@ class MessageDto {
     this.isDownloadingFile = false,
     this.downloadProgress = 0,
     this.totalUnreadMessages = 0,
+    this.recordingDuration,
   });
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
@@ -113,6 +116,7 @@ class MessageDto {
       ..totalUnreadMessages = parsedJson['totalUnreadMessages'] == null
           ? 0
           : parsedJson['totalUnreadMessages'] as int
+      ..recordingDuration = parsedJson['recordingDuration']
       ..messageType = parsedJson['messageType'] as String;
   }
 
@@ -139,6 +143,7 @@ class MessageDto {
     'filePath': filePath,
     'fileSizeBytes': fileSizeBytes,
     'messageType': messageType,
+    'recordingDuration': recordingDuration,
     'deleted': deleted,
   };
 }

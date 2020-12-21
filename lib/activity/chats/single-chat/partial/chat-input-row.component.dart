@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/main.dart';
@@ -52,7 +53,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
 
   StopWatchTimer _stopWatchTimer;
 
-  String recordingDuration = '0:0:0';
+  String recordingDuration = '00:00';
 
   StorageIOService storageIOService;
   @override
@@ -95,10 +96,17 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
       isRecording = false;
     });
     _fadeInAnimationController.animateBack(0);
+    _stopWatchTimer.onExecute.add(StopWatchExecute.reset);
     await recorder.stop();
   }
 
   startRecording(context) async {
+    setState(() {
+      isRecording = true;
+    });
+    _fadeInAnimationController.forward();
+    _stopWatchTimer.onExecute.add(StopWatchExecute.start);
+
     DateFormat formatter = DateFormat('yyyy-MM-dd-Hms');
     var storagePath = await storageIOService.getPicturesPath();
     var path = storagePath.toString() + "/recording-" + formatter.format(DateTime.now()) + ".mp4";
@@ -109,6 +117,14 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
   }
 
   sendRecording() async {
+    var fileDuration = recordingDuration;
+
+    setState(() {
+      isRecording = false;
+    });
+    _fadeInAnimationController.animateBack(0);
+    _stopWatchTimer.onExecute.add(StopWatchExecute.reset);
+
     var result = await recorder.stop();
     File file = File(result.path);
 
@@ -126,7 +142,8 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     );
 
     MessageDto message = widget.messageSendingService.addPreparedFile(fileName, file.path,
-        Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString(), fileSize, fileType);
+        Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString(), fileSize, fileType,
+        recordingDuration: fileDuration);
 
     message.stopUploadFunc = () async {
       await Future.delayed(Duration(seconds: 2));
@@ -166,7 +183,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
           color: Colors.white,
           boxShadow: [Shadows.topShadow()],
         ),
-        width: DEVICE_MEDIA_SIZE.width,
+        width: DEVICE_MEDIA_SIZE.width, height: 55,
         child: Stack(
           alignment: Alignment.bottomLeft,
           children: <Widget>[
@@ -244,39 +261,35 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
       child: Stack(
         alignment: Alignment.bottomRight,
         children: <Widget>[
-          AnimatedContainer(
-            duration: Duration(milliseconds: 500),
-            curve: Curves.linear,
-            decoration: BoxDecoration(
-              color: isRecording ? Colors.white : Colors.transparent,
-              borderRadius: BorderRadius.circular(isRecording ? 0 : 50),
-            ),
-            width: isRecording ? DEVICE_MEDIA_SIZE.width : 150, height: 55,
+          IgnorePointer(
+            ignoring: !isRecording,
             child: FadeTransition(
               opacity: _fadeInAnimation,
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Row(children: [
+              child: Container(
+                height: 55,
+                color: Colors.white,
+                padding: EdgeInsets.only(left: 20),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Row(children: [
+                    Container(
+                        margin: EdgeInsets.only(right: 10),
+                        child: FadeTransition(
+                          opacity: _blinkingAnimationController,
+                          child: Icon(Icons.fiber_manual_record, color: Colors.red, size: 14),
+                        )),
+                    Text(recordingDuration, style: TextStyle(fontSize: 14))
+                  ]),
                   Container(
-                      margin: EdgeInsets.only(right: 5),
-                      child: FadeTransition(
-                        opacity: _blinkingAnimationController,
-                        child: Icon(Icons.fiber_manual_record,
-                            color: Colors.red,
-                            size: isRecording ? 14 : 14),
-                      )),
-                  Text(recordingDuration,
-                      style: TextStyle(fontSize: isRecording ? 14 : 14))
-                ]),
-                Container(
-                  margin: EdgeInsets.only(right: isRecording ? 100 : 0),
-                  child: FlatButton(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      color: Colors.grey.shade200,
-                      onPressed: cancelRecording,
-                      child: Text('Cancel', style: TextStyle(fontSize: 14, color: Colors.grey.shade500))
+                    margin: EdgeInsets.only(right: 100),
+                    child: FlatButton(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        color: Colors.grey.shade200,
+                        onPressed: cancelRecording,
+                        child: Text('Cancel', style: TextStyle(fontSize: 14, color: Colors.grey.shade500))
+                    ),
                   ),
-                ),
-              ]),
+                ]),
+              ),
             ),
           ),
           buildSendButton()
@@ -306,23 +319,17 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
           onTap: () {
             setState(() {
               if (isRecording) {
-                _fadeInAnimationController.animateBack(0);
-                _stopWatchTimer.onExecute.add(StopWatchExecute.reset);
                 sendRecording();
               } else {
-                _fadeInAnimationController.forward();
-                _stopWatchTimer.onExecute.add(StopWatchExecute.start);
                 startRecording(context);
               }
-
-              isRecording = !isRecording;
             });
           },
           child: Container(
             margin: EdgeInsets.only(left: isRecording ? 2.5 : 0),
             child: Icon(isRecording ? Icons.send : Icons.mic,
                 size: isRecording ? 26 : 30,
-                color: isRecording ? Colors.red : Colors.white),
+                color: isRecording ? CompanyColor.blueDark : Colors.white),
           ),
         ));
   }
