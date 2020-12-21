@@ -59,6 +59,8 @@ class MessageDto {
 
   String recordingDuration;
 
+  bool isRecordingPlaying;
+
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
   }
@@ -74,6 +76,7 @@ class MessageDto {
     this.downloadProgress = 0,
     this.totalUnreadMessages = 0,
     this.recordingDuration,
+    this.isRecordingPlaying = false,
   });
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {

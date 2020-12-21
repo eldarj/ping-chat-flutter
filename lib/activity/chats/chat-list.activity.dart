@@ -436,6 +436,15 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           Text('Media', style: TextStyle(color: Colors.grey.shade500)),
         ],
       );
+    } else if (message.messageType == 'RECORDING') {
+      widget = Row(
+        children: <Widget>[
+          Container(
+              margin: EdgeInsets.only(right: 5),
+              child: Icon(Icons.keyboard_voice, color: Colors.grey.shade500, size: 15)),
+          Text('Recording', style: TextStyle(color: Colors.grey.shade500)),
+        ],
+      );
     } else if (message.messageType == 'FILE') {
       widget = Row(
         children: <Widget>[

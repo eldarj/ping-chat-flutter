@@ -129,7 +129,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     File file = File(result.path);
 
     var fileName = basename(file.path);
-    var fileType = FileTypeResolverUtil.resolve(extension(fileName));
+    var fileType = 'RECORDING';
     var fileSize = file.lengthSync();
 
     var userToken = await UserService.getToken();
@@ -231,7 +231,12 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                     color: CompanyColor.blueDark,
                   ),
                 ),
-                widget.displaySendButton ? Container(
+              ]),
+            ),
+            widget.displaySendButton ? Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Container(
                     margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
                     height: 45, width: 45,
                     decoration: BoxDecoration(
@@ -246,11 +251,9 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                         onPressed: widget.doSendMessage,
                         color: Colors.white,
                       ),
-                    )
-                ) : Container(),
-              ]),
-            ),
-            buildRecordingRow()
+                    )            ),
+              ],
+            ) : buildRecordingRow()
           ],
         ));
   }

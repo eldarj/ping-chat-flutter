@@ -117,7 +117,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) async {
-      if (['IMAGE', 'MEDIA', 'FILE'].contains(message.messageType)) {
+      if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(message.messageType)) {
         message.isDownloadingFile = true;
         message.downloadTaskId = await doDownloadAndStoreFile(message);
       }
@@ -493,7 +493,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       var m = MessageDto.fromJson(e);
 
       // Download new file
-      if (['IMAGE', 'MEDIA', 'FILE'].contains(m.messageType) && !m.deleted) {
+      if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType) && !m.deleted) {
         bool fileExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
         if (userId == m.receiver.id && !fileExists) {
           m.isDownloadingFile = true;
