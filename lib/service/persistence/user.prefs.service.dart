@@ -9,6 +9,11 @@ String USER_TOKEN_SHARED_PREFS_KEY = 'USER_DTO_TOKEN_AS_STRING';
 class UserService {
   static var userVar;
 
+  static Future<int> getUserId() async {
+    ClientDto user = await getUser();
+    return user.id;
+  }
+
   static Future<ClientDto> getUser() async {
     if (userVar != null) {
       return userVar;

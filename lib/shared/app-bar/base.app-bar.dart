@@ -5,7 +5,7 @@ import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 class BaseAppBar {
-  static getBase(Function getContext, {leading, titleWidget, titleText, actions, centerTitle = true
+  static getBase(Function getContext, {leading, titleWidget, titleText = '', actions, centerTitle = true
   }) {
     return AppBar(
         elevation: 0.0,
@@ -15,12 +15,12 @@ class BaseAppBar {
         automaticallyImplyLeading: false,
         title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           leading,
-          titleText != null ? Text(titleText) : titleWidget
+          titleWidget != null ? titleWidget : Text(titleText)
         ]),
         actions: actions);
   }
 
-  static getBackAppBar(Function getContext, { titleWidget, titleText, actions, centerTitle = true
+  static getBackAppBar(Function getContext, { titleWidget, titleText = '', actions, centerTitle = true
   }) {
     return getBase(getContext, leading: Container(
       width: 45,

@@ -181,7 +181,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
       String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
@@ -189,7 +189,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     } else if (widget.message.messageType == 'RECORDING') {
       String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
@@ -197,7 +197,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     } else if (widget.message.messageType == 'IMAGE') {
       String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;
 
       _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
@@ -225,7 +225,7 @@ class MessageComponentState extends State<MessageComponent> {
       messageTapHandler = (_) {};
     } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
       String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;
 
       messageTapHandler = (_) async {
@@ -234,7 +234,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     } else if (widget.message.messageType == 'RECORDING') {
       String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;
 
       if (widget.message.isUploading) {
@@ -257,7 +257,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     } else if (widget.message.messageType == 'IMAGE') {
       String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.id.toString() + widget.message.fileName
+          ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;
 
       if (widget.message.isUploading) {

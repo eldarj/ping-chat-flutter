@@ -15,6 +15,10 @@ class ClientDto {
 
   bool isActive;
 
+  int sentNodeId;
+
+  int receivedNodeId;
+
   ClientDto();
 
   factory ClientDto.fromJson(Map<String, dynamic> json) {
@@ -28,6 +32,8 @@ class ClientDto {
       ..lastName = json['lastName'] as String
       ..displayMyFullName = json['displayMyFullName'] as bool
       ..joinedTimestamp = json['joinedTimestamp'] as int
+      ..sentNodeId = json['sentNodeId'] as int
+      ..receivedNodeId = json['receivedNodeId'] as int
       ..isActive = json['isActive'] as bool
       ..profileImagePath = json['profileImagePath'] as String;
   }
@@ -41,6 +47,8 @@ class ClientDto {
     'displayMyFullName': displayMyFullName,
     'joinedTimestamp': joinedTimestamp,
     'isActive': isActive,
+    'sentNodeId': sentNodeId,
+    'receivedNodeId': receivedNodeId,
     'profileImagePath': profileImagePath,
   };
 

@@ -1,9 +1,11 @@
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
+import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
@@ -20,6 +22,9 @@ import 'package:tus_client/tus_client.dart';
 import 'package:flutterping/util/extension/duration.extension.dart';
 
 class SingleChatInputRow extends StatefulWidget {
+  final int userId;
+  final int contactId;
+
   final MessageSendingService messageSendingService;
   final Function(MessageDto, double) onProgress;
 
@@ -36,7 +41,7 @@ class SingleChatInputRow extends StatefulWidget {
 
   const SingleChatInputRow({Key key, this.messageSendingService, this.onProgress, this.onOpenStickerBar,
     this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController,
-    this.inputTextFocusNode, this.doSendMessage}) : super(key: key);
+    this.inputTextFocusNode, this.doSendMessage, this.userId, this.contactId}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => SingleChatInputRowState();
@@ -131,19 +136,28 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     var fileName = basename(file.path);
     var fileType = 'RECORDING';
     var fileSize = file.lengthSync();
+    var fileUrl = Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString();
 
     var userToken = await UserService.getToken();
+
+    DSNodeDto dsNodeDto = new DSNodeDto();
+    dsNodeDto.nodeName = fileName;
+    dsNodeDto.fileSizeBytes = fileSize;
+    dsNodeDto.pathOnSourceDevice = file.path;
+    dsNodeDto.fileUrl = fileUrl;
+    dsNodeDto.ownerId = widget.userId;
+    dsNodeDto.receiverId = widget.contactId;
 
     TusClient fileUploadClient = TusClient(
       Uri.parse(API_BASE_URL + DATA_SPACE_ENDPOINT),
       file,
       store: TusMemoryStore(),
       headers: {'Authorization': 'Bearer $userToken'},
+      metadata: {'dsNodeEncoded': json.encode(dsNodeDto)},
     );
 
     MessageDto message = widget.messageSendingService.addPreparedFile(fileName, file.path,
-        Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString(), fileSize, fileType,
-        recordingDuration: fileDuration);
+        fileUrl, fileSize, fileType, recordingDuration: fileDuration);
 
     message.stopUploadFunc = () async {
       await Future.delayed(Duration(seconds: 2));

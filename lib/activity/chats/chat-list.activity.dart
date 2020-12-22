@@ -489,7 +489,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     }
   }
 
-  Future<void> doGetChatData({page = 1, clearChats = false}) async {
+  Future doGetChatData({page = 1, clearChats = false}) async {
     if (clearChats) {
       chats.clear();
       pageNumber = 1;

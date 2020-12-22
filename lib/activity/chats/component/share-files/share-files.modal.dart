@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -15,11 +18,13 @@ import 'package:tus_client/tus_client.dart';
 import '../../../../shared/modal/floating-modal.dart';
 
 class ShareFilesModal extends StatefulWidget {
+  final int peerId;
+
   final Function(MessageDto, double) onProgress;
 
   final MessageSendingService messageSendingService;
 
-  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress}) : super(key: key);
+  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress, this.peerId}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ShareFilesModalState();
@@ -35,20 +40,32 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
     var fileName = basename(file.path);
     var fileType = FileTypeResolverUtil.resolve(extension(fileName));
     var fileSize = file.lengthSync();
+    var fileUrl = Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString();
 
     var userToken = await UserService.getToken();
+    var user = await UserService.getUser();
+
+    DSNodeDto dsNodeDto = new DSNodeDto();
+    dsNodeDto.ownerId = user.id;
+    dsNodeDto.receiverId = widget.peerId;
+    dsNodeDto.parentDirectoryNodeId = user.sentNodeId;
+    dsNodeDto.nodeName = fileName;
+    dsNodeDto.fileUrl = fileUrl;
+    dsNodeDto.pathOnSourceDevice = file.path;
+    dsNodeDto.fileSizeBytes = fileSize;
 
     TusClient fileUploadClient = TusClient(
       Uri.parse(API_BASE_URL + DATA_SPACE_ENDPOINT),
       file,
       store: TusMemoryStore(),
       headers: {'Authorization': 'Bearer $userToken'},
+      metadata: {'dsNodeEncoded': json.encode(dsNodeDto)},
     );
 
 
     // ADD FILE LOCALLY
     MessageDto message = widget.messageSendingService.addPreparedFile(fileName, file.path,
-        Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString(), fileSize, fileType);
+        fileUrl.toString(), fileSize, fileType);
 
     message.stopUploadFunc = () async {
       await Future.delayed(Duration(seconds: 2));

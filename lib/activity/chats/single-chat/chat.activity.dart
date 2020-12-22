@@ -267,7 +267,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 ),
               ],
             ),
-            actions: [ChatSettingsMenu()]
+            actions: [ChatSettingsMenu(
+                peer: widget.peer,
+                picturesPath: picturesPath,
+                peerContactName: widget.peerContactName,
+                contactBindingId: widget.contactBindingId)]
         ),
         drawer: NavigationDrawerComponent(),
         body: Builder(builder: (context) {
@@ -292,7 +296,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
                               child: Spinner(size: 20)))) : Container(),
                 ]),
               ),
-              SingleChatInputRow(inputTextController: textController,
+              SingleChatInputRow(userId: userId, contactId: widget.peer.id,
+                inputTextController: textController,
                 inputTextFocusNode: textFocusNode, displayStickers: displayStickers, displaySendButton: displaySendButton,
                 doSendMessage: doSendMessage, onOpenShareBottomSheet: onOpenShareBottomSheet, onOpenStickerBar: onOpenStickerBar,
                 messageSendingService: widget.messageSendingService, onProgress: (message, progress) {
@@ -399,7 +404,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
     await Future.delayed(Duration(milliseconds: 250));
     await showCustomModalBottomSheet(
         context: context,
-        builder: (context) => ShareFilesModal(messageSendingService: widget.messageSendingService,
+        builder: (context) => ShareFilesModal(
+            peerId: widget.peer.id,
+            messageSendingService: widget.messageSendingService,
             onProgress: (message, progress) {
               setState(() {
                 message.uploadProgress = progress / 100;
