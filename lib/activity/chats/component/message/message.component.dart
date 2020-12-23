@@ -201,7 +201,7 @@ class MessageComponentState extends State<MessageComponent> {
           : widget.message.filePath;
 
       _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress);
+          widget.message.uploadProgress, widget.message.stopUploadFunc);
       messageDecoration = imageDecoration();
 
     } else if (widget.message.messageType == 'STICKER') {
@@ -219,7 +219,7 @@ class MessageComponentState extends State<MessageComponent> {
   }
 
   resolveMessageTapHandler() {
-    Function messageTapHandler;
+    Function messageTapHandler = (_) {};
 
     if (widget.message.deleted) {
       messageTapHandler = (_) {};
@@ -233,19 +233,11 @@ class MessageComponentState extends State<MessageComponent> {
       };
 
     } else if (widget.message.messageType == 'RECORDING') {
-      String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.fileName
-          : widget.message.filePath;
+      if (!widget.message.isUploading) {
+        String filePath = widget.isPeerMessage
+            ? widget.picturesPath + '/' + widget.message.fileName
+            : widget.message.filePath;
 
-      if (widget.message.isUploading) {
-        messageTapHandler = (_) async {
-          setState(() {
-            widget.message.deleted = true;
-            widget.message.isUploading = false;
-          });
-          widget.message.stopUploadFunc();
-        };
-      } else {
         messageTapHandler = (_) async {
           if (widget.message.isRecordingPlaying) {
             await audioPlayer.stop();
@@ -256,19 +248,11 @@ class MessageComponentState extends State<MessageComponent> {
       }
 
     } else if (widget.message.messageType == 'IMAGE') {
-      String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.fileName
-          : widget.message.filePath;
+      if (!widget.message.isUploading) {
+        String filePath = widget.isPeerMessage
+            ? widget.picturesPath + '/' + widget.message.fileName
+            : widget.message.filePath;
 
-      if (widget.message.isUploading) {
-        messageTapHandler = (_) async {
-          setState(() {
-            widget.message.deleted = true;
-            widget.message.isUploading = false;
-          });
-          widget.message.stopUploadFunc();
-        };
-      } else {
         messageTapHandler = (_) async {
           NavigatorUtil.push(context,
               ImageViewerActivity(message: widget.message, sender: widget.message.senderContactName,
@@ -314,23 +298,25 @@ class MessageComponentState extends State<MessageComponent> {
   Future doDeleteMessage(message) async {
     String url = '/api/messages/' + message.id.toString();
 
+    if (message.fileName != null) {
+      String filePath = widget.picturesPath + '/' + message.fileName;
+      File(filePath).delete();
+      url = url + '?nodeId=' + message.nodeId.toString();
+    }
+
     http.Response response = await HttpClientService.delete(url);
 
     if (response.statusCode != 200) {
       throw Exception();
     }
 
-    return message;
+    return true;
   }
 
-  onDeleteMessageSuccess(message) async {
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste poruku.'));
-
-    await Future.delayed(Duration(seconds: 2));
-
-    message.deleted = true;
-    wsClientService.messageDeletedPub.sendEvent(message, '/messages/deleted');
+  onDeleteMessageSuccess(_) async {
+    setState(() {
+      widget.message.deleted = true;
+    });
   }
 
   onDeleteMessageError(error) {

@@ -23,7 +23,9 @@ import 'package:flutterping/util/extension/duration.extension.dart';
 
 class SingleChatInputRow extends StatefulWidget {
   final int userId;
-  final int contactId;
+  final int peerId;
+  final int userSentNodeId;
+  final String picturesPath;
 
   final MessageSendingService messageSendingService;
   final Function(MessageDto, double) onProgress;
@@ -41,7 +43,7 @@ class SingleChatInputRow extends StatefulWidget {
 
   const SingleChatInputRow({Key key, this.messageSendingService, this.onProgress, this.onOpenStickerBar,
     this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController,
-    this.inputTextFocusNode, this.doSendMessage, this.userId, this.contactId}) : super(key: key);
+    this.inputTextFocusNode, this.doSendMessage, this.userId, this.peerId, this.userSentNodeId, this.picturesPath}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => SingleChatInputRowState();
@@ -60,11 +62,9 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
 
   String recordingDuration = '00:00';
 
-  StorageIOService storageIOService;
   @override
   initState() {
     super.initState();
-    storageIOService = new StorageIOService();
 
     _blinkingAnimationController = new AnimationController(vsync: this, duration: Duration(milliseconds: 500));
     _blinkingAnimationController.repeat(reverse: true);
@@ -113,17 +113,13 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     _stopWatchTimer.onExecute.add(StopWatchExecute.start);
 
     DateFormat formatter = DateFormat('yyyy-MM-dd-Hms');
-    var storagePath = await storageIOService.getPicturesPath();
-    var path = storagePath.toString() + "/recording-" + formatter.format(DateTime.now()) + ".mp4";
 
-    recorder = FlutterAudioRecorder(path); // .wav .aac .m4a
+    recorder = FlutterAudioRecorder(widget.picturesPath + "/recording-" + formatter.format(DateTime.now()) + ".mp4"); // .wav .aac .m4a
     await recorder.initialized;
     await recorder.start();
   }
 
   sendRecording() async {
-    var fileDuration = recordingDuration;
-
     setState(() {
       isRecording = false;
     });
@@ -137,16 +133,18 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     var fileType = 'RECORDING';
     var fileSize = file.lengthSync();
     var fileUrl = Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString();
+    var fileDuration = recordingDuration;
 
     var userToken = await UserService.getToken();
 
     DSNodeDto dsNodeDto = new DSNodeDto();
+    dsNodeDto.ownerId = widget.userId;
+    dsNodeDto.receiverId = widget.peerId;
+    dsNodeDto.parentDirectoryNodeId = widget.userSentNodeId;
     dsNodeDto.nodeName = fileName;
+    dsNodeDto.fileUrl = fileUrl;
     dsNodeDto.fileSizeBytes = fileSize;
     dsNodeDto.pathOnSourceDevice = file.path;
-    dsNodeDto.fileUrl = fileUrl;
-    dsNodeDto.ownerId = widget.userId;
-    dsNodeDto.receiverId = widget.contactId;
 
     TusClient fileUploadClient = TusClient(
       Uri.parse(API_BASE_URL + DATA_SPACE_ENDPOINT),
@@ -160,6 +158,8 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
         fileUrl, fileSize, fileType, recordingDuration: fileDuration);
 
     message.stopUploadFunc = () async {
+      message.deleted = true;
+      message.isUploading = false;
       await Future.delayed(Duration(seconds: 2));
       fileUploadClient.delete();
     };
@@ -172,8 +172,10 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     try {
       await fileUploadClient.upload(
         onComplete: (response) async {
-          await Future.delayed(Duration(milliseconds: 250));
+          var nodeId = response.headers['x-nodeid'];
           message.isUploading = false;
+          message.nodeId = int.parse(nodeId);
+          await Future.delayed(Duration(milliseconds: 250));
           widget.messageSendingService.sendFile(message);
         },
         onProgress: (progress) {

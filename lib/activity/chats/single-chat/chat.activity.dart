@@ -39,6 +39,7 @@ import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tus_client/tus_client.dart';
 
 void downloadCallback(String id, DownloadTaskStatus status, int progress) {
@@ -80,6 +81,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displayStickers = false;
 
   int userId;
+  int userSentNodeId;
 
   List<MessageDto> messages = new List();
   int totalMessages = 0;
@@ -98,6 +100,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     var user = await UserService.getUser();
     userId = user.id;
+    userSentNodeId = user.sentNodeId;
 
     PresenceEvent presenceEvent = new PresenceEvent();
     presenceEvent.userPhoneNumber = user.fullPhoneNumber;
@@ -178,6 +181,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
+      String pox = "Hey";
       for(var i = messages.length - 1; i >= 0; i--){
         if (messages[i].id == message.id) {
           setState(() {
@@ -296,11 +300,16 @@ class ChatActivityState extends BaseState<ChatActivity> {
                               child: Spinner(size: 20)))) : Container(),
                 ]),
               ),
-              SingleChatInputRow(userId: userId, contactId: widget.peer.id,
+              SingleChatInputRow(
+                userId: userId,
+                peerId: widget.peer.id,
+                userSentNodeId: userSentNodeId,
+                picturesPath: picturesPath,
                 inputTextController: textController,
                 inputTextFocusNode: textFocusNode, displayStickers: displayStickers, displaySendButton: displaySendButton,
                 doSendMessage: doSendMessage, onOpenShareBottomSheet: onOpenShareBottomSheet, onOpenStickerBar: onOpenStickerBar,
-                messageSendingService: widget.messageSendingService, onProgress: (message, progress) {
+                messageSendingService: widget.messageSendingService,
+                onProgress: (message, progress) {
                   setState(() {
                     message.uploadProgress = progress / 100;
                   });
@@ -405,7 +414,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
     await showCustomModalBottomSheet(
         context: context,
         builder: (context) => ShareFilesModal(
+            userId: userId,
+            userSentNodeId: userSentNodeId,
             peerId: widget.peer.id,
+            picturesPath: picturesPath,
             messageSendingService: widget.messageSendingService,
             onProgress: (message, progress) {
               setState(() {

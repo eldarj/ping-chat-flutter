@@ -27,7 +27,6 @@ class LoadingButtonState extends State<LoadingButton> {
       child: GestureDetector(
         onTap: !widget.displayLoader ? () {
           widget.onPressed();
-          // doDelete().then(onDeleteSuccess, onError: onDeleteError);
         } : null,
         child: widget.displayLoader ? Spinner() : widget.child,
       ),

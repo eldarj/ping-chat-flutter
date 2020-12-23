@@ -61,6 +61,8 @@ class MessageDto {
 
   bool isRecordingPlaying;
 
+  int nodeId;
+
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
   }
@@ -76,6 +78,7 @@ class MessageDto {
     this.downloadProgress = 0,
     this.totalUnreadMessages = 0,
     this.recordingDuration,
+    this.nodeId,
     this.isRecordingPlaying = false,
   });
 
@@ -103,6 +106,7 @@ class MessageDto {
       ..receiverLastOnlineTimestamp = parsedJson['receiverLastOnlineTimestamp'] as int
       ..sentTimestamp = parsedJson['sentTimestamp'] as int
       ..contactBindingId = parsedJson['contactBindingId'] as int
+      ..nodeId = parsedJson['nodeId'] as int
       ..chained = parsedJson['chained'] == null
           ? false
           : parsedJson['chained'] as bool
@@ -143,6 +147,7 @@ class MessageDto {
     'chained': chained,
     'fileName': fileName,
     'fileUrl': fileUrl,
+    'nodeId': nodeId,
     'filePath': filePath,
     'fileSizeBytes': fileSizeBytes,
     'messageType': messageType,

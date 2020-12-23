@@ -105,7 +105,7 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                               // );
                             }),
                       ],
-                    ))
+                    )),
                   ]),
                 ),
               ],
@@ -116,29 +116,29 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
   }
 
   Future doDeleteMessage() async {
-    String url = '/api/data-space/upload/ph'
-        '?fileName=' + basename(widget.file.path);
+    widget.file.delete();
+    String url = '/api/messages/' + widget.message.id.toString() +
+        '?nodeId=' + widget.message.nodeId.toString();
 
     http.Response response = await HttpClientService.delete(url);
 
-    if (response.statusCode != 204) {
+    if (response.statusCode != 200) {
       throw Exception();
     }
 
     return true;
   }
 
-  onDeleteMessageSuccess(result) async {
+  onDeleteMessageSuccess(_) async {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste datoteku.'));
 
-    await Future.delayed(Duration(seconds: 2));
+    setState(() {
+      widget.message.deleted = true;
+    });
+    await Future.delayed(Duration(seconds: 1));
 
-    widget.message.deleted = true;
-    wsClientService.messageDeletedPub.sendEvent(widget.message, '/messages/deleted');
-
-    Navigator.pop(context, {'deleted': false});
-    // await widget.file.delete(); // TODO: Delete original source file (or createa a 'sent' copy and delete that?)
+    Navigator.pop(context);
   }
 
   onDeleteMessageError(error) {

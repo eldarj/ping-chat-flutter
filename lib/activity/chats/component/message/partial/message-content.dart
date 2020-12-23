@@ -57,6 +57,7 @@ class MessageImage extends StatelessWidget {
       this.isDownloadingFile,
       this.isUploading,
       this.uploadProgress,
+      this.stopUploadFunc,
       {Key key})
       : super(key: key);
 
@@ -67,6 +68,8 @@ class MessageImage extends StatelessWidget {
   final dynamic isUploading;
 
   final dynamic uploadProgress;
+
+  final Function stopUploadFunc;
 
   final double size = DEVICE_MEDIA_SIZE.width / 1.25;
 
@@ -102,9 +105,12 @@ class MessageImage extends StatelessWidget {
               borderRadius: BorderRadius.circular(15),
               child: colorFilteredImage,
             ),
-            isUploading ? Container(
-                width: 100, height: 100,
-                child: UploadProgressIndicator(size: 50, progress: uploadProgress)) : Container(width: 0),
+            isUploading ? GestureDetector(
+              onTap: stopUploadFunc,
+              child: Container(
+                  width: 100, height: 100,
+                  child: UploadProgressIndicator(size: 50, progress: uploadProgress)),
+            ) : Container(width: 0),
           ],
         ));
   }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
@@ -18,41 +17,53 @@ import 'package:tus_client/tus_client.dart';
 import '../../../../shared/modal/floating-modal.dart';
 
 class ShareFilesModal extends StatefulWidget {
+  final int userId;
   final int peerId;
+  final int userSentNodeId;
+
+  final String picturesPath;
 
   final Function(MessageDto, double) onProgress;
 
   final MessageSendingService messageSendingService;
 
-  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress, this.peerId}) : super(key: key);
+  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress, this.peerId, this.picturesPath, this.userId, this.userSentNodeId}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ShareFilesModalState();
 }
 
 class ShareFilesModalState extends BaseState<ShareFilesModal> {
-  File file;
+  List<File> files;
 
   openFilePicker() async {
     Navigator.of(getScaffoldContext()).pop();
-    file = await FilePicker.getFile(onFileLoading: (status) {});
 
+    files = await FilePicker.getMultiFile();
+
+    files.forEach((file) {
+      uploadAndSendFile(file);
+    });
+  }
+
+  uploadAndSendFile(file) async {
     var fileName = basename(file.path);
     var fileType = FileTypeResolverUtil.resolve(extension(fileName));
     var fileSize = file.lengthSync();
     var fileUrl = Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString();
 
+    file = await file.copy(widget.picturesPath + '/' + fileName);
+
     var userToken = await UserService.getToken();
-    var user = await UserService.getUser();
 
     DSNodeDto dsNodeDto = new DSNodeDto();
-    dsNodeDto.ownerId = user.id;
+    dsNodeDto.ownerId = widget.userId;
     dsNodeDto.receiverId = widget.peerId;
-    dsNodeDto.parentDirectoryNodeId = user.sentNodeId;
+    dsNodeDto.parentDirectoryNodeId = widget.userSentNodeId;
     dsNodeDto.nodeName = fileName;
     dsNodeDto.fileUrl = fileUrl;
-    dsNodeDto.pathOnSourceDevice = file.path;
     dsNodeDto.fileSizeBytes = fileSize;
+    dsNodeDto.pathOnSourceDevice = file.path;
 
     TusClient fileUploadClient = TusClient(
       Uri.parse(API_BASE_URL + DATA_SPACE_ENDPOINT),
@@ -62,28 +73,28 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
       metadata: {'dsNodeEncoded': json.encode(dsNodeDto)},
     );
 
-
-    // ADD FILE LOCALLY
     MessageDto message = widget.messageSendingService.addPreparedFile(fileName, file.path,
-        fileUrl.toString(), fileSize, fileType);
+        fileUrl, fileSize, fileType);
 
     message.stopUploadFunc = () async {
+      message.deleted = true;
+      message.isUploading = false;
       await Future.delayed(Duration(seconds: 2));
       fileUploadClient.delete();
     };
-    // widget.onPicked(fileUploadClient, fileName, file.path, Uri.parse(API_BASE_URL + '/files/uploads/' + fileName));
 
     widget.onProgress(message, 10);
     await Future.delayed(Duration(milliseconds: 500));
     widget.onProgress(message, 30);
     await Future.delayed(Duration(milliseconds: 500));
 
-    // HANDLE ON COMPLETE ETC HERE
     try {
       await fileUploadClient.upload(
         onComplete: (response) async {
-          await Future.delayed(Duration(milliseconds: 250));
+          var nodeId = response.headers['x-nodeid'];
           message.isUploading = false;
+          message.nodeId = int.parse(nodeId);
+          await Future.delayed(Duration(milliseconds: 250));
           widget.messageSendingService.sendFile(message);
         },
         onProgress: (progress) {
@@ -142,15 +153,5 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
         );
       }),
     );
-  }
-
-  void onUploadComplete(response) async {
-  }
-
-  void onUploadStart() async {
-  }
-
-  void onUploadError(error) {
-    print(error);
   }
 }

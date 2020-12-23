@@ -24,6 +24,7 @@ class SharedSpaceActivity extends StatefulWidget {
 
   final String picturesPath;
 
+
   const SharedSpaceActivity({Key key, this.peer, this.peerContactName, this.contactBindingId, this.picturesPath}) : super(key: key);
 
   @override
@@ -36,6 +37,8 @@ class SharedSpaceActivityState extends BaseState<SharedSpaceActivity> {
   bool displayLoader = true;
 
   List<DSNodeDto> nodes = new List();
+
+  int gridHorizontalSize = 2;
 
   onInit() async {
     userId = await UserService.getUserId();
@@ -72,13 +75,30 @@ class SharedSpaceActivityState extends BaseState<SharedSpaceActivity> {
     if (!displayLoader) {
       if (!isError) {
 
-        w = GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: 2),
-            itemCount: nodes.length, itemBuilder: (context, index) {
-          var node = nodes[index];
-          return buildSingleNode(node);
-        });
+        w = GestureDetector(
+          onHorizontalDragEnd: (DragEndDetails details) {
+            if (details.primaryVelocity > 0) {
+              setState(() {
+                if (gridHorizontalSize < 4) {
+                  gridHorizontalSize++;
+                }
+              });
+            } else if (details.primaryVelocity < 0) {
+              setState(() {
+                if (gridHorizontalSize > 1) {
+                  gridHorizontalSize--;
+                }
+              });
+            }
+          },
+          child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: gridHorizontalSize),
+              itemCount: nodes.length, itemBuilder: (context, index) {
+            var node = nodes[index];
+            return buildSingleNode(node);
+          }),
+        );
       } else {
         w = ErrorComponent.build(actionOnPressed: () async {
           setState(() {
