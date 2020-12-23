@@ -124,6 +124,8 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
       isRecording = false;
     });
     _fadeInAnimationController.animateBack(0);
+
+    var fileDuration = recordingDuration;
     _stopWatchTimer.onExecute.add(StopWatchExecute.reset);
 
     var result = await recorder.stop();
@@ -133,7 +135,6 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     var fileType = 'RECORDING';
     var fileSize = file.lengthSync();
     var fileUrl = Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString();
-    var fileDuration = recordingDuration;
 
     var userToken = await UserService.getToken();
 
