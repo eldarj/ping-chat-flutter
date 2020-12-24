@@ -10,7 +10,7 @@ class BaseAppBar {
     return AppBar(
         elevation: 0.0,
         centerTitle: centerTitle,
-        backgroundColor: CompanyColor.backgroundGrey,
+        backgroundColor: Colors.grey.shade50,
         titleSpacing: 0,
         automaticallyImplyLeading: false,
         title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
@@ -41,7 +41,7 @@ class BaseAppBar {
     return AppBar(
         elevation: 0.0,
         centerTitle: centerTitle,
-        backgroundColor: CompanyColor.backgroundGrey,
+        backgroundColor: Colors.grey.shade50,
         bottom: bottomTabs,
         leading: GestureDetector(
           onTap: () {

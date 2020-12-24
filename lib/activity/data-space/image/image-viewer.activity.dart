@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:path/path.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' show basename;
 import 'package:flutter/cupertino.dart';
@@ -16,6 +18,10 @@ import 'package:share/share.dart';
 
 // TODO: Change to stateless
 class ImageViewerActivity extends StatefulWidget {
+  final int messageId;
+
+  final int nodeId;
+
   final MessageDto message;
 
   final File file;
@@ -26,7 +32,9 @@ class ImageViewerActivity extends StatefulWidget {
 
   final int timestamp;
 
-  const ImageViewerActivity({Key key, this.message, this.file, this.sender, this.timestamp, this.contactName}) : super(key: key);
+  const ImageViewerActivity({Key key, this.message,
+    this.messageId, this.nodeId,
+    this.file, this.sender, this.timestamp, this.contactName}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ImageViewerActivityState();
@@ -116,9 +124,18 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
   }
 
   Future doDeleteMessage() async {
-    widget.file.delete();
-    String url = '/api/messages/' + widget.message.id.toString() +
-        '?nodeId=' + widget.message.nodeId.toString();
+    try {
+      widget.file.delete();
+    } catch(ignored) {}
+
+    String url;
+    if (widget.messageId != null) {
+      url = '/api/messages/' + widget.messageId.toString();
+    } else {
+      url = '/api/data-space'
+          '?nodeId=' + widget.nodeId.toString() +
+          '&fileName=' + basename(widget.file.path);
+    }
 
     http.Response response = await HttpClientService.delete(url);
 
@@ -133,12 +150,16 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste datoteku.'));
 
-    setState(() {
-      widget.message.deleted = true;
-    });
+    if (widget.message != null) {
+      setState(() {
+        widget.message.deleted = true;
+      });
+    } else {
+      dataSpaceDeletePublisher.subject.add(widget.nodeId);
+    }
     await Future.delayed(Duration(seconds: 1));
 
-    Navigator.pop(context);
+    Navigator.pop(scaffold.context, {'deleted': true});
   }
 
   onDeleteMessageError(error) {

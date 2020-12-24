@@ -19,6 +19,7 @@ import 'package:flutterping/model/message-download-progress.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
+import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/image-download.publisher.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
@@ -113,7 +114,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       PresenceEvent presenceEvent = PresenceEvent.fromJson(json.decode(frame.body));
 
       setState(() {
-        widget.statusLabel = presenceEvent.status ? 'Online' : 'Last seen ' +
+        widget.statusLabel = presenceEvent.status ? 'Online' : 'Zadnji put online ' +
             DateTimeUtil.convertTimestampToTimeAgo(presenceEvent.eventTimestamp);
         wsClientService.presencePub.subject.add(presenceEvent);
       });
@@ -190,6 +191,18 @@ class ChatActivityState extends BaseState<ChatActivity> {
         }
       }
     });
+
+    dataSpaceDeletePublisher.addListener(STREAMS_LISTENER_ID, (int nodeId) {
+      setState(() {
+        for(var i = messages.length - 1; i >= 0; i--){
+          if (messages[i].nodeId == nodeId) {
+            setState(() {
+              messages[i].deleted = true;
+            });
+          }
+        }
+      });
+    });
   }
 
   @override
@@ -250,6 +263,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
     wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
+
+    dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
 
     IsolateNameServer.removePortNameMapping(CHAT_ACTIVITY_DOWNLOADER_PORT_ID);
   }
@@ -391,7 +406,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
     String widgetKey = message.text != null ? message.text : message.fileName;
     return MessageComponent(
       key: new Key(widgetKey),
-      margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 20 : 0),
+      margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
+          left: 5, right: 5,
+          bottom: isLastMessage ? 20 : 0),
       message: message,
       isPeerMessage: isPeerMessage,
       displayTimestamp: displayTimestamp,

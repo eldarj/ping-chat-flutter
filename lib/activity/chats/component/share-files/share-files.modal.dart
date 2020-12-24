@@ -61,6 +61,7 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
     dsNodeDto.receiverId = widget.peerId;
     dsNodeDto.parentDirectoryNodeId = widget.userSentNodeId;
     dsNodeDto.nodeName = fileName;
+    dsNodeDto.nodeType = fileType;
     dsNodeDto.fileUrl = fileUrl;
     dsNodeDto.fileSizeBytes = fileSize;
     dsNodeDto.pathOnSourceDevice = file.path;

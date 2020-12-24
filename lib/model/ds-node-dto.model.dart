@@ -1,3 +1,5 @@
+import 'package:filesize/filesize.dart';
+
 class DSNodeDto {
   int id;
 
@@ -23,9 +25,17 @@ class DSNodeDto {
 
   int lastModifiedTimestamp;
 
+  String nodeType;
+
+  String recordingDuration;
+
+  fileSizeFormatted() {
+    return filesize(fileSizeBytes);
+  }
+
   DSNodeDto({this.id, this.ownerId, this.receiverId, this.parentDirectoryNodeId,
-    this.nodeName, this.nodePath, this.empty, this.fileUrl,
-    this.pathOnSourceDevice, this.fileSizeBytes,
+    this.nodeName, this.nodePath, this.nodeType, this.empty, this.fileUrl,
+    this.pathOnSourceDevice, this.fileSizeBytes, this.recordingDuration,
     this.createdTimestamp, this.lastModifiedTimestamp});
 
   factory DSNodeDto.fromJson(Map<String, dynamic> parsedJson) {
@@ -36,12 +46,14 @@ class DSNodeDto {
       parentDirectoryNodeId: parsedJson['parentDirectoryNodeId'] as int,
       nodeName: parsedJson['nodeName'] as String,
       nodePath: parsedJson['nodePath'] as String,
+      nodeType: parsedJson['nodeType'] as String,
+      recordingDuration: parsedJson['recordingDuration'] as String,
       empty: parsedJson['empty'] != null
           ? parsedJson['empty'] as bool : false,
       fileUrl: parsedJson['fileUrl'] as String,
       pathOnSourceDevice: parsedJson['pathOnSourceDevice'] as String,
       fileSizeBytes: parsedJson['fileSizeBytes'] != null
-          ? parsedJson['empty'] as int : 0,
+          ? parsedJson['fileSizeBytes'] as int : 0,
       createdTimestamp: parsedJson['createdTimestamp'] as int,
       lastModifiedTimestamp: parsedJson['lastModifiedTimestamp'] as int,
     );
@@ -54,6 +66,8 @@ class DSNodeDto {
     'parentDirectoryNodeId': parentDirectoryNodeId,
     'nodeName': nodeName,
     'nodePath': nodePath,
+    'recordingDuration': recordingDuration,
+    'nodeType': nodeType,
     'empty': empty,
     'fileUrl': fileUrl,
     'pathOnSourceDevice': pathOnSourceDevice,

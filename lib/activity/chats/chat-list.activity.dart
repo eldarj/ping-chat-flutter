@@ -326,7 +326,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
               messageContent: chat.text,
               seen: chat.seen,
               isOnline: isOnline,
-              statusLabel: isOnline ? 'Online' : 'Last seen ' + DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
+              statusLabel: isOnline ? 'Online' : 'Zadnji put online' + DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
               messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp),
               displayStatusIcon: userId == chat.sender.id,
               message: chat,

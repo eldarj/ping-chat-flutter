@@ -255,7 +255,9 @@ class MessageComponentState extends State<MessageComponent> {
 
         messageTapHandler = (_) async {
           NavigatorUtil.push(context,
-              ImageViewerActivity(message: widget.message, sender: widget.message.senderContactName,
+              ImageViewerActivity(message: widget.message,
+                  messageId: widget.message.id,
+                  sender: widget.message.senderContactName,
                   timestamp: widget.message.sentTimestamp,
                   file: File(filePath)));
         };
@@ -301,7 +303,6 @@ class MessageComponentState extends State<MessageComponent> {
     if (message.fileName != null) {
       String filePath = widget.picturesPath + '/' + message.fileName;
       File(filePath).delete();
-      url = url + '?nodeId=' + message.nodeId.toString();
     }
 
     http.Response response = await HttpClientService.delete(url);

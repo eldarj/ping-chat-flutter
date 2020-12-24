@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/contacts/shared-space/shared-space.activity.dart';
+import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
@@ -22,7 +22,7 @@ class ChatSettingsMenu extends StatelessWidget {
         if (choice == 'info') {
           // TODO
         } else if (choice == 'media') {
-          NavigatorUtil.push(context, SharedSpaceActivity(
+          NavigatorUtil.push(context, ContactSharedActivity(
               peer: peer,
               picturesPath: picturesPath,
               peerContactName: peerContactName,
@@ -34,12 +34,12 @@ class ChatSettingsMenu extends StatelessWidget {
           PopupMenuItem<String>(
               value: 'info',
               child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
-                  child: Icon(Icons.info_outline)), Text('View contact') ])
+                  child: Icon(Icons.info_outline)), Text('Profil kontakta') ])
           ),
           PopupMenuItem<String>(
               value: 'media',
               child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
-                  child: Icon(Icons.sd_storage)), Text('Shared media') ])
+                  child: Icon(Icons.sd_storage)), Text('Dijeljeni podaci') ])
           )
         ];
       },

@@ -13,8 +13,8 @@ BoxDecoration peerTextBoxDecoration() => BoxDecoration(
       bottomLeft: Radius.circular(10),
       topRight: Radius.circular(10),
       bottomRight: Radius.circular(10)),
-  boxShadow: [BoxShadow(color: Colors.grey.shade400,
-    offset: Offset.fromDirection(1, 1),
+  boxShadow: [BoxShadow(color: Colors.grey.shade200,
+    offset: Offset.fromDirection(1, 0.7),
     blurRadius: 0, spreadRadius: 0,
   )],
 );
@@ -26,8 +26,8 @@ BoxDecoration myTextBoxDecoration() => BoxDecoration(
       topLeft: Radius.circular(10),
       bottomLeft: Radius.circular(10),
       bottomRight: Radius.circular(15)),
-  boxShadow: [BoxShadow(color: Colors.grey.shade400,
-    offset: Offset.fromDirection(1, 1),
+  boxShadow: [BoxShadow(color: Colors.grey.shade200,
+    offset: Offset.fromDirection(1, 0.7),
     blurRadius: 0, spreadRadius: 0,
   )],
 );
