@@ -1,0 +1,361 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
+import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
+import 'package:flutterping/main.dart';
+import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/ds-node-dto.model.dart';
+import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/model/message-seen-dto.model.dart';
+import 'package:flutterping/model/presence-event.model.dart';
+import 'package:flutterping/service/messaging/unread-message.publisher.dart';
+import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
+import 'package:flutterping/service/persistence/storage.io.service.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/shared/app-bar/base.app-bar.dart';
+import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
+import 'package:flutterping/shared/component/error.component.dart';
+import 'package:flutterping/shared/component/round-profile-image.component.dart';
+import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/loader/activity-loader.element.dart';
+import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/util/widget/base.state.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:flutterping/util/other/date-time.util.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutterping/util/extension/http.response.extension.dart';
+import 'package:flutterping/model/ds-node-dto.model.dart';
+import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/service/messaging/message-sending.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/util/other/file-type-resolver.util.dart';
+import 'package:path/path.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/util/widget/base.state.dart';
+import 'package:tus_client/tus_client.dart';
+
+
+class DataSpaceActivity extends StatefulWidget {
+  final int userId;
+
+  const DataSpaceActivity({Key key, this.userId}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => new DataSpaceActivityState();
+}
+
+class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
+  static const String STREAMS_LISTENER_ID = "DataSpaceStreamsListener";
+
+  bool displayLoader = true;
+
+  String picturesPath;
+
+  int directoryNodeId = 0;
+
+  int gridHorizontalSize = 2;
+
+  List<DSNodeDto> nodes = new List();
+
+  bool displayUploadingFiles = false;
+
+  List<File> files;
+
+  openFilePicker() async {
+    files = await FilePicker.getMultiFile();
+
+    files.forEach((file) {
+      uploadAndSendFile(file);
+    });
+  }
+
+  uploadAndSendFile(file) async {
+    var fileName = basename(file.path);
+    var fileType = FileTypeResolverUtil.resolve(extension(fileName));
+    var fileSize = file.lengthSync();
+    var fileUrl = Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString();
+
+    file = await file.copy(picturesPath + '/' + fileName);
+
+    var userToken = await UserService.getToken();
+
+    DSNodeDto dsNodeDto = new DSNodeDto();
+    dsNodeDto.ownerId = widget.userId;
+    dsNodeDto.parentDirectoryNodeId = directoryNodeId;
+    dsNodeDto.nodeName = fileName;
+    dsNodeDto.nodeType = fileType;
+    dsNodeDto.fileUrl = fileUrl;
+    dsNodeDto.fileSizeBytes = fileSize;
+    dsNodeDto.pathOnSourceDevice = file.path;
+
+    TusClient fileUploadClient = TusClient(
+      Uri.parse(API_BASE_URL + DATA_SPACE_ENDPOINT),
+      file,
+      store: TusMemoryStore(),
+      headers: {'Authorization': 'Bearer $userToken'},
+      metadata: {'dsNodeEncoded': json.encode(dsNodeDto)},
+    );
+
+    setState(() {
+      displayUploadingFiles = true;
+    });
+
+    try {
+      await fileUploadClient.upload(
+        onComplete: (response) async {
+          doGetData().then(onGetDataSuccess, onError: onGetDataError);
+        },
+        onProgress: (progress) {
+        },
+      );
+    } catch (exception) {
+      print('Error uploading file');
+      print(exception); //TODO: Handling
+    }
+  }
+
+  init() async {
+    picturesPath = await new StorageIOService().getPicturesPath();
+    doGetData().then(onGetDataSuccess, onError: onGetDataError);
+    dataSpaceDeletePublisher.addListener(STREAMS_LISTENER_ID, (int nodeId) {
+      setState(() {
+        nodes.removeWhere((element) => element.id == nodeId);
+      });
+    });
+  }
+
+  @override
+  initState() {
+    super.initState();
+    init();
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Moj prostor'),
+        drawer: NavigationDrawerComponent(),
+        floatingActionButton: buildFloatingActionButton(),
+        body: Builder(builder: (context) {
+          scaffold = Scaffold.of(context);
+          return buildActivityContent();
+        })
+    );
+  }
+
+  buildActivityContent() {
+    Widget w = ActivityLoader.build();
+
+    if (!displayLoader) {
+      if (!isError) {
+        if (nodes != null && nodes.length > 0) {
+          w = Container(
+            child: Stack(
+              alignment: Alignment.bottomRight,
+              children: <Widget>[
+                GestureDetector(
+                  onHorizontalDragEnd: (DragEndDetails details) {
+                    if (details.primaryVelocity > 0) {
+                      setState(() {
+                        if (gridHorizontalSize < 4) {
+                          gridHorizontalSize++;
+                        }
+                      });
+                    } else if (details.primaryVelocity < 0) {
+                      setState(() {
+                        if (gridHorizontalSize > 1) {
+                          gridHorizontalSize--;
+                        }
+                      });
+                    }
+                  },
+                  child: GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: gridHorizontalSize),
+                      itemCount: nodes.length, itemBuilder: (context, index) {
+                    var node = nodes[index];
+                    return buildSingleNode(node);
+                  }),
+                ),
+                buildUploadingFilesContainer(),
+              ],
+            ),
+          );
+        } else {
+          w = Center(
+            child: Container(
+              margin: EdgeInsets.all(25),
+              child: Text('Nemate podataka', style: TextStyle(color: Colors.grey)),
+            ),
+          );
+        }
+      } else {
+        w = ErrorComponent.build(actionOnPressed: () async {
+          setState(() {
+            displayLoader = true;
+            isError = false;
+          });
+
+          doGetData().then(onGetDataSuccess, onError: onGetDataError);
+        });
+      }
+    }
+
+    return w;
+  }
+
+  buildSingleNode(DSNodeDto node) {
+    Widget _w;
+
+    if (node.nodeType == 'DIRECTORY') {
+      _w = Container(
+          color: Colors.grey.shade200,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                  child: Icon(Icons.folder, color: Colors.grey.shade600)),
+              Text(node.nodeName),
+            ],
+          ));
+    } else {
+      String filePath = picturesPath + '/' + node.nodeName;
+      bool fileExists = File(filePath).existsSync();
+
+      if (!fileExists) {
+        _w = Text('TODO: Fixme');
+      } else if (node.nodeType == 'IMAGE') {
+        var imageSize = DEVICE_MEDIA_SIZE.width / gridHorizontalSize;
+        _w = GestureDetector(
+          onTap: () async {
+            var result = await NavigatorUtil.push(scaffold.context,
+                ImageViewerActivity(
+                    nodeId: node.id,
+                    sender: 'widget.peerContactName',
+                    timestamp: node.createdTimestamp,
+                    file: File(filePath)));
+
+            if (result != null && result['deleted'] == true) {
+              setState(() {
+                nodes.removeWhere((element) => element.id == node.id);
+              });
+            }
+          },
+          child: fileExists ? Container(
+            color: Colors.grey.shade200,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Spinner(),
+                Container(
+                    height: imageSize, width: imageSize,
+                    child: Image.file(File(filePath), fit: BoxFit.cover)),
+              ],
+            ),
+          )
+              : Text('TODO: fixme'),
+        );
+      } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
+        _w = DSMedia(node: node, picturesPath: picturesPath);
+      } else {
+        _w = Center(child: Text('Unrecognized media.'));
+      }
+    }
+
+    return Container(child: _w);
+  }
+
+  buildFloatingActionButton() {
+    Widget _w;
+
+    if (!displayUploadingFiles) {
+      _w = FloatingActionButton(
+        onPressed: openFilePicker,
+        child: Icon(Icons.file_upload, color: Colors.white),
+        backgroundColor: CompanyColor.blueDark,
+      );
+    } else {
+      _w = Container();
+    }
+
+    return _w;
+  }
+
+  buildUploadingFilesContainer() {
+    Widget _w;
+    if (displayUploadingFiles) {
+      _w = Container(
+          height: 50,
+          color: Colors.white,
+          child: Row(children: [
+            Container(
+                margin: EdgeInsets.only(left: 15, right: 15),
+                child: Spinner(size: 25)),
+            Text('Uploading'),
+          ]));
+    } else {
+      _w = Container();
+    }
+
+    return Container(child: _w);
+  }
+
+  Future doGetData() async {
+    String url = '/api/data-space/${widget.userId}';
+
+    http.Response response = await HttpClientService.get(url);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return List<DSNodeDto>.from(response.decode().map((e) => DSNodeDto.fromJson(e))).toList();
+  }
+
+  void onGetDataSuccess(result) async {
+    setState(() {
+      this.nodes = result;
+      displayLoader = false;
+      isError = false;
+      displayUploadingFiles = false;
+    });
+  }
+
+  void onGetDataError(Object error) {
+    setState(() {
+      displayLoader = false;
+      displayUploadingFiles = false;
+      isError = true;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () async {
+      setState(() {
+        displayLoader = true;
+        isError = false;
+      });
+    }));
+  }
+}

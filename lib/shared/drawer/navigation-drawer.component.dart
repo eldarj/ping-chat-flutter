@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
+import 'package:flutterping/activity/data-space/data-space.activity.dart';
 import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/activity/profile/my-profile.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
@@ -138,6 +139,12 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                             });
                           },
                         ),
+
+                        buildSectionTitle("Data Space"),
+                        buildDrawerItem(context, 'Moj prostor',
+                            buildIcon(icon: Icons.image, backgroundColor: Colors.redAccent),
+                            activity: DataSpaceActivity(userId: user.id),
+                            labelDescription: 'Media, storage, dijeljeni podaci isl.'),
 
                         buildSectionTitle("Preferences"),
                         buildDrawerItem(context, 'Account',

@@ -54,6 +54,12 @@ class DSMediaState extends BaseState<DSMedia> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    audioPlayer.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Builder(builder: (context) {

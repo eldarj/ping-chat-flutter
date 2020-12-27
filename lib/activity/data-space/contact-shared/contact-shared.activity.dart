@@ -10,6 +10,7 @@ import 'package:flutterping/service/data-space/data-space-delete.publisher.dart'
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:http/http.dart' as http;
@@ -89,7 +90,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
   }
 
   buildContent() {
-    Widget w = Center(child: Spinner());
+    Widget w = ActivityLoader.build();
 
     if (!displayLoader) {
       if (!isError) {
@@ -142,7 +143,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
   }
 
   Future doGetSharedData() async {
-    String url = '/api/data-space'
+    String url = '/api/data-space/shared'
         '?userId=' + userId.toString() +
         '&contactId=' + widget.peer.id.toString();
 
@@ -213,7 +214,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
     } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
       _w = DSMedia(node: node, picturesPath: widget.picturesPath);
     } else {
-      _w = Text('MEDIA');
+      _w = Center(child: Text('Unrecognized media.'));
     }
 
     return Container(
