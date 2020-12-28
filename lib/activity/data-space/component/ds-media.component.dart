@@ -22,7 +22,9 @@ class DSMedia extends StatefulWidget {
 
   final String picturesPath;
 
-  const DSMedia({Key key, this.node, this.picturesPath}) : super(key: key);
+  final int gridHorizontalSize;
+
+  const DSMedia({Key key, this.node, this.picturesPath, this.gridHorizontalSize}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => DSMediaState();
@@ -70,9 +72,13 @@ class DSMediaState extends BaseState<DSMedia> {
   }
 
   buildMessageMedia() {
+    double iconContainerSize = widget.gridHorizontalSize == 4 ? 0 : 100 / widget.gridHorizontalSize;
+    double nameContainerSize = DEVICE_MEDIA_SIZE.width / widget.gridHorizontalSize - iconContainerSize - 40;
+    double iconSize = 40 / widget.gridHorizontalSize;
+
     String title = widget.node.nodeName;
     String filePath = widget.picturesPath + '/' + widget.node.nodeName;
-    Widget iconWidget = Icon(Icons.ondemand_video, color: Colors.grey.shade100, size: 20);
+    Widget iconWidget = Icon(Icons.ondemand_video, color: Colors.grey.shade100, size: iconSize);
 
     if (widget.node.nodeType == 'RECORDING') {
       title = 'Recording';
@@ -87,7 +93,7 @@ class DSMediaState extends BaseState<DSMedia> {
         children: <Widget>[
           Container(
               margin: EdgeInsets.only(bottom: isRecordingPlaying ? 12.5 : 0),
-              child: Icon(icon, color: Colors.grey.shade100, size: 20)),
+              child: Icon(icon, color: Colors.grey.shade100, size: iconSize)),
           Container(
               margin: EdgeInsets.only(top: isRecordingPlaying ? 12.5 : 0),
               child: Text(recordingCurrentPosition, style: TextStyle(
@@ -127,10 +133,10 @@ class DSMediaState extends BaseState<DSMedia> {
           padding: EdgeInsets.all(10),
           child: Row(
             children: [
-              Container(
+              widget.gridHorizontalSize == 4 ? Container() : Container(
                 margin: EdgeInsets.only(right: 10),
                 child: Container(
-                    width: 50, height: 50,
+                    width: iconContainerSize, height: iconContainerSize,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(50),
                         color: CompanyColor.accentGreenLight
@@ -138,13 +144,13 @@ class DSMediaState extends BaseState<DSMedia> {
                     child: iconWidget),
               ),
               Container(
-                width: DEVICE_MEDIA_SIZE.width / 2 - 100,
+                width: nameContainerSize,
                 alignment: Alignment.centerLeft,
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(title),
+                      Text(title, overflow: TextOverflow.ellipsis, maxLines: 3),
                       Text(widget.node.fileSizeFormatted(), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                     ]),
               )

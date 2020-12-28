@@ -48,6 +48,8 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
 
   int gridHorizontalSize = 2;
 
+  ScrollController gridScrollController = new ScrollController();
+
   onInit() async {
     userId = await UserService.getUserId();
     doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
@@ -86,6 +88,17 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
           child: buildContent(),
         );
       }),
+      floatingActionButton: FloatingActionButton(
+        mini: true,
+        backgroundColor: Colors.white,
+        elevation: 1,
+        child: Icon(Icons.arrow_upward, color: CompanyColor.blueDark),
+        onPressed: () {
+          gridScrollController.animateTo(0.0,
+              curve: Curves.easeOut,
+              duration: const Duration(seconds: 1));
+        },
+      ),
     );
   }
 
@@ -112,6 +125,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
               }
             },
             child: GridView.builder(
+                controller: gridScrollController,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: gridHorizontalSize),
                 itemCount: nodes.length, itemBuilder: (context, index) {
@@ -212,7 +226,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
             : Text('TODO: fixme'),
       );
     } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
-      _w = DSMedia(node: node, picturesPath: widget.picturesPath);
+      _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: widget.picturesPath);
     } else {
       _w = Center(child: Text('Unrecognized media.'));
     }

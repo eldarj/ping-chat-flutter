@@ -95,7 +95,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                     ),
                   ),
                   Container(
-                    child: SingleChildScrollView(
+                    child: !displayLoader ? SingleChildScrollView(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         SizedBox(height: 15),
                         buildSectionTitle("Profile"),
@@ -176,7 +176,9 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                               })),
                         ),
                       ]),
-                    ),
+                    ) : Container(margin:EdgeInsets.all(20),
+                        color: CompanyColor.backgroundGrey,
+                        height: 300),
                   )
                 ],
               ),

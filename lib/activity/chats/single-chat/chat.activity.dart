@@ -484,7 +484,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       return await FlutterDownloader.enqueue(
         url: message.fileUrl,
         savedDir: picturesPath,
-        fileName: message.id.toString() + message.fileName,
+        fileName: message.fileName,
         showNotification: false,
         openFileFromNotification: false,
       );

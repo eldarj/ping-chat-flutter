@@ -13,8 +13,6 @@ class DSNodeDto {
 
   String nodePath;
 
-  bool empty;
-
   String fileUrl;
 
   String pathOnSourceDevice;
@@ -34,7 +32,7 @@ class DSNodeDto {
   }
 
   DSNodeDto({this.id, this.ownerId, this.receiverId, this.parentDirectoryNodeId,
-    this.nodeName, this.nodePath, this.nodeType, this.empty, this.fileUrl,
+    this.nodeName, this.nodePath, this.nodeType, this.fileUrl,
     this.pathOnSourceDevice, this.fileSizeBytes, this.recordingDuration,
     this.createdTimestamp, this.lastModifiedTimestamp});
 
@@ -48,8 +46,6 @@ class DSNodeDto {
       nodePath: parsedJson['nodePath'] as String,
       nodeType: parsedJson['nodeType'] as String,
       recordingDuration: parsedJson['recordingDuration'] as String,
-      empty: parsedJson['empty'] != null
-          ? parsedJson['empty'] as bool : false,
       fileUrl: parsedJson['fileUrl'] as String,
       pathOnSourceDevice: parsedJson['pathOnSourceDevice'] as String,
       fileSizeBytes: parsedJson['fileSizeBytes'] != null
@@ -68,7 +64,6 @@ class DSNodeDto {
     'nodePath': nodePath,
     'recordingDuration': recordingDuration,
     'nodeType': nodeType,
-    'empty': empty,
     'fileUrl': fileUrl,
     'pathOnSourceDevice': pathOnSourceDevice,
     'fileSizeBytes': fileSizeBytes,

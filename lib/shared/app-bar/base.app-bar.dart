@@ -20,16 +20,18 @@ class BaseAppBar {
         actions: actions);
   }
 
-  static getBackAppBar(Function getContext, { titleWidget, titleText = '', actions, centerTitle = true
-  }) {
+  static _backPressed(Function getContext) {
+    Navigator.pop(getContext());
+  }
+
+  static getBackAppBar(Function getContext, {
+    titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed }) {
     return getBase(getContext, leading: Container(
       width: 45,
       height: 50,
       child: FlatButton(
         padding: EdgeInsets.all(0),
-        onPressed: () {
-          Navigator.pop(getContext());
-        },
+        onPressed: () => onBackPressed(getContext),
         child: Icon(Icons.arrow_back),
       ),
     ), titleText: titleText, titleWidget: titleWidget, actions: actions, centerTitle: centerTitle);

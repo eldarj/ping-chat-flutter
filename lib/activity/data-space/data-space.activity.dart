@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -8,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/activity/data-space/component/appbar-options.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
@@ -18,14 +20,17 @@ import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/messaging/unread-message.publisher.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
+import 'package:flutterping/service/data-space/data-space-new-directory.publisher.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
+import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
@@ -60,14 +65,19 @@ class DataSpaceActivity extends StatefulWidget {
   State<StatefulWidget> createState() => new DataSpaceActivityState();
 }
 
-class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
+class DataSpaceActivityState extends State<DataSpaceActivity> {
   static const String STREAMS_LISTENER_ID = "DataSpaceStreamsListener";
+  ScaffoldState scaffold;
+  BuildContext getScaffoldContext() => scaffold.context;
 
   bool displayLoader = true;
+  bool isError = false;
 
   String picturesPath;
 
-  int directoryNodeId = 0;
+  int currentDirectoryNodeId = 0;
+
+  String currentDirectoryNodeName = 'Moj prostor';
 
   int gridHorizontalSize = 2;
 
@@ -75,7 +85,11 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
 
   bool displayUploadingFiles = false;
 
+  bool displayDeleteLoader = true;
+
   List<File> files;
+
+  Queue<DSNodeDto> nodeBreadcrumbs = new Queue();
 
   openFilePicker() async {
     files = await FilePicker.getMultiFile();
@@ -97,7 +111,9 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
 
     DSNodeDto dsNodeDto = new DSNodeDto();
     dsNodeDto.ownerId = widget.userId;
-    dsNodeDto.parentDirectoryNodeId = directoryNodeId;
+    if (currentDirectoryNodeId != 0) {
+      dsNodeDto.parentDirectoryNodeId = currentDirectoryNodeId;
+    }
     dsNodeDto.nodeName = fileName;
     dsNodeDto.nodeType = fileType;
     dsNodeDto.fileUrl = fileUrl;
@@ -133,6 +149,12 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
   init() async {
     picturesPath = await new StorageIOService().getPicturesPath();
     doGetData().then(onGetDataSuccess, onError: onGetDataError);
+
+    dataSpaceNewDirectoryPublisher.addListener(STREAMS_LISTENER_ID, (DSNodeDto dsNode) {
+      nodes.add(dsNode);
+      setState(() {});
+    });
+
     dataSpaceDeletePublisher.addListener(STREAMS_LISTENER_ID, (int nodeId) {
       setState(() {
         nodes.removeWhere((element) => element.id == nodeId);
@@ -149,13 +171,76 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
   @override
   dispose() {
     super.dispose();
+    dataSpaceNewDirectoryPublisher.removeListener(STREAMS_LISTENER_ID);
     dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
+  }
+
+  onBackPressed(getContext) async {
+    if (currentDirectoryNodeId == 0) {
+      Navigator.of(getContext()).pop();
+    } else {
+      if (nodeBreadcrumbs.isNotEmpty) {
+        nodeBreadcrumbs.removeLast();
+        if (nodeBreadcrumbs.isNotEmpty) {
+          var previousNode = nodeBreadcrumbs.last;
+          currentDirectoryNodeName = previousNode.nodeName;
+          currentDirectoryNodeId = previousNode.id;
+          doGetData().then(onGetDataSuccess, onError: onGetDataError);
+        } else {
+          setState(() {
+            currentDirectoryNodeName = 'Moj prostor';
+            currentDirectoryNodeId = 0;
+            doGetData().then(onGetDataSuccess, onError: onGetDataError);
+          });
+        }
+      } else {
+        setState(() {
+          currentDirectoryNodeName = 'Moj prostor';
+          currentDirectoryNodeId = 0;
+          doGetData().then(onGetDataSuccess, onError: onGetDataError);
+        });
+      }
+    }
+  }
+
+  onNavigateToDirectory(node) {
+    currentDirectoryNodeId = node.id;
+    currentDirectoryNodeName = node.nodeName;
+    nodeBreadcrumbs.addLast(node);
+    doGetData().then(onGetDataSuccess, onError: onGetDataError);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Moj prostor'),
+        appBar: BaseAppBar.getBackAppBar(getScaffoldContext,
+            titleText: currentDirectoryNodeName,
+            onBackPressed: onBackPressed,
+            actions: [
+              Container(
+                child: LoadingButton(
+                    child: Icon(Icons.delete, color: Colors.grey.shade600),
+                    displayLoader: displayDeleteLoader,
+                    loaderSize: 25,
+                    onPressed: () {
+                      var dialog = GenericAlertDialog(
+                          title: 'Izbriši trenutni direktorij?',
+                          message: 'Direktorij "${currentDirectoryNodeName}" će biti izbrisan sa svim sadržavajućim datotekama.',
+                          onPostivePressed: () {
+                            doDeleteDirectory().then(onDeleteDirectorySuccess, onError: onDeleteDirectoryError);
+                          },
+                          positiveBtnText: 'Izbriši',
+                          negativeBtnText: 'Odustani');
+                      showDialog(context: context, builder: (BuildContext context) => dialog);
+                    }
+                ),
+              ),
+              AppbarOptionsComponent(
+                userId: widget.userId,
+                parentNodeId: currentDirectoryNodeId,
+                parentNodeName: currentDirectoryNodeName,
+              )
+            ]),
         drawer: NavigationDrawerComponent(),
         floatingActionButton: buildFloatingActionButton(),
         body: Builder(builder: (context) {
@@ -230,16 +315,19 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
     Widget _w;
 
     if (node.nodeType == 'DIRECTORY') {
-      _w = Container(
-          color: Colors.grey.shade200,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                  child: Icon(Icons.folder, color: Colors.grey.shade600)),
-              Text(node.nodeName),
-            ],
-          ));
+      _w = GestureDetector(
+        onTap: () => onNavigateToDirectory(node),
+        child: Container(
+            color: Colors.grey.shade200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                    child: Icon(Icons.folder, color: Colors.grey.shade600)),
+                Text(node.nodeName),
+              ],
+            )),
+      );
     } else {
       String filePath = picturesPath + '/' + node.nodeName;
       bool fileExists = File(filePath).existsSync();
@@ -278,7 +366,7 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
               : Text('TODO: fixme'),
         );
       } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
-        _w = DSMedia(node: node, picturesPath: picturesPath);
+        _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
       } else {
         _w = Center(child: Text('Unrecognized media.'));
       }
@@ -323,7 +411,16 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
   }
 
   Future doGetData() async {
+    setState(() {
+      displayLoader = true;
+      currentDirectoryNodeName = currentDirectoryNodeName;
+    });
+
     String url = '/api/data-space/${widget.userId}';
+
+    if (currentDirectoryNodeId != 0) {
+      url += '/' + currentDirectoryNodeId.toString();
+    }
 
     http.Response response = await HttpClientService.get(url);
 
@@ -331,12 +428,15 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
       throw new Exception();
     }
 
-    return List<DSNodeDto>.from(response.decode().map((e) => DSNodeDto.fromJson(e))).toList();
+    var decode = response.decode();
+    var list = List<DSNodeDto>.from(decode.map((e) => DSNodeDto.fromJson(e)));
+    var list2 = list.toList();
+    return list2;
   }
 
   void onGetDataSuccess(result) async {
     setState(() {
-      this.nodes = result;
+      nodes = result;
       displayLoader = false;
       isError = false;
       displayUploadingFiles = false;
@@ -344,6 +444,7 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
   }
 
   void onGetDataError(Object error) {
+    print('error');
     setState(() {
       displayLoader = false;
       displayUploadingFiles = false;
@@ -357,5 +458,42 @@ class DataSpaceActivityState extends BaseState<DataSpaceActivity> {
         isError = false;
       });
     }));
+  }
+
+  Future doDeleteDirectory() async {
+    setState(() {
+      displayDeleteLoader = true;
+    });
+
+    String url = '/api/data-space/directory/' + currentDirectoryNodeId.toString();
+
+    http.Response response = await HttpClientService.delete(url);
+
+    if (response.statusCode != 200) {
+      throw Exception();
+    }
+
+    return true;
+  }
+
+  onDeleteDirectorySuccess(_) async {
+    await Future.delayed(Duration(seconds: 1));
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste direktorij.'));
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    onBackPressed(getScaffoldContext);
+  }
+
+  onDeleteDirectoryError(error) {
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error());
   }
 }
