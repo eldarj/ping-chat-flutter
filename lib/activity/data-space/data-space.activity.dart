@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
 import 'package:flutterping/activity/data-space/component/appbar-options.component.dart';
+import 'package:flutterping/activity/data-space/component/ds-document.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
 import 'package:flutterping/activity/data-space/create-directory.activity.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
@@ -249,7 +250,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
                   onHorizontalDragEnd: (DragEndDetails details) {
                     if (details.primaryVelocity > 0) {
                       setState(() {
-                        if (gridHorizontalSize < 4) {
+                        if (gridHorizontalSize < 3) {
                           gridHorizontalSize++;
                         }
                       });
@@ -263,7 +264,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
                   },
                   child: GridView.builder(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: gridHorizontalSize),
+                          crossAxisSpacing: 2.5, mainAxisSpacing: 2.5, crossAxisCount: gridHorizontalSize),
                       itemCount: nodes.length, itemBuilder: (context, index) {
                     var node = nodes[index];
                     return buildSingleNode(node);
@@ -353,7 +354,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
         _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
       } else {
-        _w = Center(child: Text('Unrecognized media.'));
+        _w = DSDocument(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
       }
     }
 
