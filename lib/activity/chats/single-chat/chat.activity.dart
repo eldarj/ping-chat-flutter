@@ -435,6 +435,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
             userSentNodeId: userSentNodeId,
             peerId: widget.peer.id,
             picturesPath: picturesPath,
+            myContactName: widget.myContactName,
             messageSendingService: widget.messageSendingService,
             onProgress: (message, progress) {
               setState(() {

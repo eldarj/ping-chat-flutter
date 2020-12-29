@@ -150,12 +150,12 @@ class CreateDirectoryActivityState extends BaseState<CreateDirectoryActivity> {
 
   onRequestSuccess(DSNodeDto dsNode) async {
     dataSpaceNewDirectoryPublisher.subject.add(dsNode);
-    setState(() { displayLoader = false; });
 
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste kreirali direktorij ${dsNode.nodeName}'));
+    // setState(() { displayLoader = false; });
 
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 1));
 
     Navigator.of(context).pop();
   }

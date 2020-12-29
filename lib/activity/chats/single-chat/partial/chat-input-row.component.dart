@@ -26,6 +26,7 @@ class SingleChatInputRow extends StatefulWidget {
   final int peerId;
   final int userSentNodeId;
   final String picturesPath;
+  final String myContactName;
 
   final MessageSendingService messageSendingService;
   final Function(MessageDto, double) onProgress;
@@ -43,7 +44,7 @@ class SingleChatInputRow extends StatefulWidget {
 
   const SingleChatInputRow({Key key, this.messageSendingService, this.onProgress, this.onOpenStickerBar,
     this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController,
-    this.inputTextFocusNode, this.doSendMessage, this.userId, this.peerId, this.userSentNodeId, this.picturesPath}) : super(key: key);
+    this.inputTextFocusNode, this.doSendMessage, this.userId, this.peerId, this.userSentNodeId, this.picturesPath, this.myContactName}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => SingleChatInputRowState();
@@ -144,6 +145,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     dsNodeDto.parentDirectoryNodeId = widget.userSentNodeId;
     dsNodeDto.nodeName = fileName;
     dsNodeDto.nodeType = fileType;
+    dsNodeDto.description = 'Sent by ${widget.myContactName}';
     dsNodeDto.recordingDuration = fileDuration;
     dsNodeDto.fileUrl = fileUrl;
     dsNodeDto.fileSizeBytes = fileSize;

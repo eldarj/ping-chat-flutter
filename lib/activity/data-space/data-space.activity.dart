@@ -11,6 +11,7 @@ import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
 import 'package:flutterping/activity/data-space/component/appbar-options.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
+import 'package:flutterping/activity/data-space/create-directory.activity.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
@@ -85,7 +86,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
   bool displayUploadingFiles = false;
 
-  bool displayDeleteLoader = true;
+  bool displayDeleteLoader = false;
 
   List<File> files;
 
@@ -117,6 +118,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     dsNodeDto.nodeName = fileName;
     dsNodeDto.nodeType = fileType;
     dsNodeDto.fileUrl = fileUrl;
+    dsNodeDto.description = 'Uploaded to data space';
     dsNodeDto.fileSizeBytes = fileSize;
     dsNodeDto.pathOnSourceDevice = file.path;
 
@@ -212,41 +214,23 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: BaseAppBar.getBackAppBar(getScaffoldContext,
-            titleText: currentDirectoryNodeName,
-            onBackPressed: onBackPressed,
-            actions: [
-              Container(
-                child: LoadingButton(
-                    child: Icon(Icons.delete, color: Colors.grey.shade600),
-                    displayLoader: displayDeleteLoader,
-                    loaderSize: 25,
-                    onPressed: () {
-                      var dialog = GenericAlertDialog(
-                          title: 'Izbriši trenutni direktorij?',
-                          message: 'Direktorij "${currentDirectoryNodeName}" će biti izbrisan sa svim sadržavajućim datotekama.',
-                          onPostivePressed: () {
-                            doDeleteDirectory().then(onDeleteDirectorySuccess, onError: onDeleteDirectoryError);
-                          },
-                          positiveBtnText: 'Izbriši',
-                          negativeBtnText: 'Odustani');
-                      showDialog(context: context, builder: (BuildContext context) => dialog);
-                    }
-                ),
-              ),
-              AppbarOptionsComponent(
-                userId: widget.userId,
-                parentNodeId: currentDirectoryNodeId,
-                parentNodeName: currentDirectoryNodeName,
-              )
-            ]),
-        drawer: NavigationDrawerComponent(),
-        floatingActionButton: buildFloatingActionButton(),
-        body: Builder(builder: (context) {
-          scaffold = Scaffold.of(context);
-          return buildActivityContent();
-        })
+    return WillPopScope(
+      onWillPop: () => onBackPressed(getScaffoldContext),
+      child: Scaffold(
+          appBar: BaseAppBar.getBackAppBar(getScaffoldContext,
+              titleText: currentDirectoryNodeName,
+              onBackPressed: onBackPressed,
+              actions: [
+                buildCreateDirectoryButton(),
+                buildDeleteDirectoryButton(),
+              ]),
+          drawer: NavigationDrawerComponent(),
+          floatingActionButton: buildFloatingActionButton(),
+          body: Builder(builder: (context) {
+            scaffold = Scaffold.of(context);
+            return buildActivityContent();
+          })
+      ),
     );
   }
 
@@ -257,6 +241,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       if (!isError) {
         if (nodes != null && nodes.length > 0) {
           w = Container(
+            color: Colors.white,
             child: Stack(
               alignment: Alignment.bottomRight,
               children: <Widget>[
@@ -318,15 +303,16 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       _w = GestureDetector(
         onTap: () => onNavigateToDirectory(node),
         child: Container(
-            color: Colors.grey.shade200,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                    child: Icon(Icons.folder, color: Colors.grey.shade600)),
-                Text(node.nodeName),
-              ],
-            )),
+          color: CompanyColor.backgroundGrey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                  child: Icon(Icons.folder, color: Colors.grey.shade600)),
+              Text(node.nodeName),
+            ],
+          ),
+        ),
       );
     } else {
       String filePath = picturesPath + '/' + node.nodeName;
@@ -341,7 +327,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             var result = await NavigatorUtil.push(scaffold.context,
                 ImageViewerActivity(
                     nodeId: node.id,
-                    sender: 'widget.peerContactName',
+                    sender: node.description,
                     timestamp: node.createdTimestamp,
                     file: File(filePath)));
 
@@ -351,7 +337,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
               });
             }
           },
-          child: fileExists ? Container(
+          child: Container(
             color: Colors.grey.shade200,
             child: Stack(
               alignment: Alignment.center,
@@ -362,8 +348,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
                     child: Image.file(File(filePath), fit: BoxFit.cover)),
               ],
             ),
-          )
-              : Text('TODO: fixme'),
+          ),
         );
       } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
         _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
@@ -372,7 +357,50 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       }
     }
 
-    return Container(child: _w);
+    return _w;
+  }
+
+  Widget buildDeleteDirectoryButton() {
+    Widget _w = Container();
+
+    print(currentDirectoryNodeName);
+    if (currentDirectoryNodeId != 0 && !['Sent', 'Received'].contains(currentDirectoryNodeName)) {
+      _w = Container(
+        width: 60,
+        child: LoadingButton(
+            child: Icon(Icons.delete_outline, color: Colors.grey.shade600),
+            displayLoader: displayDeleteLoader,
+            loaderSize: 25,
+            onPressed: () {
+              var dialog = GenericAlertDialog(
+                  title: 'Izbriši trenutni direktorij?',
+                  message: 'Direktorij "${currentDirectoryNodeName}" će biti izbrisan sa svim sadržavajućim datotekama.',
+                  onPostivePressed: () {
+                    doDeleteDirectory().then(onDeleteDirectorySuccess, onError: onDeleteDirectoryError);
+                  },
+                  positiveBtnText: 'Izbriši',
+                  negativeBtnText: 'Odustani');
+              showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
+            }
+        ),
+      );
+    }
+
+    return _w;
+  }
+
+  Widget buildCreateDirectoryButton() {
+    return GestureDetector(
+        onTap: () {
+          NavigatorUtil.push(getScaffoldContext(), CreateDirectoryActivity(
+            userId: widget.userId,
+            parentNodeId: currentDirectoryNodeId,
+            parentNodeName: currentDirectoryNodeName,
+          ));
+        },
+        child: Container(
+            width: 50,
+            child: Icon(Icons.folder_open, color: Colors.grey.shade600)));
   }
 
   buildFloatingActionButton() {

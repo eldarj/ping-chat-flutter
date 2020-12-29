@@ -13,6 +13,8 @@ class DSNodeDto {
 
   String nodePath;
 
+  String description;
+
   String fileUrl;
 
   String pathOnSourceDevice;
@@ -27,6 +29,8 @@ class DSNodeDto {
 
   String recordingDuration;
 
+  bool selected;
+
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
   }
@@ -34,7 +38,9 @@ class DSNodeDto {
   DSNodeDto({this.id, this.ownerId, this.receiverId, this.parentDirectoryNodeId,
     this.nodeName, this.nodePath, this.nodeType, this.fileUrl,
     this.pathOnSourceDevice, this.fileSizeBytes, this.recordingDuration,
-    this.createdTimestamp, this.lastModifiedTimestamp});
+    this.createdTimestamp, this.lastModifiedTimestamp, this.description,
+    this.selected = false
+  });
 
   factory DSNodeDto.fromJson(Map<String, dynamic> parsedJson) {
     return parsedJson == null ? parsedJson : DSNodeDto(
@@ -44,6 +50,7 @@ class DSNodeDto {
       parentDirectoryNodeId: parsedJson['parentDirectoryNodeId'] as int,
       nodeName: parsedJson['nodeName'] as String,
       nodePath: parsedJson['nodePath'] as String,
+      description: parsedJson['description'] as String,
       nodeType: parsedJson['nodeType'] as String,
       recordingDuration: parsedJson['recordingDuration'] as String,
       fileUrl: parsedJson['fileUrl'] as String,
@@ -62,6 +69,7 @@ class DSNodeDto {
     'parentDirectoryNodeId': parentDirectoryNodeId,
     'nodeName': nodeName,
     'nodePath': nodePath,
+    'description': description,
     'recordingDuration': recordingDuration,
     'nodeType': nodeType,
     'fileUrl': fileUrl,

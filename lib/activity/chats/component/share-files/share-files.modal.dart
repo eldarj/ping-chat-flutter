@@ -20,6 +20,7 @@ class ShareFilesModal extends StatefulWidget {
   final int userId;
   final int peerId;
   final int userSentNodeId;
+  final String myContactName;
 
   final String picturesPath;
 
@@ -27,7 +28,7 @@ class ShareFilesModal extends StatefulWidget {
 
   final MessageSendingService messageSendingService;
 
-  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress, this.peerId, this.picturesPath, this.userId, this.userSentNodeId}) : super(key: key);
+  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress, this.peerId, this.picturesPath, this.userId, this.userSentNodeId, this.myContactName}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ShareFilesModalState();
@@ -62,6 +63,7 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
     dsNodeDto.parentDirectoryNodeId = widget.userSentNodeId;
     dsNodeDto.nodeName = fileName;
     dsNodeDto.nodeType = fileType;
+    dsNodeDto.description = 'Sent by ${widget.myContactName}';
     dsNodeDto.fileUrl = fileUrl;
     dsNodeDto.fileSizeBytes = fileSize;
     dsNodeDto.pathOnSourceDevice = file.path;

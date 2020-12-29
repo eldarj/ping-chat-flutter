@@ -10,7 +10,6 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class AppbarOptionsComponent extends StatelessWidget {
   static const String CREATE_DIRECTORY_KEY = 'CREATE_DIRECTORY_KEY';
-  static const String DELETE_DIRECTORY_KEY = 'DELETE_DIRECTORY_KEY';
 
   final int userId;
 
@@ -30,25 +29,10 @@ class AppbarOptionsComponent extends StatelessWidget {
             parentNodeId: parentNodeId,
             parentNodeName: parentNodeName,
           ));
-        } else if (choice == DELETE_DIRECTORY_KEY) {
-          var dialog = GenericAlertDialog(
-              title: 'Izbriši trenutni direktorij?',
-              message: 'Direktorij "${parentNodeName}" će biti izbrisan sa svim sadržavajućim datotekama.',
-              onPostivePressed: () {
-                doDeleteDirectory().then(onDeleteDirectorySuccess, onError: onDeleteDirectoryError);
-              },
-              positiveBtnText: 'Izbriši',
-              negativeBtnText: 'Odustani');
-          showDialog(context: context, builder: (BuildContext context) => dialog);
         }
       },
       itemBuilder: (BuildContext context) {
         return [
-          PopupMenuItem<String>(
-              value: DELETE_DIRECTORY_KEY,
-              child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
-                  child: Icon(Icons.delete, color: Colors.grey.shade400)), Text('Izbriši direktorij') ])
-          ),
           PopupMenuItem<String>(
               value: CREATE_DIRECTORY_KEY,
               child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
@@ -57,23 +41,5 @@ class AppbarOptionsComponent extends StatelessWidget {
         ];
       },
     );
-  }
-
-  Future doDeleteDirectory() async {
-    String url = '/api/data-space/directory/' + parentNodeId.toString();
-
-    http.Response response = await HttpClientService.delete(url);
-
-    if (response.statusCode != 200) {
-      throw Exception();
-    }
-
-    return true;
-  }
-
-  onDeleteDirectorySuccess(_) async {
-  }
-
-  onDeleteDirectoryError(error) {
   }
 }
