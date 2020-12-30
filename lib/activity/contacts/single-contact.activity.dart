@@ -66,11 +66,11 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
 
     scrollController.addListener(() async {
-      if (scrollController.position.pixels == 0) {
+      if (scrollController.position.pixels < 50 && maximizeProfilePhoto == false) {
         setState(() {
           maximizeProfilePhoto = true;
         });
-      } else if (maximizeProfilePhoto == true) {
+      } else if (scrollController.position.pixels > 50 && maximizeProfilePhoto == true) {
         setState(() {
           maximizeProfilePhoto = false;
         });
@@ -114,45 +114,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                   decoration: BoxDecoration(
                       color: Colors.white
                   ),
-                  child: Column(children: [
-                    Stack(
-                      alignment: Alignment.topCenter,
-                      children: <Widget>[
-                        Row(children: [
-                          Container(height: 250, width: DEVICE_MEDIA_SIZE.width, color: CompanyColor.bluePrimary)
-                        ]),
-                        Container(
-                          height: 350,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                              AnimatedContainer(
-                                duration: Duration(milliseconds: 250),
-                                curve: Curves.easeInOut,
-                                margin: EdgeInsets.only(bottom: maximizeProfilePhoto ? 0 : 50),
-                                height: maximizeProfilePhoto ? 350 : 200,
-                                width: maximizeProfilePhoto ? DEVICE_MEDIA_SIZE.width : 200,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(color: Colors.white, width: maximizeProfilePhoto ? 0 : 3),
-                                  borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 32.5),
-                                ),
-                                child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 30),
-                                  child: widget.peer.profileImagePath != null ?
-                                  CachedNetworkImage(imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
-                                      placeholder: (context, url) => Container(
-                                          margin: EdgeInsets.all(15),
-                                          child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100))
-                                  ) : Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ])
-              ),
+                  child: buildContactProfileSection()),
               Container(
                   padding: EdgeInsets.only(top: 10, bottom: 25),
                   color: Colors.white,
@@ -191,8 +153,15 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                   ),
                   child: buildTwoColumns([
                     buildDrawerItem(context, 'Broj telefona',
-                        buildIcon(icon: Icons.phone_android, backgroundColor: Colors.green.shade400,
-                            size: 20, iconSize: 10),
+                        Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.green.shade400,
+                            ),
+                            child: Container(
+                                width: 35, height: 35,
+                                child: Icon(Icons.phone_iphone, size: 20, color: Colors.white)
+                            )),
                         crossAxisAlignment: CrossAxisAlignment.start,
                         padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15),
                         labelDescription: widget.peer.fullPhoneNumber),
@@ -299,6 +268,47 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     }
 
     return _w;
+  }
+
+  Widget buildContactProfileSection() {
+    return Column(children: [
+      Stack(
+        alignment: Alignment.topCenter,
+        children: <Widget>[
+          Row(children: [
+            Container(height: 250, width: DEVICE_MEDIA_SIZE.width, color: CompanyColor.bluePrimary)
+          ]),
+          Container(
+            height: 350,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                AnimatedContainer(
+                  duration: Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  margin: EdgeInsets.only(bottom: maximizeProfilePhoto ? 0 : 0),
+                  height: maximizeProfilePhoto ? 350 : 200,
+                  width: maximizeProfilePhoto ? DEVICE_MEDIA_SIZE.width : 200,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.white, width: maximizeProfilePhoto ? 0 : 3),
+                    borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 32.5),
+                  ),
+                  child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 30),
+                    child: widget.peer.profileImagePath != null ?
+                    CachedNetworkImage(imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                          margin: EdgeInsets.all(15),
+                          child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
+                    ) : Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ]);
   }
 
   Widget buildSectionHeader(title, { icon, linkWidget }) {

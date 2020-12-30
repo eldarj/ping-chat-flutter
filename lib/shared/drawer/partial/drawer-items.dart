@@ -42,13 +42,13 @@ Widget buildDrawerItem(BuildContext context, String labelName, Widget iconWidget
   );
 }
 
-Widget buildIcon({ IconData icon, String iconPath, Color backgroundColor = Colors.lightBlueAccent, double size = 25, double iconSize = 15}) {
+Widget buildIcon({ IconData icon, String iconPath, Color backgroundColor = Colors.lightBlueAccent}) {
   return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: backgroundColor,
       ),
-      child: Container(width: size, height: size,
-          child: icon != null ? Icon(icon, size: iconSize, color: Colors.white)
-              : Image.asset(iconPath, height: iconSize, color: Colors.white)));
+      child: Container(width: 40, height: 40, padding: EdgeInsets.all(10),
+          child: icon != null ? Icon(icon, size: 20, color: Colors.white)
+              : Image.asset(iconPath, height: 20, color: Colors.white)));
 }
