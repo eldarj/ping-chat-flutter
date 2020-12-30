@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/profile/profile-image-upload/profile-image-upload.activity.dart';
+import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -13,6 +15,7 @@ import 'package:flutterping/shared/component/error.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
@@ -32,117 +35,220 @@ class SingleContactActivity extends StatefulWidget {
 }
 
 class SingleContactActivityState extends BaseState<SingleContactActivity> {
-  @override
-  void initState() {
-    super.initState();
-    init();
-  }
+  ScrollController scrollController = new ScrollController();
 
-  init() async {
-    setState(() {
-      this.displayLoader = false;
+  bool maximizeProfilePhoto = true;
+
+  bool sharedDataSpaceLoading = true;
+
+  @override
+  initState() {
+    super.initState();
+    scrollController.addListener(() async {
+      if (scrollController.position.pixels == 0) {
+        setState(() {
+          maximizeProfilePhoto = true;
+        });
+      } else if (maximizeProfilePhoto == true) {
+        setState(() {
+          maximizeProfilePhoto = false;
+        });
+      }
     });
   }
 
   @override
-  preRender() {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Kontakt');
-    drawer = new NavigationDrawerComponent();
+  dispose() {
+    super.dispose();
+    scrollController.dispose();
   }
 
   @override
-  Widget render() {
-    return buildActivityContent();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleText: widget.contactDto.contactName),
+      body: Builder(builder: (context) {
+        scaffold = Scaffold.of(context);
+        return Container(
+          child: buildActivityContent(),
+        );
+      }),
+    );
   }
 
   Widget buildActivityContent() {
-    Widget contentWidget = Center(child: Spinner());
+    Widget _w = Center(child: Spinner());
     if (!displayLoader) {
       if (!isError) {
-        contentWidget = Container(
-            child: ListView(children: [
+        _w = Container(
+            child: ListView(controller: scrollController, children: [
               Container(
-                  padding: EdgeInsets.only(top: 10, bottom: 10),
+                  padding: EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
                       color: Colors.white
                   ),
                   child: Column(children: [
-                    Row(children: [
-                      Container(
-                          margin: EdgeInsets.only(left: 5, right: 10),
-                          child: new RoundProfileImageComponent(url: widget.contactDto.contactUser?.profileImagePath,
-                              height: 100, width: 100, borderRadius: 20)
-                      ),
-                      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(
-                          "Pozdrav,",
-                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w400, fontSize: 24),
-                        ),
-                        Text(widget.contactDto.contactName,
-                            style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 27)),
-                      ]),
-                    ]),
-                    Container(
-                        margin: EdgeInsets.only(left: 10, top: 10),
-                        child: buildTwoColumns([
-                          buildSection('Broj telefona', text: widget.contactDto.contactPhoneNumber),
-                        ], [
-                          buildSection('Račun kreiran', text: 'createdAtFormatted'),
-                        ])
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(left: 20, bottom: 10),
-                      child: Row(
-                        children: <Widget>[
-                          Container(
-                              margin: EdgeInsets.only(right: 10, left: 1),
-                              child: CountryIconComponent
-                                  .buildCountryIcon(widget.contactDto.contactUser?.countryCode.countryName, height: 15, width: 15)
+                    Stack(
+                      alignment: Alignment.topCenter,
+                      children: <Widget>[
+                        Row(children: [
+                          Container(height: 250, width: DEVICE_MEDIA_SIZE.width, color: CompanyColor.bluePrimary)
+                        ]),
+                        Container(
+                          height: 350,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
+                              AnimatedContainer(
+                                duration: Duration(milliseconds: 250),
+                                curve: Curves.easeInOut,
+                                margin: EdgeInsets.only(bottom: maximizeProfilePhoto ? 0 : 50),
+                                height: maximizeProfilePhoto ? 350 : 200,
+                                width: maximizeProfilePhoto ? DEVICE_MEDIA_SIZE.width : 200,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.white, width: maximizeProfilePhoto ? 0 : 3),
+                                  borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 32.5),
+                                ),
+                                child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 30),
+                                  child: CachedNetworkImage(imageUrl: widget.contactDto.contactUser?.profileImagePath, fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(
+                                          margin: EdgeInsets.all(15),
+                                          child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100))),
+                                ),
+                              ),
+                            ],
                           ),
-                          Container(
-                              child: Text(widget.contactDto.contactUser?.countryCode.countryName)
-                          )
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ])
               ),
               Container(
+                  padding: EdgeInsets.only(top: 10, bottom: 25),
+                  color: Colors.white,
+                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Container(
+                        margin: EdgeInsets.only(right: 25),
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: CompanyColor.bluePrimary,
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: GestureDetector(
+                            onTap: () {},
+                            child: Container(child: Icon(Icons.chat, color: Colors.white))
+                        )
+                    ),
+                    Container(
+                        margin: EdgeInsets.only(left: 25),
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: CompanyColor.bluePrimary,
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: GestureDetector(
+                            onTap: () {},
+                            child: Container(child: Icon(Icons.phone, color: Colors.white))
+                        )
+                    ),
+                  ])),
+              Container(
+                  padding: EdgeInsets.all(10),
+                  margin: EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).backgroundColor,
+                      boxShadow: [Shadows.bottomShadow()]
+                  ),
+                  child: buildTwoColumns([
+                    buildDrawerItem(context, 'Broj telefona',
+                        buildIcon(icon: Icons.phone_android, backgroundColor: Colors.green.shade400,
+                            size: 20, iconSize: 10),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15),
+                        labelDescription: widget.contactDto.contactPhoneNumber),
+                  ], [
+                    buildDrawerItem(context, widget.contactDto.contactUser?.countryCode.countryName,
+                        CountryIconComponent.buildCountryIcon(
+                            widget.contactDto.contactUser?.countryCode.countryName, height: 15, width: 15
+                        )),
+                  ])
+              ),
+              Container(
+                  padding: EdgeInsets.all(10),
+                  margin: EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).backgroundColor,
+                      boxShadow: [Shadows.bottomShadow()]
+                  ),
+                  child: Column(children: [
+                    buildSectionHeader('Djeljeni medij'),
+
+                  ])),
+              Container(
+                padding: EdgeInsets.all(10),
+                margin: EdgeInsets.only(bottom: 10),
                 decoration: BoxDecoration(
                     color: Theme.of(context).backgroundColor,
-                    boxShadow: [Shadows.topShadow()]
+                    boxShadow: [Shadows.bottomShadow()]
                 ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  FlatButton(onPressed: () {}, child: Row(children: [
+                    Container(
+                        margin: EdgeInsets.only(right: 10),
+                        child: Icon(Icons.photo_library, color: Colors.grey.shade700)),
+                    Text('Pozadina', style: TextStyle(color: Colors.grey.shade700))
+                  ]))
+                ]),
+              ),
+              Container(
                 padding: EdgeInsets.all(10),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      buildSectionHeader('Media & Storage', icon: Icons.image),
-                      buildTwoColumns([
-                        buildSection('Izdavalac', text: 'widget.contactDto.drivingLicenceIssuedFrom'),
-                      ], [
-                        buildSection('Datum izdavanja', text: 'widget.contactDto.drivingLicenceDate'),
-                      ]),
-
-                      buildSectionHeader('Sačuvano', icon: Icons.bookmark_border),
-                      buildTwoColumns([
-                        buildSection('Godište', text: 'widget.contactDto.car.year'),
-                      ], [
-                        buildSection('Opcije', child: Text('CarOptionsComponent(options: jsonDecode(widget.contactDto.car.options))')),
-                      ]),
-
-                      buildSectionHeader('Favourite contacts', icon: Icons.star_border),
-                      buildTwoColumns([
-                        buildSection('Oznaka licence', text: 'widget.contactDto.taxiLicenceNumber'),
-                      ], [
-                        buildSection('Datum izdavanja', text: 'getFormattedDate(widget.contactDto.taxiLicenceDate)'),
-                      ]),
-                    ]
+                margin: EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                    color: Theme.of(context).backgroundColor,
+                    boxShadow: [Shadows.bottomShadow()]
                 ),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      !widget.contactDto.favorite ? FlatButton(onPressed: () {}, child: Row(
+                        children: <Widget>[
+                          Container(
+                              margin: EdgeInsets.only(right: 10),
+                              child: Icon(Icons.star, color: Colors.yellow.shade700)),
+                          Text('Dodaj u omiljene', style: TextStyle(color: Colors.grey.shade700)),
+                        ],
+                      )) : FlatButton(onPressed: () {}, child: Row(
+                        children: <Widget>[
+                          Container(
+                              margin: EdgeInsets.only(right: 10),
+                              child: Icon(Icons.star_border, color: Colors.yellow.shade700)),
+                          Text('Ukloni iz omiljenih', style: TextStyle(color: Colors.grey.shade700)),
+                        ],
+                      ))
+                    ]),
+              ),
+              Container(
+                padding: EdgeInsets.all(10),
+                margin: EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                    color: Theme.of(context).backgroundColor,
+                    boxShadow: [Shadows.bottomShadow()]
+                ),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FlatButton(onPressed: () {}, child: Text('Izbriši kontakt', style: TextStyle(color: CompanyColor.red))),
+                      FlatButton(onPressed: () {}, child: Text('Blokiraj kontakt', style: TextStyle(color: CompanyColor.red))),
+                      FlatButton(onPressed: () {}, child: Text('Izbriši sve poruke', style: TextStyle(color: CompanyColor.red))),
+                    ]),
               )
             ])
         );
       } else {
-        contentWidget = ErrorComponent.build(actionOnPressed: () async {
+        _w = ErrorComponent.build(actionOnPressed: () async {
           scaffold.removeCurrentSnackBar();
           setState(() {
             displayLoader = true;
@@ -154,39 +260,19 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       }
     }
 
-    return contentWidget;
+    return _w;
   }
-
 
   Widget buildSectionHeader(title, { icon }) {
     return Container(
         padding: EdgeInsets.only(top: 20, left: 5, bottom: 10),
         margin: EdgeInsets.only(left: 5, bottom: 10),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(
-          width: 1, color: Colors.grey.shade300,
-        ))),
         child: Row(children: [
           Container(
               margin: EdgeInsets.only(right: 5),
               child: icon != null ? Icon(icon, size: 25) : Container()),
-          Text(title, style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold))
+          Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
         ]));
-  }
-
-  Widget buildSection(title, {text, child, titleLeftMargin: 0.0}) {
-    if (child == null && text is int) {
-      text = text.toString();
-    }
-    return Container(
-      margin: EdgeInsets.only(left: 12.5, bottom: 15),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-            margin: EdgeInsets.only(left: titleLeftMargin, bottom: 5),
-            child: Text(title, style: TextStyle(fontWeight: FontWeight.bold))
-        ),
-        child != null ? child : Text(text != null ? text : "")
-      ]),
-    );
   }
 
   Widget buildTwoColumns(leftChildren, rightChildren) {

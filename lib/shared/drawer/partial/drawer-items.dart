@@ -12,15 +12,17 @@ Widget buildSectionTitle(String sectionTitle) {
 
 Widget buildDrawerItem(BuildContext context, String labelName, Widget iconWidget,
     {
-      Widget activity, Function onTapFunction, String labelDescription = ''
+      Widget activity, Function onTapFunction, String labelDescription = '', crossAxisAlignment = CrossAxisAlignment.center,
+      padding: const EdgeInsets.only(top: 10, bottom: 10, left: 25)
     }) {
   return InkWell(
     onTap: activity != null ? () {
       NavigatorUtil.push(context, activity);
     } : onTapFunction,
     child: Container(
-      padding: EdgeInsets.only(top: 10, bottom: 10, left: 25),
+      padding: padding,
       child: Row(
+        crossAxisAlignment: crossAxisAlignment,
         children: <Widget>[
           Container(
               padding: EdgeInsets.only(right: 10),
@@ -40,14 +42,13 @@ Widget buildDrawerItem(BuildContext context, String labelName, Widget iconWidget
   );
 }
 
-Widget buildIcon({ IconData icon, String iconPath, Color backgroundColor = Colors.lightBlueAccent }) {
+Widget buildIcon({ IconData icon, String iconPath, Color backgroundColor = Colors.lightBlueAccent, double size = 25, double iconSize = 15}) {
   return Container(
-      padding: EdgeInsets.all(7),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: backgroundColor,
       ),
-      child: Container(width: 25, height: 25,
-          child: icon != null ? Icon(icon, size: 25, color: Colors.white)
-              : Image.asset(iconPath, height: 25, color: Colors.white)));
+      child: Container(width: size, height: size,
+          child: icon != null ? Icon(icon, size: iconSize, color: Colors.white)
+              : Image.asset(iconPath, height: iconSize, color: Colors.white)));
 }

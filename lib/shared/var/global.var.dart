@@ -36,6 +36,15 @@ class Shadows {
         offset: Offset.fromDirection(4.7, topDistance));
   }
 
+  static bottomShadow(
+      {color: const Color(0xFFE9E9E9), double blurRadius: 1, double spreadRadius: 0, double topDistance: 0.7}) {
+    return BoxShadow(
+        color: color,
+        blurRadius: blurRadius,
+        spreadRadius: spreadRadius,
+        offset: Offset.fromDirection(1, topDistance));
+  }
+
   static base(
       {color: const Color(0xFFE0E0E0), double blurRadius: 5, double spreadRadius: 5 }) {
     return BoxShadow(

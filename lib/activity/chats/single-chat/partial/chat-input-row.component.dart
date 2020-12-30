@@ -145,7 +145,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     dsNodeDto.parentDirectoryNodeId = widget.userSentNodeId;
     dsNodeDto.nodeName = fileName;
     dsNodeDto.nodeType = fileType;
-    dsNodeDto.description = 'Sent by ${widget.myContactName}';
+    dsNodeDto.description = widget.myContactName;
     dsNodeDto.recordingDuration = fileDuration;
     dsNodeDto.fileUrl = fileUrl;
     dsNodeDto.fileSizeBytes = fileSize;
