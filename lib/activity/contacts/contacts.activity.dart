@@ -195,7 +195,13 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
             var contact = contacts[index];
             return GestureDetector(
               onTap: () {
-                NavigatorUtil.push(context, SingleContactActivity(contactDto: contact));
+                NavigatorUtil.push(context, SingleContactActivity(
+                  peer: contact.contactUser,
+                  userId: userId,
+                  contactName: contact.contactName,
+                  contactBindingId: contact.contactBindingId,
+                  favorite: contact.favorite,
+                ));
               },
               child: Slidable(
                 actionPane: SlidableDrawerActionPane(),

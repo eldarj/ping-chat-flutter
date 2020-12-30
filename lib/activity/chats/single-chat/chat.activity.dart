@@ -14,6 +14,7 @@ import 'package:flutterping/activity/chats/component/message/message.component.d
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
 import 'package:flutterping/activity/chats/single-chat/partial/chat-input-row.component.dart';
 import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
+import 'package:flutterping/activity/contacts/single-contact.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-download-progress.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
@@ -35,6 +36,7 @@ import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
@@ -273,18 +275,32 @@ class ChatActivityState extends BaseState<ChatActivity> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: BaseAppBar.getBackAppBar(getScaffoldContext, centerTitle: false,
-            titleWidget: Row(
-              children: [
-                RoundProfileImageComponent(url: widget.peer.profileImagePath,
-                    height: 45, width: 45, borderRadius: 45, margin: 0),
-                Container(
-                  margin: EdgeInsets.only(left: 10),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(widget.peerContactName, style: TextStyle(fontWeight: FontWeight.normal)),
-                    Text(widget.statusLabel, style: TextStyle(fontSize: 12, color: Colors.grey))
-                  ]),
+            titleWidget: InkWell(
+              onTap: () {
+                NavigatorUtil.push(context, SingleContactActivity(
+                  peer: widget.peer,
+                  userId: userId,
+                  contactName: widget.peerContactName,
+                  contactBindingId: widget.contactBindingId,
+                  favorite: false,
+                ));
+              },
+              child: Container(
+                padding: EdgeInsets.only(left: 5, right: 25),
+                child: Row(
+                  children: [
+                    RoundProfileImageComponent(url: widget.peer.profileImagePath,
+                        height: 45, width: 45, borderRadius: 45, margin: 0),
+                    Container(
+                      margin: EdgeInsets.only(left: 10),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(widget.peerContactName, style: TextStyle(fontWeight: FontWeight.normal)),
+                        Text(widget.statusLabel, style: TextStyle(fontSize: 12, color: Colors.grey))
+                      ]),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
             actions: [ChatSettingsMenu(
                 peer: widget.peer,

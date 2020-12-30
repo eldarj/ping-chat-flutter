@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class RoundProfileImageComponent extends StatefulWidget {
-  static const String _DEFAULT_IMAGE_PATH = 'static/graphic/client/default-profile.jpg';
+  static const String DEFAULT_IMAGE_PATH = 'static/graphic/client/default-profile.jpg';
   static const String _QUESTION_MARK_IMAGE_PATH = 'static/graphic/icon/question-mark-24.png';
 
   final bool displayQuestionMarkImage;
@@ -53,7 +53,7 @@ class RoundProfileImageComponentState extends State<RoundProfileImageComponent> 
               margin: EdgeInsets.all(15),
               child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)));
     } else {
-      return Image.asset(RoundProfileImageComponent._DEFAULT_IMAGE_PATH);
+      return Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH);
     }
   }
 }

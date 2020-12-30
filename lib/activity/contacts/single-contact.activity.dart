@@ -1,12 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
+import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
+import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/activity/profile/profile-image-upload/profile-image-upload.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
+import 'package:flutterping/model/ds-node-dto.model.dart';
+import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
@@ -26,9 +32,17 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 class SingleContactActivity extends StatefulWidget {
-  final ContactDto contactDto;
+  final int userId;
 
-  const SingleContactActivity({ Key key, this.contactDto }) : super(key: key);
+  final ClientDto peer;
+
+  final String contactName;
+
+  final int contactBindingId;
+
+  final bool favorite;
+
+  const SingleContactActivity({ Key key, this.peer, this.userId, this.contactName, this.favorite, this.contactBindingId }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new SingleContactActivityState();
@@ -37,13 +51,20 @@ class SingleContactActivity extends StatefulWidget {
 class SingleContactActivityState extends BaseState<SingleContactActivity> {
   ScrollController scrollController = new ScrollController();
 
+  List<DSNodeDto> nodes = new List();
+
+
   bool maximizeProfilePhoto = true;
 
-  bool sharedDataSpaceLoading = true;
+  bool displaySharedDataSpaceLoader = true;
 
-  @override
-  initState() {
-    super.initState();
+  String picturesPath;
+
+  init() async {
+    picturesPath = await new StorageIOService().getPicturesPath();
+
+    doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
+
     scrollController.addListener(() async {
       if (scrollController.position.pixels == 0) {
         setState(() {
@@ -58,6 +79,12 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   @override
+  initState() {
+    super.initState();
+    init();
+  }
+
+  @override
   dispose() {
     super.dispose();
     scrollController.dispose();
@@ -66,7 +93,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleText: widget.contactDto.contactName),
+      appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleText: widget.contactName),
       body: Builder(builder: (context) {
         scaffold = Scaffold.of(context);
         return Container(
@@ -111,10 +138,12 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                                   borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 32.5),
                                 ),
                                 child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 30),
-                                  child: CachedNetworkImage(imageUrl: widget.contactDto.contactUser?.profileImagePath, fit: BoxFit.cover,
+                                  child: widget.peer.profileImagePath != null ?
+                                  CachedNetworkImage(imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
                                       placeholder: (context, url) => Container(
                                           margin: EdgeInsets.all(15),
-                                          child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100))),
+                                          child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100))
+                                  ) : Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
                                 ),
                               ),
                             ],
@@ -166,11 +195,11 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                             size: 20, iconSize: 10),
                         crossAxisAlignment: CrossAxisAlignment.start,
                         padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15),
-                        labelDescription: widget.contactDto.contactPhoneNumber),
+                        labelDescription: widget.peer.fullPhoneNumber),
                   ], [
-                    buildDrawerItem(context, widget.contactDto.contactUser?.countryCode.countryName,
+                    buildDrawerItem(context, widget.peer.countryCode.countryName,
                         CountryIconComponent.buildCountryIcon(
-                            widget.contactDto.contactUser?.countryCode.countryName, height: 15, width: 15
+                            widget.peer.countryCode.countryName, height: 15, width: 15
                         )),
                   ])
               ),
@@ -181,9 +210,18 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       color: Theme.of(context).backgroundColor,
                       boxShadow: [Shadows.bottomShadow()]
                   ),
-                  child: Column(children: [
-                    buildSectionHeader('Djeljeni medij'),
-
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    buildSectionHeader('Djeljeni medij', linkWidget: FlatButton(
+                      onPressed: () {
+                        NavigatorUtil.push(context, ContactSharedActivity(
+                            peer: widget.peer,
+                            picturesPath: picturesPath,
+                            peerContactName: widget.contactName,
+                            contactBindingId: widget.contactBindingId));
+                      },
+                      child: Text('Pogledaj sve', style: TextStyle(color: CompanyColor.bluePrimary)),
+                    )),
+                    buildDataSpaceListView(),
                   ])),
               Container(
                 padding: EdgeInsets.all(10),
@@ -212,7 +250,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      !widget.contactDto.favorite ? FlatButton(onPressed: () {}, child: Row(
+                      !widget.favorite ? FlatButton(onPressed: () {}, child: Row(
                         children: <Widget>[
                           Container(
                               margin: EdgeInsets.only(right: 10),
@@ -263,16 +301,21 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return _w;
   }
 
-  Widget buildSectionHeader(title, { icon }) {
+  Widget buildSectionHeader(title, { icon, linkWidget }) {
     return Container(
-        padding: EdgeInsets.only(top: 20, left: 5, bottom: 10),
-        margin: EdgeInsets.only(left: 5, bottom: 10),
-        child: Row(children: [
-          Container(
-              margin: EdgeInsets.only(right: 5),
-              child: icon != null ? Icon(icon, size: 25) : Container()),
-          Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
-        ]));
+        padding: EdgeInsets.only(top: 10, left: 10, bottom: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Row(children: [
+              Container(
+                  margin: EdgeInsets.only(right: 5),
+                  child: icon != null ? Icon(icon, size: 25) : Container()),
+              Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
+            ]),
+            linkWidget != null ? linkWidget : Container()
+          ],
+        ));
   }
 
   Widget buildTwoColumns(leftChildren, rightChildren) {
@@ -291,5 +334,115 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
           ]
       )
     ]);
+  }
+
+  buildDataSpaceListView() {
+    Widget _w;
+
+    if (!displaySharedDataSpaceLoader) {
+      if (nodes != null && nodes.length > 0) {
+        _w = Container(
+          height: nodes.length > 4 ? 250 : 150, width: DEVICE_MEDIA_SIZE.width,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: GridView.builder(
+              scrollDirection: Axis.horizontal,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisSpacing: 2.5, mainAxisSpacing: 2.5, crossAxisCount: nodes.length > 4 ? 2 : 1),
+              itemCount: nodes.length, itemBuilder: (context, index) {
+            var node = nodes[index];
+            return buildSingleNode(node);
+          }),
+        );
+      } else {
+        _w = Container(child: Text('Nemate podataka', style: TextStyle(color: Colors.grey)));
+      }
+    } else {
+      _w = Container(margin: EdgeInsets.only(left: 5), child: Spinner(size: 25));
+    }
+
+    return Container(
+        margin: EdgeInsets.only(left: 15, bottom: 15),
+        child: _w);
+  }
+
+  buildSingleNode(DSNodeDto node) {
+    bool fileExists;
+    String filePath;
+    filePath = picturesPath + '/' + node.nodeName;
+
+    fileExists = File(filePath).existsSync();
+
+    Widget _w;
+
+    if (node.nodeType == 'IMAGE') {
+      _w = GestureDetector(
+        onTap: () async {
+          var result = await NavigatorUtil.push(context,
+              ImageViewerActivity(
+                  nodeId: node.id,
+                  sender: widget.contactName,
+                  timestamp: node.createdTimestamp,
+                  file: File(filePath)));
+
+          if (result != null && result['deleted'] == true) {
+            setState(() {
+              nodes.removeWhere((element) => element.id == node.id);
+            });
+          }
+        },
+        child: fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
+            : Text('TODO: fixme'),
+      );
+    } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
+      _w = DSMedia(node: node, gridHorizontalSize: 5, picturesPath: picturesPath);
+    } else {
+      _w = Center(child: Text('Unrecognized media.'));
+    }
+
+    return Container(
+        child: fileExists ? _w
+            : Text('TODO: fixme'));
+  }
+
+  Future doGetSharedData() async {
+    String url = '/api/data-space/shared'
+        '?userId=' + widget.userId.toString() +
+        '&contactId=' + widget.peer.id.toString() +
+        '&nodesCount=10';
+
+    http.Response response = await HttpClientService.get(url);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return List<DSNodeDto>.from(response.decode().map((e) => DSNodeDto.fromJson(e))).toList();
+  }
+
+  void onGetSharedDataSuccess(nodes) async {
+    print(nodes.length.toString());
+    this.nodes = nodes;
+
+    setState(() {
+      displaySharedDataSpaceLoader = false;
+    });
+  }
+
+  void onGetSharedDataError(Object error) {
+    print(error);
+    setState(() {
+      displaySharedDataSpaceLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () async {
+      setState(() {
+        displaySharedDataSpaceLoader = true;
+      });
+
+      doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
+    }));
   }
 }

@@ -344,7 +344,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }) {
     return GestureDetector(
       onTap: () {
-        NavigatorUtil.push(context, ChatActivity(myContactName: myContactName, peer: contact, peerContactName: peerContactName,
+        NavigatorUtil.push(context, ChatActivity(
+            myContactName: myContactName, peer: contact, peerContactName: peerContactName,
             statusLabel: statusLabel, contactBindingId: contactBindingId));
       },
       child: Container(
