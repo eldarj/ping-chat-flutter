@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/calls/callscreen.activity.dart';
 import 'package:flutterping/activity/calls/dialpad.activity.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
 import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
@@ -54,6 +55,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
   List<DSNodeDto> nodes = new List();
 
+  Widget profileImageWidget;
 
   bool maximizeProfilePhoto = true;
 
@@ -108,6 +110,15 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     Widget _w = Center(child: Spinner());
     if (!displayLoader) {
       if (!isError) {
+
+        if (widget.peer.profileImagePath != null) {
+          profileImageWidget = CachedNetworkImage(imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
+            placeholder: (context, url) => Container(
+                margin: EdgeInsets.all(15),
+                child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
+          );
+        }
+
         _w = Container(
             child: ListView(controller: scrollController, children: [
               Container(
@@ -141,7 +152,12 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                         ),
                         child: GestureDetector(
                             onTap: () {
-                              NavigatorUtil.push(context, new DialpadActivity());
+                              NavigatorUtil.push(context, new CallScreenWidget(
+                                target: '1004',
+                                contactName: 'Sabaha',
+                                fullPhoneNumber: '+38762154973',
+                                profileImageWidget: profileImageWidget,
+                              ));
                             },
                             child: Container(child: Icon(Icons.phone, color: Colors.white))
                         )
@@ -298,12 +314,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 32.5),
                   ),
                   child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 30),
-                    child: widget.peer.profileImagePath != null ?
-                    CachedNetworkImage(imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                          margin: EdgeInsets.all(15),
-                          child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
-                    ) : Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
+                    child: profileImageWidget ?? Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
                   ),
                 ),
               ],

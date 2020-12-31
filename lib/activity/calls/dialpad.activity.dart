@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutterping/service/voice/sip-client.service.dart';
 import 'package:flutterping/shared/component/action-button.component.dart';
 import 'package:sip_ua/sip_ua.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DialpadActivity extends StatefulWidget {
-  SIPUAHelper _helper;
-  DialpadActivity({Key key}) : super(key: key);
+  final String destination;
+
+  const DialpadActivity({Key key, this.destination}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => new DialpadActivityState();
 }
 
-class DialpadActivityState extends State<DialpadActivity>
-    implements SipUaHelperListener {
-  String _dest;
-  SIPUAHelper get helper => widget._helper;
+class DialpadActivityState extends State<DialpadActivity> {
   TextEditingController _textController;
-  SharedPreferences _preferences;
 
   String receivedMsg;
 
@@ -23,25 +22,18 @@ class DialpadActivityState extends State<DialpadActivity>
   initState() {
     super.initState();
     receivedMsg = "";
-    _bindEventListeners();
     _loadSettings();
   }
 
   void _loadSettings() async {
-    _preferences = await SharedPreferences.getInstance();
-    _dest = _preferences.getString('dest') ?? 'sip:hello_jssip@tryit.jssip.net';
-    _textController = TextEditingController(text: _dest);
-    _textController.text = _dest;
+    _textController = TextEditingController(text: widget.destination);
+    _textController.text = widget.destination;
 
     this.setState(() {});
   }
 
-  void _bindEventListeners() {
-    // helper.addSipUaHelperListener(this);
-  }
-
   Widget _handleCall(BuildContext context, [bool voiceonly = false]) {
-    var dest = _textController.text;
+    var dest = 'sip:1004@192.168.1.4';
     if (dest == null || dest.isEmpty) {
       showDialog<Null>(
         context: context,
@@ -63,8 +55,7 @@ class DialpadActivityState extends State<DialpadActivity>
       );
       return null;
     }
-    helper.call(dest, voiceonly);
-    _preferences.setString('dest', dest);
+    sipClientService.call(dest);
     return null;
   }
 
@@ -242,22 +233,6 @@ class DialpadActivityState extends State<DialpadActivity>
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Center(
-                        child: Text(
-                          'Status: "EnumHelper.getName(helper.registerState.state)"',
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
-                        )),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Center(
-                        child: Text(
-                          'Received Message: ${receivedMsg}',
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
-                        )),
-                  ),
                   Container(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -265,29 +240,5 @@ class DialpadActivityState extends State<DialpadActivity>
                         children: _buildDialPad(),
                       )),
                 ])));
-  }
-
-  @override
-  void registrationStateChanged(RegistrationState state) {
-    this.setState(() {});
-  }
-
-  @override
-  void transportStateChanged(TransportState state) {}
-
-  @override
-  void callStateChanged(Call call, CallState callState) {
-    if (callState.state == CallStateEnum.CALL_INITIATION) {
-      Navigator.pushNamed(context, '/callscreen', arguments: call);
-    }
-  }
-
-  @override
-  void onNewMessage(SIPMessageRequest msg) {
-    //Save the incoming message to DB
-    String msgBody = msg.request.body as String;
-    setState(() {
-      receivedMsg = msgBody;
-    });
   }
 }

@@ -10,6 +10,7 @@ import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/messaging/unread-message.publisher.dart';
+import 'package:flutterping/service/voice/sip-client.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -27,6 +28,7 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
+import 'package:sip_ua/sip_ua.dart';
 
 class ChatListActivity extends StatefulWidget {
   const ChatListActivity();
@@ -52,9 +54,20 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   Timer presenceTimer;
 
+  String registerStateString = 'unknown';
+
   initListenersAndGetData() async {
     dynamic user = await UserService.getUser();
     userId = user.id;
+
+    // Initialize SIP UA Client
+    sipClientService.register('1001', '1234');
+
+    sipClientService.addListener('123', (RegistrationState state) {
+      setState(() {
+        registerStateString = state.state.toString();
+      });
+    });
 
     wsClientService.userStatusPub.addListener(STREAMS_LISTENER_ID, (item) {
       print(item);
@@ -232,6 +245,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
 
     unreadMessagePublisher.removeListener(STREAMS_LISTENER_ID);
+
+    sipClientService.removeListener('123');
   }
 
   @override
@@ -259,6 +274,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                   opacity: isLoadingOnScroll ? 1 : 0,
                   child: LinearProgressLoader.build(context)
               ),
+              Text(registerStateString),
               chats != null && chats.length > 0 ? buildListView() :
               Center(
                 child: Container(

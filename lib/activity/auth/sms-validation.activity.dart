@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
@@ -172,7 +173,7 @@ class SmsValidationState extends State<SmsValidationActivity> {
     if (user.firstName == null && user.lastName == null) {
       NavigatorUtil.push(context, SignUpFormActivity(clientDto: user));
     } else {
-      NavigatorUtil.push(context, ContactsActivity());
+      NavigatorUtil.push(context, ChatListActivity());
     }
   }
 
