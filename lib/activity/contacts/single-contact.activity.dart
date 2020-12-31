@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/calls/dialpad.activity.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
 import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
@@ -139,7 +140,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                           borderRadius: BorderRadius.circular(100),
                         ),
                         child: GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              NavigatorUtil.push(context, new DialpadActivity());
+                            },
                             child: Container(child: Icon(Icons.phone, color: Colors.white))
                         )
                     ),
