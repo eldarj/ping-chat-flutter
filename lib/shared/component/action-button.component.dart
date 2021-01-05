@@ -5,6 +5,7 @@ class ActionButton extends StatefulWidget {
   final IconData icon;
   final bool checked;
   final Color fillColor;
+  final Color splashColor;
   final Function() onPressed;
 
   const ActionButton(
@@ -12,7 +13,7 @@ class ActionButton extends StatefulWidget {
         this.icon,
         this.onPressed,
         this.checked = false,
-        this.fillColor}) : super(key: key);
+        this.fillColor, this.splashColor}) : super(key: key);
 
   @override
   _ActionButtonState createState() => _ActionButtonState();
@@ -23,8 +24,8 @@ class _ActionButtonState extends State<ActionButton> {
   Widget build(BuildContext context) {
     return RawMaterialButton(
       onPressed: widget.onPressed,
-      splashColor: widget.fillColor != null
-          ? widget.fillColor
+      splashColor: widget.splashColor != null
+          ? widget.splashColor
           : (widget.checked ? Colors.white : Colors.black12),
       fillColor: widget.fillColor != null
           ? widget.fillColor

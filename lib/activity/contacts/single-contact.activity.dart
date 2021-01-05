@@ -18,6 +18,7 @@ import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
+import 'package:flutterping/shared/component/action-button.component.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
@@ -131,37 +132,26 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                   padding: EdgeInsets.only(top: 10, bottom: 25),
                   color: Colors.white,
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Container(
-                        margin: EdgeInsets.only(right: 25),
-                        padding: EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: CompanyColor.bluePrimary,
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: GestureDetector(
-                            onTap: () {},
-                            child: Container(child: Icon(Icons.chat, color: Colors.white))
-                        )
+                    ActionButton(
+                      icon: Icons.chat,
+                      fillColor: CompanyColor.bluePrimary,
+                      onPressed: () async {
+
+                      },
                     ),
-                    Container(
-                        margin: EdgeInsets.only(left: 25),
-                        padding: EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: CompanyColor.bluePrimary,
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: GestureDetector(
-                            onTap: () {
-                              NavigatorUtil.push(context, new CallScreenWidget(
-                                target: '1004',
-                                contactName: widget.contactName,
-                                fullPhoneNumber: widget.peer.fullPhoneNumber,
-                                profileImageWidget: profileImageWidget,
-                                direction: 'OUTGOING',
-                              ));
-                            },
-                            child: Container(child: Icon(Icons.phone, color: Colors.white))
-                        )
+                    ActionButton(
+                      icon: Icons.phone,
+                      fillColor: CompanyColor.bluePrimary,
+                      onPressed: () async {
+                        await Future.delayed(Duration(milliseconds: 250));
+                        NavigatorUtil.push(context, new CallScreenWidget(
+                          target: '1004',
+                          contactName: widget.contactName,
+                          fullPhoneNumber: widget.peer.fullPhoneNumber,
+                          profileImageWidget: profileImageWidget,
+                          direction: 'OUTGOING',
+                        ));
+                      },
                     ),
                   ])),
               Container(
