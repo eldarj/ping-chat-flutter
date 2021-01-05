@@ -10,6 +10,8 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/action-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 
 import 'package:sip_ua/sip_ua.dart';
@@ -25,483 +27,342 @@ class CallScreenWidget extends StatefulWidget {
 
   final Color backgroundColor;
 
-  const CallScreenWidget({Key key, this.target, this.contactName, this.fullPhoneNumber,
-    this.profileImageWidget, this.backgroundColor = Colors.grey}) : super(key: key);
+  final String direction;
+
+  const CallScreenWidget({Key key,
+    this.target,
+    this.contactName,
+    this.fullPhoneNumber,
+    this.profileImageWidget,
+    this.direction,
+    this.backgroundColor}) : super(key: key);
 
   @override
-  _MyCallScreenWidget createState() => _MyCallScreenWidget();
+  CallScreenActivityState createState() => CallScreenActivityState(direction: direction);
 }
 
-class _MyCallScreenWidget extends BaseState<CallScreenWidget> {
-  bool displayLoader = false;
+class CallScreenActivityState extends State<CallScreenWidget> {
+  ScaffoldState scaffold;
 
-  MediaStream _localStream;
-  MediaStream _remoteStream;
+  BuildContext getScaffoldContext() => scaffold.context;
 
-  bool _showNumPad = false;
-  String _timeLabel = '00:00';
-  Timer _timer;
-  bool _audioMuted = false;
-  bool _speakerOn = false;
-  bool _hold = false;
-  String _holdOriginator;
-  CallStateEnum _state = CallStateEnum.NONE;
+  bool displayLoader = true;
 
-  String remote_identity = 'loading remote';
+  bool callOngoing = false;
 
-  String direction = 'loading direction';
+  Timer callDurationTimer;
+  String callDurationLabel = '00:00';
+
+  MediaStream localMediaStream;
+  MediaStream remoteMediaStream;
+
+  bool isAudioMuted = false;
+  bool isSpeakerOn = false;
 
   Call call;
+
+  String direction;
+  String stateLabel = 'Connecting...';
+  String remote_identity = 'loading remote';
+
+  CallStateEnum callState = CallStateEnum.NONE;
+
+  CallScreenActivityState({this.direction}) : super();
+
+  void initCall() async {
+    await Future.delayed(Duration(seconds: 1));
+    sipClientService.call('1004');
+  }
 
   @override
   initState() {
     super.initState();
 
-    callStatePublisher.addListener('123', (Call call) {
+    callStatePublisher.addListener('123', (CallEvent callEvent) {
       print('CALL STATE PUBLISHER');
-      setState(() {
-        _state = call.state;
-        this.call = call;
-        direction = call.direction;
-        remote_identity = call.remote_identity;
-        displayLoader = false;
-      });
-    });
-
-    // sipClientService.call(widget.target);
-
-    _startTimer();
-  }
-
-  @override
-  deactivate() {
-    super.deactivate();
-    callStatePublisher.removeListener('123');
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
-      Duration duration = Duration(seconds: timer.tick);
+      var call = callEvent.call;
+      var callState = callEvent.callState;
       if (mounted) {
-        this.setState(() {
-          _timeLabel = [duration.inMinutes, duration.inSeconds]
-              .map((seg) => seg.remainder(60).toString().padLeft(2, '0'))
-              .join(':');
+        setState(() {
+          this.callState = call.state;
+          this.call = call;
+
+          if (call.state == CallStateEnum.CONNECTING) {
+            stateLabel = 'Connecting...';
+
+          } else if (call.state == CallStateEnum.ACCEPTED) {
+            stateLabel = 'Accepted';
+
+          } else if (call.state == CallStateEnum.CONFIRMED) {
+            stateLabel = 'Confirmed';
+            callOngoing = true;
+            displayLoader = false;
+            callDurationTimer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+              Duration duration = Duration(seconds: timer.tick);
+              if (mounted && callDurationTimer.isActive) {
+                print('duration.......');
+                this.setState(() {
+                  callDurationLabel = [duration.inMinutes, duration.inSeconds]
+                      .map((seg) => seg.remainder(60).toString().padLeft(2, '0'))
+                      .join(':');
+                });
+              } else {
+                callDurationTimer.cancel();
+              }
+            });
+          } else if (call.state == CallStateEnum.PROGRESS) {
+            stateLabel = 'Ringing';
+          } else if (call.state == CallStateEnum.FAILED) {
+            Navigator.pop(context);
+
+          } else if (call.state == CallStateEnum.ENDED) {
+            Navigator.pop(context);
+
+          } else if (call.state == CallStateEnum.MUTED) {
+            if (callState.audio) isAudioMuted = true;
+
+          } else if (call.state == CallStateEnum.UNMUTED) {
+            if (callState.audio) isAudioMuted = false;
+
+          } else if (call.state == CallStateEnum.STREAM) {
+            print('STREAM EVENT' + callState.originator);
+            MediaStream stream = callState.stream;
+            if (callState.originator == 'local') {
+              callState.stream?.getAudioTracks()?.first?.enableSpeakerphone(false);
+              localMediaStream = stream;
+            }
+            if (callState.originator == 'remote') {
+              remoteMediaStream = stream;
+            }
+          }
+
+          direction = call.direction;
+          remote_identity = call.remote_identity;
         });
-      } else {
-        _timer.cancel();
       }
     });
+
+    initCall();
   }
 
   @override
-  void callStateChanged(Call call, CallState callState) {
-    if (callState.state == CallStateEnum.HOLD ||
-        callState.state == CallStateEnum.UNHOLD) {
-      _hold = callState.state == CallStateEnum.HOLD;
-      _holdOriginator = callState.originator;
-      this.setState(() {});
-      return;
+  dispose() {
+    super.dispose();
+    callStatePublisher.removeListener('123');
+    disposeCallObjects();
+  }
+
+  void disposeCallObjects() {
+    if (call.state != CallStateEnum.FAILED && call.state != CallStateEnum.ENDED) {
+      call.hangup();
     }
 
-    if (callState.state == CallStateEnum.MUTED) {
-      if (callState.audio) _audioMuted = true;
-      this.setState(() {});
-      return;
-    }
-
-    if (callState.state == CallStateEnum.UNMUTED) {
-      if (callState.audio) _audioMuted = false;
-      this.setState(() {});
-      return;
-    }
-
-    if (callState.state != CallStateEnum.STREAM) {
-      _state = callState.state;
-    }
-
-    switch (callState.state) {
-      case CallStateEnum.STREAM:
-        _handelStreams(callState);
-        break;
-      case CallStateEnum.ENDED:
-      case CallStateEnum.FAILED:
-        _backToDialPad();
-        break;
-      case CallStateEnum.UNMUTED:
-      case CallStateEnum.MUTED:
-      case CallStateEnum.CONNECTING:
-      case CallStateEnum.PROGRESS:
-      case CallStateEnum.ACCEPTED:
-      case CallStateEnum.CONFIRMED:
-      case CallStateEnum.HOLD:
-      case CallStateEnum.UNHOLD:
-      case CallStateEnum.NONE:
-      case CallStateEnum.CALL_INITIATION:
-      case CallStateEnum.REFER:
-        break;
+    if (callDurationTimer != null) {
+      callDurationTimer.cancel();
     }
   }
 
-  void _backToDialPad() {
-    _timer.cancel();
-    Timer(Duration(seconds: 2), () {
-      Navigator.of(context).pop();
-    });
+  void onHangup() {
+    disposeCallObjects();
   }
 
-  void _handelStreams(CallState event) async {
-    MediaStream stream = event.stream;
-    if (event.originator == 'local') {
-      event.stream?.getAudioTracks()?.first?.enableSpeakerphone(false);
-      _localStream = stream;
-    }
-    if (event.originator == 'remote') {
-      _remoteStream = stream;
-    }
-  }
-
-  void _handleHangup() {
-    call.hangup();
-    _timer.cancel();
-  }
-
-  void _handleAccept() {
+  void onHandleAccept() {
     // call.answer(helper.buildCallOptions());
   }
 
-  void _switchCamera() {
-    if (_localStream != null) {
-      _localStream.getVideoTracks()[0].switchCamera();
-    }
-  }
-
-  void _muteAudio() {
-    if (_audioMuted) {
+  void onToggleMute() {
+    if (isAudioMuted) {
       call.unmute(true, false);
     } else {
       call.mute(true, false);
     }
   }
 
-  void _handleHold() {
-    if (_hold) {
-      call.unhold();
-    } else {
-      call.hold();
-    }
-  }
-
-  String _tansfer_target;
-  void _handleTransfer() {
-    showDialog<Null>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Enter target to transfer.'),
-          content: TextField(
-            onChanged: (String text) {
-              setState(() {
-                _tansfer_target = text;
-              });
-            },
-            decoration: InputDecoration(
-              hintText: 'URI or Username',
-            ),
-            textAlign: TextAlign.center,
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Ok'),
-              onPressed: () {
-                call.refer(_tansfer_target);
-                Navigator.of(context).pop();
-              },
-            ),
-            FlatButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _handleDtmf(String tone) {
-    print('Dtmf tone => $tone');
-    call.sendDTMF(tone);
-  }
-
-  void _handleKeyPad() {
-    this.setState(() {
-      _showNumPad = !_showNumPad;
-    });
-  }
-
-  void _toggleSpeaker() {
-    if (_localStream != null) {
-      _speakerOn = !_speakerOn;
-      _localStream.getAudioTracks()[0].enableSpeakerphone(_speakerOn);
+  void onToggleSpeaker() {
+    if (localMediaStream != null) {
+      isSpeakerOn = !isSpeakerOn;
+      localMediaStream.getAudioTracks()[0].enableSpeakerphone(isSpeakerOn);
+      setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: BaseAppBar.getBackAppBar(getScaffoldContext),
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
-          return _buildContent();
-        }),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: Padding(
-            padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 24.0),
-            child: Container(width: 320, child: _buildActionButtons())));
+          return buildActivityContent();
+        })
+    );
   }
 
-  List<Widget> _buildNumPad() {
-    var lables = [
-      [
-        {'1': ''},
-        {'2': 'abc'},
-        {'3': 'def'}
-      ],
-      [
-        {'4': 'ghi'},
-        {'5': 'jkl'},
-        {'6': 'mno'}
-      ],
-      [
-        {'7': 'pqrs'},
-        {'8': 'tuv'},
-        {'9': 'wxyz'}
-      ],
-      [
-        {'*': ''},
-        {'0': '+'},
-        {'#': ''}
-      ],
-    ];
+  Widget buildActivityContent() {
+    double imageBlur = widget.profileImageWidget != null ? 15 : 0;
+    Border profileBorder = callOngoing
+        ? Border.all(color: Color.fromRGBO(90, 254, 90, 0.3), width: 10)
+        : Border.all(color: Color.fromRGBO(255, 255, 255, 0.1), width: 10);
 
-    return lables
-        .map((row) => Padding(
-        padding: const EdgeInsets.all(3),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: row
-                .map((label) => ActionButton(
-              title: '${label.keys.first}',
-              subTitle: '${label.values.first}',
-              onPressed: () => _handleDtmf(label.keys.first),
-              number: true,
-            ))
-                .toList())))
-        .toList();
+    return Stack(
+      children: [
+        widget.profileImageWidget == null ? Container(
+          height: DEVICE_MEDIA_SIZE.height,
+          width: DEVICE_MEDIA_SIZE.width,
+          color: widget.backgroundColor ?? Colors.grey.shade800,
+        ) : ColorFiltered(
+          colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.8), BlendMode.srcOver),
+          child: Container(
+            child: widget.profileImageWidget,
+            height: DEVICE_MEDIA_SIZE.height,
+            width: DEVICE_MEDIA_SIZE.width,
+          ),
+        ),
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: imageBlur, sigmaY: imageBlur),
+          child: Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  height: 85, color: Colors.black12,
+                  padding: EdgeInsets.only(top: 30, left: 5, right: 10),
+                  child: Row(children: [
+                    IconButton(onPressed: () {
+                      Navigator.pop(context);
+                    }, icon: Icon(Icons.close), color: Colors.white),
+                  ],),
+                ),
+                Expanded(
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        margin: EdgeInsets.only(top: 25, bottom: 25),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: <Widget>[
+                            displayLoader ? SpinKitPulse(
+                              color: Colors.white,
+                              size: 200.0,
+                            ) : Container(),
+                            Container(
+                              height: 175, width: 175,
+                              decoration: BoxDecoration(
+                                border: profileBorder,
+                                borderRadius: BorderRadius.all(Radius.circular(100)),
+                              ),
+                              child: ClipRRect(borderRadius: BorderRadius.circular(100),
+                                child: widget.profileImageWidget ?? Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(widget.contactName, style: TextStyle(fontSize: 24, color: Colors.white)),
+                      Text(widget.fullPhoneNumber, style: TextStyle(color: Colors.grey)),
+                      buildCallDetails(),
+                    ],
+                  ),
+                ),
+                Container(
+                    margin: EdgeInsets.only(bottom: 25),
+                    child: buildCallButtons())
+              ],
+            ),
+          ),
+        )
+      ],
+    );
   }
 
-  Widget _buildActionButtons() {
-    var hangupBtn = ActionButton(
-      title: "hangup",
-      onPressed: () => _handleHangup(),
-      icon: Icons.call_end,
-      fillColor: Colors.red,
-    );
+  Widget buildCallButtons() {
+    Widget baseButtons = Row();
+    Widget advancedButtons = Row();
 
-    var hangupBtnInactive = ActionButton(
-      title: "hangup",
-      onPressed: () {},
-      icon: Icons.call_end,
-      fillColor: Colors.grey,
-    );
-
-    var basicActions = <Widget>[];
-    var advanceActions = <Widget>[];
-
-    switch (_state) {
-      case CallStateEnum.NONE:
-      case CallStateEnum.CONNECTING:
-        if (direction == 'INCOMING') {
-          basicActions.add(ActionButton(
-            title: "Accept",
+    if (callOngoing) {
+      baseButtons = Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        ActionButton(
+          onPressed: () => onHangup(),
+          icon: Icons.call_end,
+          fillColor: Colors.red,
+        )
+      ]);
+      advancedButtons = Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        ActionButton(
+          icon: isAudioMuted ? Icons.mic_off : Icons.mic,
+          checked: isAudioMuted,
+          onPressed: () => onToggleMute(),
+        ),
+        ActionButton(
+          icon: isSpeakerOn ? Icons.volume_off : Icons.volume_up,
+          checked: isSpeakerOn,
+          onPressed: () => onToggleSpeaker(),
+        )
+      ]);
+    } else {
+      if (direction == 'OUTGOING') {
+        baseButtons = Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          ActionButton(
+            onPressed: () => onHangup(),
+            icon: Icons.call_end,
+            fillColor: Colors.red,
+          ),
+        ]);
+        advancedButtons = Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          ActionButton(
+            icon: isSpeakerOn ? Icons.volume_off : Icons.volume_up,
+            checked: isSpeakerOn,
+            onPressed: () => onToggleSpeaker(),
+          )
+        ]);
+      } else {
+        baseButtons = Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          ActionButton(
             fillColor: Colors.green,
             icon: Icons.phone,
-            onPressed: () => _handleAccept(),
-          ));
-          basicActions.add(hangupBtn);
-        } else {
-          basicActions.add(hangupBtn);
-        }
-        break;
-      case CallStateEnum.ACCEPTED:
-      case CallStateEnum.CONFIRMED:
-        {
-          advanceActions.add(ActionButton(
-            title: _audioMuted ? 'unmute' : 'mute',
-            icon: _audioMuted ? Icons.mic_off : Icons.mic,
-            checked: _audioMuted,
-            onPressed: () => _muteAudio(),
-          ));
-
-          advanceActions.add(ActionButton(
-            title: "keypad",
-            icon: Icons.dialpad,
-            onPressed: () => _handleKeyPad(),
-          ));
-
-          advanceActions.add(ActionButton(
-            title: _speakerOn ? 'speaker off' : 'speaker on',
-            icon: _speakerOn ? Icons.volume_off : Icons.volume_up,
-            checked: _speakerOn,
-            onPressed: () => _toggleSpeaker(),
-          ));
-
-          basicActions.add(ActionButton(
-            title: _hold ? 'unhold' : 'hold',
-            icon: _hold ? Icons.play_arrow : Icons.pause,
-            checked: _hold,
-            onPressed: () => _handleHold(),
-          ));
-
-          basicActions.add(hangupBtn);
-
-          if (_showNumPad) {
-            basicActions.add(ActionButton(
-              title: "back",
-              icon: Icons.keyboard_arrow_down,
-              onPressed: () => _handleKeyPad(),
-            ));
-          } else {
-            basicActions.add(ActionButton(
-              title: "transfer",
-              icon: Icons.phone_forwarded,
-              onPressed: () => _handleTransfer(),
-            ));
-          }
-        }
-        break;
-      case CallStateEnum.FAILED:
-      case CallStateEnum.ENDED:
-        basicActions.add(hangupBtnInactive);
-        break;
-      case CallStateEnum.PROGRESS:
-        basicActions.add(hangupBtn);
-        break;
-      default:
-        print('Other state => $_state');
-        break;
-    }
-
-    var actionWidgets = <Widget>[];
-
-    if (_showNumPad) {
-      actionWidgets.addAll(_buildNumPad());
-    } else {
-      if (advanceActions.isNotEmpty) {
-        actionWidgets.add(Padding(
-            padding: const EdgeInsets.all(3),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: advanceActions)));
+            onPressed: () => onHandleAccept(),
+          )
+        ]);
       }
     }
 
-    actionWidgets.add(Padding(
-        padding: const EdgeInsets.all(3),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: basicActions)));
-
-    return Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: actionWidgets);
+    return Column(children: [
+      Container(
+          margin: EdgeInsets.only(bottom: 25),
+          child: advancedButtons),
+      baseButtons
+    ]);
   }
 
-  Widget _buildContent() {
-    Widget _w = ActivityLoader.build();
-
-    double imageBlur = widget.profileImageWidget != null ? 15 : 0;
-
-    if (!displayLoader) {
-      _w = Stack(
-        children: [
-          widget.profileImageWidget == null ? Container(
-            height: DEVICE_MEDIA_SIZE.height,
-            width: DEVICE_MEDIA_SIZE.width,
-            color: widget.backgroundColor,
-          ) : ColorFiltered(
-            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.8), BlendMode.srcOver),
-            child: Container(
-              child: widget.profileImageWidget,
-              height: DEVICE_MEDIA_SIZE.height,
-              width: DEVICE_MEDIA_SIZE.width,
-            ),
-          ),
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: imageBlur, sigmaY: imageBlur),
-            child: Container(
-              child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Center(
-                          child: Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Text(
-                                'VOICE CALL' +
-                                    (_hold
-                                        ? ' PAUSED BY ${this._holdOriginator.toUpperCase()}'
-                                        : ''),
-                                style: TextStyle(fontSize: 24, color: Colors.black54),
-                              ))),
-                      Container(
-                        height: 100, width: 100,
-                        child: ClipRRect(borderRadius: BorderRadius.circular(100),
-                          child: widget.profileImageWidget ?? Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
-                        ),
-                      ),
-                      Text(widget.contactName, style: TextStyle(fontSize: 24)),
-                      Text(widget.fullPhoneNumber, style: TextStyle(color: Colors.grey)),
-                      Center(
-                          child: Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Text(
-                                '$remote_identity',
-                                style: TextStyle(fontSize: 18, color: Colors.black54),
-                              ))),
-                      Center(
-                          child: Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Text(_timeLabel,
-                                  style: TextStyle(fontSize: 14, color: Colors.black54)))),
-                      Center(
-                          child: Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Text(direction,
-                                  style: TextStyle(fontSize: 14, color: Colors.black54)))),
-                      Center(
-                          child: Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Text(widget.target,
-                                  style: TextStyle(fontSize: 14, color: Colors.black54)))),
-                      Center(
-                          child: Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Text(EnumHelper.getName(_state),
-                                  style: TextStyle(fontSize: 14, color: Colors.black54)))),
-                    ],
-                  )),
-            ),
-          )
-        ],
-      );
-    }
-
-    return _w;
+  Widget buildCallDetails() {
+    return Column(children: [
+      Center(
+          child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Text(
+                '$remote_identity',
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ))),
+      Center(
+          child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Text(callDurationLabel,
+                  style: TextStyle(fontSize: 14, color: Colors.white)))),
+      Center(
+          child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Text(direction ?? 'loading direction...',
+                  style: TextStyle(fontSize: 14, color: Colors.white)))),
+      Center(
+          child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Text(callState.toString(),
+                  style: TextStyle(fontSize: 14, color: Colors.white)))),
+      Center(
+          child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Text('isSpeakerOn ' + isSpeakerOn.toString(),
+                  style: TextStyle(fontSize: 14, color: Colors.white)))),
+      Text(stateLabel),
+    ]);
   }
 }

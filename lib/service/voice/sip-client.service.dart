@@ -75,7 +75,7 @@ class SipClientService implements SipUaHelperListener {
     print(call.state.toString());
     print(state.state.toString());
 
-    callStatePublisher.subject.add(call);
+    callStatePublisher.subject.add(new CallEvent(call: call, callState: state));
   }
 
   @override

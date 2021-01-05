@@ -154,9 +154,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                             onTap: () {
                               NavigatorUtil.push(context, new CallScreenWidget(
                                 target: '1004',
-                                contactName: 'Sabaha',
-                                fullPhoneNumber: '+38762154973',
+                                contactName: widget.contactName,
+                                fullPhoneNumber: widget.peer.fullPhoneNumber,
                                 profileImageWidget: profileImageWidget,
+                                direction: 'OUTGOING',
                               ));
                             },
                             child: Container(child: Icon(Icons.phone, color: Colors.white))

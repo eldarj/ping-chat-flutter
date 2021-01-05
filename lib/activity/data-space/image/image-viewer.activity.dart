@@ -76,7 +76,7 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                 ),
                 Container(
                   height: 85, color: Colors.black87,
-                  padding: EdgeInsets.only(top: 30, left: 10, right: 10),
+                  padding: EdgeInsets.only(top: 30, left: 5, right: 10),
                   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     IconButton(onPressed: () {
                       Navigator.pop(context);

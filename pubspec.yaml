@@ -55,6 +55,7 @@ dependencies:
   flutter_audio_recorder: ^0.5.5
   stop_watch_timer: ^0.6.0
   audioplayers: ^0.17.0
+  flutter_spinkit: ^4.1.2
 
 dev_dependencies:
   functional_widget: ^0.8.0

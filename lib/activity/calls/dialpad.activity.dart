@@ -106,10 +106,7 @@ class DialpadActivityState extends State<DialpadActivity> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: row
                 .map((label) => ActionButton(
-              title: '${label.keys.first}',
-              subTitle: '${label.values.first}',
               onPressed: () => _handleNum(label.keys.first),
-              number: true,
             ))
                 .toList())))
         .toList();
@@ -161,7 +158,6 @@ class DialpadActivityState extends State<DialpadActivity> {
                   ActionButton(
                     icon: Icons.keyboard_arrow_left,
                     onPressed: () => _handleBackSpace(),
-                    onLongPress: () => _handleBackSpace(true),
                   ),
                 ],
               )))
