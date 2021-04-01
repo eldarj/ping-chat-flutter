@@ -28,7 +28,8 @@ class ShareFilesModal extends StatefulWidget {
 
   final MessageSendingService messageSendingService;
 
-  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress, this.peerId, this.picturesPath, this.userId, this.userSentNodeId, this.myContactName}) : super(key: key);
+  const ShareFilesModal({Key key, this.messageSendingService, this.onProgress,
+    this.peerId, this.picturesPath, this.userId, this.userSentNodeId, this.myContactName}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ShareFilesModalState();
@@ -146,7 +147,7 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 50, vertical: 25),
                 child: Row(children: [
-                  buildShareItem(text: 'Send file', icon: Icons.photo_library, color: Colors.deepPurpleAccent, onTap: () {
+                  buildShareItem(text: 'Send files', icon: Icons.photo_library, color: Colors.deepPurpleAccent, onTap: () {
                     openFilePicker();
                   }),
                 ]),

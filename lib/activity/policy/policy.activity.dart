@@ -18,7 +18,7 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
   @override
   Widget render() {
     return Scaffold(
-        resizeToAvoidBottomPadding: false,
+        resizeToAvoidBottomInset: false,
         body: FutureBuilder(builder: (context, snapshot) {
           scaffold = Scaffold.of(context);
           return Container(

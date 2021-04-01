@@ -61,7 +61,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
     if (widget.displaySavedContactSnackbar) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         scaffold.showSnackBar(SnackBarsComponent
-            .success('Uspješno ste snimili kontakt ${widget.savedContactName} (${widget.savedContactPhoneNumber})'));
+            .success('Contact ${widget.savedContactName} (${widget.savedContactPhoneNumber}) successfully added!'));
       });
     }
     getUserAndGetRides();
@@ -87,13 +87,25 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                       return [
                         PopupMenuItem<String>(
                             value: 'search',
-                            child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
-                                child: Icon(Icons.search)), Text('Search') ])
+                            child: Row(children: [
+                              Container(
+                                  width: 50,
+                                  margin:EdgeInsets.only(right: 20),
+                                  child: Icon(Icons.search)
+                              ),
+                              Text('Search')
+                            ])
                         ),
                         PopupMenuItem<String>(
                             value: 'newcontact',
-                            child: Row(children: [ Container(margin:EdgeInsets.only(right: 5),
-                                child: Icon(Icons.person_add)), Text('Add contact') ])
+                            child: Row(children: [
+                              Container(
+                                  width: 50,
+                                  margin:EdgeInsets.only(right: 20),
+                                  child: Icon(Icons.person_add)
+                              ),
+                              Text('Add contact')
+                            ])
                         )
                       ];
                     },
@@ -150,7 +162,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
               ),
               Container(
                   margin: EdgeInsets.only(top: 10, bottom: 10),
-                  child: Text(totalContacts > 0 ? 'Prikazano ${contacts.length} od ${totalContacts}' : '')
+                  child: Text(totalContacts > 0 ? 'Showing ${contacts.length} of ${totalContacts}' : '')
               ),
               Opacity(
                   opacity: isLoadingOnScroll ? 1 : 0,
@@ -340,7 +352,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
           isLoadingOnScroll = false;
         });
         scaffold.showSnackBar(SnackBar(
-            content: Text('Svi kontakti prikazani.', style: TextStyle(color: Colors.white)),
+            content: Text('All contacts displayed', style: TextStyle(color: Colors.white)),
             duration: Duration(seconds: 2),
             backgroundColor: Theme.of(context).accentColor
         ));

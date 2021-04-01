@@ -5,11 +5,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/messaging/unread-message.publisher.dart';
+import 'package:flutterping/service/voice/call-state.publisher.dart';
 import 'package:flutterping/service/voice/sip-client.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -57,11 +59,11 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   String registerStateString = 'unknown';
 
   initListenersAndGetData() async {
-    dynamic user = await UserService.getUser();
+    ClientDto user = await UserService.getUser();
     userId = user.id;
 
     // Initialize SIP UA Client
-    sipClientService.register('1001', '1234');
+    sipClientService.register(user.fullPhoneNumber, '1234');
 
     sipClientService.addListener('123', (RegistrationState state) {
       setState(() {
@@ -200,9 +202,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
         List<dynamic> result = response.decode();
 
-        String pox = 'asd';
-
-        result.where((el) => el != null).forEach((element) {
+        result.where((element) => element != null).forEach((element) {
           PresenceEvent presenceEvent = PresenceEvent.fromJson(element);
           // TODO: Replace with maps
           chats.forEach((chat) {
@@ -247,16 +247,18 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     unreadMessagePublisher.removeListener(STREAMS_LISTENER_ID);
 
     sipClientService.removeListener('123');
+    callStatePublisher.removeListener('123');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Poruke'),
+        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Chats'),
         drawer: NavigationDrawerComponent(),
         bottomNavigationBar: new BottomNavigationComponent(currentIndex: 0).build(context),
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
+          ROOT_CONTEXT = context;
           return buildActivityContent();
         })
     );
@@ -342,7 +344,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
               messageContent: chat.text,
               seen: chat.seen,
               isOnline: isOnline,
-              statusLabel: isOnline ? 'Online' : 'Zadnji put online' + DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
+              statusLabel: isOnline ? 'Online' : 'Last seen ' + DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
               messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp),
               displayStatusIcon: userId == chat.sender.id,
               message: chat,

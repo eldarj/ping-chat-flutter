@@ -105,18 +105,20 @@ class ChatActivityState extends BaseState<ChatActivity> {
     userId = user.id;
     userSentNodeId = user.sentNodeId;
 
-    PresenceEvent presenceEvent = new PresenceEvent();
-    presenceEvent.userPhoneNumber = user.fullPhoneNumber;
-    presenceEvent.status = true;
+    if (user.isActive) {
+      PresenceEvent presenceEvent = new PresenceEvent();
+      presenceEvent.userPhoneNumber = user.fullPhoneNumber;
+      presenceEvent.status = true;
 
-    sendPresenceEvent(presenceEvent);
+      sendPresenceEvent(presenceEvent);
+    }
 
     doGetMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
     userPresenceSubscriptionFn = wsClientService.subscribe('/users/${widget.peer.fullPhoneNumber}/status', (frame) async {
       PresenceEvent presenceEvent = PresenceEvent.fromJson(json.decode(frame.body));
 
       setState(() {
-        widget.statusLabel = presenceEvent.status ? 'Online' : 'Zadnji put online ' +
+        widget.statusLabel = presenceEvent.status ? 'Online' : 'Last seen ' +
             DateTimeUtil.convertTimestampToTimeAgo(presenceEvent.eventTimestamp);
         wsClientService.presencePub.subject.add(presenceEvent);
       });
@@ -278,6 +280,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
             titleWidget: InkWell(
               onTap: () {
                 NavigatorUtil.push(context, SingleContactActivity(
+                  myContactName: widget.myContactName,
+                  statusLabel: widget.statusLabel,
                   peer: widget.peer,
                   userId: userId,
                   contactName: widget.peerContactName,
@@ -346,13 +350,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                   });
                 },
               ),
-              displayStickers ? StickerBar(
-                sendFunc: doSendEmoji,
-                peer: widget.peer,
-                myContactName: widget.myContactName,
-                peerContactName: widget.peerContactName,
-                contactBindingId: widget.contactBindingId,
-              ) : Container(),
+              displayStickers ? StickerBar(sendFunc: doSendEmoji) : Container(),
             ]),
           );
         })

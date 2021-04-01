@@ -56,6 +56,10 @@ class UserService {
   static setUserAndToken(String token, dynamic userDto) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(USER_TOKEN_SHARED_PREFS_KEY, token.replaceAll("Bearer ", ""));
+
+    if (userDto.isActive == null) {
+      userDto.isActive = true;
+    }
     var userJson = json.encode(userDto);
 
     await prefs.setString(USER_SHARED_PREFS_KEY, userJson);

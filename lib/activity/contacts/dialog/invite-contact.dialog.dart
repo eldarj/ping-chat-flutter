@@ -21,15 +21,15 @@ class InviteContactDialogState extends BaseState<InviteContactDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-        title: Text('Uspješno ste dodali kontakt'),
+        title: Text('Contact added'),
         content: RichText(
             text: TextSpan(
-              text: 'Napravili ste novi kontakt, ali nažalost ',
+              text: 'You added a contact, but it unfortunately seems like ',
               style: TextStyle(color: Colors.black87),
               children: [
                 TextSpan(text: widget.contactName,
                     style: TextStyle(color: CompanyColor.bluePrimary, fontWeight: FontWeight.bold)),
-                TextSpan(text: ' ne koristi Ping Chat!\n\nŽelite poslati besplatnu SMS pozivnicu na '),
+                TextSpan(text: ' isn\'t using Ping Chat!\n\nWould you like to send a free invitational SMS to '),
                 TextSpan(text: widget.contactPhoneNumber,
                     style: TextStyle(color: CompanyColor.bluePrimary, fontWeight: FontWeight.bold)),
                 TextSpan(text: '?')

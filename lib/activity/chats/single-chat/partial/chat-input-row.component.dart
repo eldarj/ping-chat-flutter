@@ -221,7 +221,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                     ),
                   ),
                 ),
-                Container(constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 210),
+                Container(constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
                   child: TextField(
                     textInputAction: TextInputAction.newline,
                     minLines: 1,
@@ -233,7 +233,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                     controller: widget.inputTextController,
                     focusNode: widget.inputTextFocusNode,
                     decoration: InputDecoration.collapsed(
-                      hintText: 'Vaša poruka...',
+                      hintText: 'Say hello...',
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
                   ),
@@ -242,13 +242,6 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                   child: IconButton(
                     icon: Icon(Icons.attachment),
                     onPressed: widget.onOpenShareBottomSheet,
-                    color: CompanyColor.blueDark,
-                  ),
-                ),
-                Container(
-                  child: IconButton(
-                    icon: Icon(Icons.photo_camera),
-                    onPressed: () {},
                     color: CompanyColor.blueDark,
                   ),
                 ),

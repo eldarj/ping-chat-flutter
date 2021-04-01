@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/activity/auth/login.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
@@ -43,7 +44,7 @@ class LogoutActivityState extends State<LogoutActivity> {
 
     await Future.delayed(Duration(seconds: 1));
 
-    NavigatorUtil.push(context, LoginActivity());
+    SystemNavigator.pop();
   }
 
   @override

@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/calls/callscreen.activity.dart';
 import 'package:flutterping/activity/calls/dialpad.activity.dart';
+import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
 import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
@@ -43,9 +44,15 @@ class SingleContactActivity extends StatefulWidget {
 
   final int contactBindingId;
 
+  final String myContactName;
+
+  final String statusLabel;
+
   final bool favorite;
 
-  const SingleContactActivity({ Key key, this.peer, this.userId, this.contactName, this.favorite, this.contactBindingId }) : super(key: key);
+  const SingleContactActivity({ Key key,
+    this.myContactName, this.statusLabel,
+    this.peer, this.userId, this.contactName, this.favorite, this.contactBindingId }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new SingleContactActivityState();
@@ -136,7 +143,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       icon: Icons.chat,
                       fillColor: CompanyColor.bluePrimary,
                       onPressed: () async {
-
+                        NavigatorUtil.push(context, ChatActivity(
+                            myContactName: widget.myContactName, peer: widget.peer, peerContactName: widget.contactName,
+                            statusLabel: widget.statusLabel, contactBindingId: widget.contactBindingId));
                       },
                     ),
                     ActionButton(
@@ -145,7 +154,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       onPressed: () async {
                         await Future.delayed(Duration(milliseconds: 250));
                         NavigatorUtil.push(context, new CallScreenWidget(
-                          target: '1004',
+                          target: widget.peer.fullPhoneNumber,
                           contactName: widget.contactName,
                           fullPhoneNumber: widget.peer.fullPhoneNumber,
                           profileImageWidget: profileImageWidget,
@@ -162,7 +171,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       boxShadow: [Shadows.bottomShadow()]
                   ),
                   child: buildTwoColumns([
-                    buildDrawerItem(context, 'Broj telefona',
+                    buildDrawerItem(context, 'Phonenumber',
                         Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
@@ -190,7 +199,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       boxShadow: [Shadows.bottomShadow()]
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    buildSectionHeader('Djeljeni medij', linkWidget: FlatButton(
+                    buildSectionHeader('Shared media', linkWidget: TextButton(
                       onPressed: () {
                         NavigatorUtil.push(context, ContactSharedActivity(
                             peer: widget.peer,
@@ -198,26 +207,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                             peerContactName: widget.contactName,
                             contactBindingId: widget.contactBindingId));
                       },
-                      child: Text('Pogledaj sve', style: TextStyle(color: CompanyColor.bluePrimary)),
+                      child: Text('See more', style: TextStyle(color: CompanyColor.bluePrimary)),
                     )),
                     buildDataSpaceListView(),
                   ])),
-              Container(
-                padding: EdgeInsets.all(10),
-                margin: EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                    color: Theme.of(context).backgroundColor,
-                    boxShadow: [Shadows.bottomShadow()]
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  FlatButton(onPressed: () {}, child: Row(children: [
-                    Container(
-                        margin: EdgeInsets.only(right: 10),
-                        child: Icon(Icons.photo_library, color: Colors.grey.shade700)),
-                    Text('Pozadina', style: TextStyle(color: Colors.grey.shade700))
-                  ]))
-                ]),
-              ),
               Container(
                 padding: EdgeInsets.all(10),
                 margin: EdgeInsets.only(bottom: 10),
@@ -234,14 +227,14 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                           Container(
                               margin: EdgeInsets.only(right: 10),
                               child: Icon(Icons.star, color: Colors.yellow.shade700)),
-                          Text('Dodaj u omiljene', style: TextStyle(color: Colors.grey.shade700)),
+                          Text('Add to favourites', style: TextStyle(color: Colors.grey.shade700)),
                         ],
                       )) : FlatButton(onPressed: () {}, child: Row(
                         children: <Widget>[
                           Container(
                               margin: EdgeInsets.only(right: 10),
                               child: Icon(Icons.star_border, color: Colors.yellow.shade700)),
-                          Text('Ukloni iz omiljenih', style: TextStyle(color: Colors.grey.shade700)),
+                          Text('Remove from favourites', style: TextStyle(color: Colors.grey.shade700)),
                         ],
                       ))
                     ]),
@@ -257,9 +250,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FlatButton(onPressed: () {}, child: Text('Izbriši kontakt', style: TextStyle(color: CompanyColor.red))),
-                      FlatButton(onPressed: () {}, child: Text('Blokiraj kontakt', style: TextStyle(color: CompanyColor.red))),
-                      FlatButton(onPressed: () {}, child: Text('Izbriši sve poruke', style: TextStyle(color: CompanyColor.red))),
+                      FlatButton(onPressed: () {}, child: Text('Delete contact', style: TextStyle(color: CompanyColor.red))),
+                      FlatButton(onPressed: () {}, child: Text('Block contact', style: TextStyle(color: CompanyColor.red))),
+                      FlatButton(onPressed: () {}, child: Text('Delete all messages', style: TextStyle(color: CompanyColor.red))),
                     ]),
               )
             ])
@@ -357,7 +350,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     if (!displaySharedDataSpaceLoader) {
       if (nodes != null && nodes.length > 0) {
         _w = Container(
-          height: nodes.length > 4 ? 250 : 150, width: DEVICE_MEDIA_SIZE.width,
+          height: nodes.length > 4 ? 300 : 150, width: DEVICE_MEDIA_SIZE.width,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade200),
           ),
@@ -371,7 +364,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
           }),
         );
       } else {
-        _w = Container(child: Text('Nemate podataka', style: TextStyle(color: Colors.grey)));
+        _w = Container(child: Text("You don't have any shared media", style: TextStyle(color: Colors.grey)));
       }
     } else {
       _w = Container(margin: EdgeInsets.only(left: 5), child: Spinner(size: 25));
@@ -410,8 +403,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
         child: fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
             : Text('TODO: fixme'),
       );
-    } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
-      _w = DSMedia(node: node, gridHorizontalSize: 5, picturesPath: picturesPath);
+    } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA' || node.nodeType == 'FILE') {
+      _w = DSMedia(node: node, gridHorizontalSize: 3, picturesPath: picturesPath);
     } else {
       _w = Center(child: Text('Unrecognized media.'));
     }

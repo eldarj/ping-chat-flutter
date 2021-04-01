@@ -33,8 +33,12 @@ class SipClientService implements SipUaHelperListener {
     // };
     settings.webSocketSettings.allowBadCertificate = true;
     settings.webSocketSettings.userAgent = 'Dart/2.8 (dart:io) for OpenSIPS.';
+    settings.registerParams.extraContactUriParams = <String, String>{
+      'pn-provider': 'fcm',
+      'transport': 'ws'
+    };
 
-    settings.uri = 'sip:1001@192.168.1.4';
+    settings.uri = 'sip:' + user + '@192.168.1.4';
     settings.authorizationUser = user;
     settings.password = password;
     settings.displayName = user;
@@ -47,6 +51,10 @@ class SipClientService implements SipUaHelperListener {
   call(target) {
     print('SipClientService - CALL');
     helper.call(target, true);
+  }
+
+  answer(call) {
+    call.answer(helper.buildCallOptions(true));
   }
 
   // Publishers

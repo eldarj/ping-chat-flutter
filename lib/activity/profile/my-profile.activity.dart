@@ -57,7 +57,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   @override
   preRender() {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Profile');
+    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'My Profile');
     drawer = new NavigationDrawerComponent();
   }
 
@@ -103,7 +103,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                       ),
                       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(
-                          "Pozdrav,",
+                          "Hello there,",
                           style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w400, fontSize: 24),
                         ),
                         Text(clientDto.firstName + ' ' + clientDto.lastName,

@@ -6,9 +6,9 @@ class SnackBarsComponent {
     return SnackBar(
         duration: duration,
         backgroundColor: CompanyColor.red,
-        content: Text(content != null ? content : 'Dogodila se greška.'),
+        content: Text(content != null ? content : 'Something went wrong.'),
         action: SnackBarAction(textColor: Colors.white,
-            label: actionOnPressed == null ? '' : actionLabel != null ? actionLabel : 'Pokušaj ponovo',
+            label: actionOnPressed == null ? '' : actionLabel != null ? actionLabel : 'Try again',
             onPressed: actionOnPressed != null ? actionOnPressed : () {}));
   }
 
@@ -30,7 +30,7 @@ class SnackBarsComponent {
 
   static SnackBar doubleBack() {
     return SnackBar(
-        content: Text('Pritisnite nazad 2x za izlazak iz aplikacije', style: TextStyle(color: Colors.white)),
+        content: Text('Press Back twice to close the application', style: TextStyle(color: Colors.white)),
         duration: Duration(seconds: 3),
         backgroundColor: Colors.orangeAccent
     );

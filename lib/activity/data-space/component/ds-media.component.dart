@@ -73,12 +73,14 @@ class DSMediaState extends BaseState<DSMedia> {
 
   buildMessageMedia() {
     double iconContainerSize = widget.gridHorizontalSize == 4 ? 0 : 100 / widget.gridHorizontalSize;
-    double nameContainerSize = DEVICE_MEDIA_SIZE.width / widget.gridHorizontalSize - iconContainerSize - 40;
+    double nameContainerSize = DEVICE_MEDIA_SIZE.width / widget.gridHorizontalSize - iconContainerSize - 20;
     double iconSize = 40 / widget.gridHorizontalSize;
 
     String title = widget.node.nodeName;
     String filePath = widget.picturesPath + '/' + widget.node.nodeName;
-    Widget iconWidget = Icon(Icons.ondemand_video, color: Colors.grey.shade100, size: iconSize);
+
+    IconData icon = widget.node.nodeType == 'MEDIA' ? Icons.ondemand_video : Icons.file_copy_outlined;
+    Widget iconWidget = Icon(icon, color: Colors.grey.shade100, size: iconSize);
 
     if (widget.node.nodeType == 'RECORDING') {
       title = 'Recording';
@@ -106,7 +108,7 @@ class DSMediaState extends BaseState<DSMedia> {
 
     return GestureDetector(
       onTap: () async {
-        if (widget.node.nodeType == 'MEDIA') {
+        if (widget.node.nodeType == 'MEDIA' || widget.node.nodeType == 'FILE') {
           OpenFile.open(filePath);
         } else {
           if (isRecordingPlaying) {
@@ -130,11 +132,11 @@ class DSMediaState extends BaseState<DSMedia> {
       },
       child: Container(
           color: Colors.grey.shade200,
-          padding: EdgeInsets.all(10),
+          padding: EdgeInsets.only(left: 10, top: 10, bottom: 10),
           child: Row(
             children: [
               widget.gridHorizontalSize == 4 ? Container() : Container(
-                margin: EdgeInsets.only(right: 10),
+                margin: EdgeInsets.only(right: 5),
                 child: Container(
                     width: iconContainerSize, height: iconContainerSize,
                     decoration: BoxDecoration(

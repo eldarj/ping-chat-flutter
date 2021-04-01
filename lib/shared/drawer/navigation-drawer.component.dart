@@ -7,8 +7,11 @@ import 'package:flutterping/activity/data-space/data-space.activity.dart';
 import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/activity/profile/my-profile.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
+import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/drawer/partial/logout.dialog.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -98,21 +101,32 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                     child: !displayLoader ? SingleChildScrollView(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         SizedBox(height: 15),
-                        buildSectionTitle("Profile"),
+                        buildSectionTitle("Me"),
                         buildDrawerItem(context, 'My profile',
                             buildIcon(iconPath: "static/graphic/icon/at.png", backgroundColor: Colors.red),
-                            labelDescription: 'pingme@eldarj',
                             activity: MyProfileActivity()),
                         buildDrawerItem(context, 'Active status',
-                            buildIcon(icon: Icons.check,
-                                backgroundColor: Colors.deepPurpleAccent.shade200),
-                            labelDescription: true ? "On" : "Off"),
-                        buildDrawerItem(context, 'FeedBack',
-                            buildIcon(iconPath: "static/graphic/icon/qrcode.png")),
-
+                          buildIcon(icon: user.isActive ? Icons.check : Icons.visibility_off,
+                              backgroundColor: user.isActive ? Colors.green : Colors.grey),
+                          labelDescription: user.isActive ? "On" : "Off",
+                          onTapFunction: () {
+                            showModalBottomSheet(context: context, builder: (BuildContext context) {
+                              return Container(
+                                  child: Wrap(children: [
+                                    ListTile(leading: Icon(Icons.check_circle, color: Colors.green),
+                                        title: Text('Display my status'),
+                                        onTap: setPresenceStatusOnline),
+                                    ListTile(leading: Icon(Icons.visibility_off),
+                                        title: Text('Appear offline'),
+                                        onTap: setPresenceStatusOffline),
+                                  ])
+                              );
+                            });
+                          },
+                        ),
                         buildSectionTitle("Chats"),
                         buildDrawerItem(context, 'Chats',
-                            buildIcon(icon: Icons.chat, backgroundColor: Colors.green.shade400),
+                            buildIcon(icon: Icons.chat, backgroundColor: Colors.blue),
                             activity: ChatListActivity()),
                         buildDrawerItem(context, 'My contacts',
                             buildIcon(icon: Icons.people, backgroundColor: Colors.orangeAccent.shade700),
@@ -125,9 +139,14 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                               return Container(
                                   child: Wrap(children: [
                                     ListTile(leading: Icon(Icons.person_add),
-                                        title: Text('Novi kontakt'),
+                                        title: Text('New contact'),
                                         onTap: () {
                                           NavigatorUtil.push(context, AddContactActivity());
+                                        }),
+                                    ListTile(
+                                        leading: Image.asset("static/graphic/icon/qrcode.png", height: 25, color: Colors.black45),
+                                        title: Text('Scan QR'),
+                                        onTap: () {
                                         }),
                                     ListTile(leading: Icon(Icons.contacts),
                                         title: Text('Sync phone contacts'),
@@ -141,10 +160,10 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                         ),
 
                         buildSectionTitle("Data Space"),
-                        buildDrawerItem(context, 'Moj prostor',
+                        buildDrawerItem(context, 'My dataspace',
                             buildIcon(icon: Icons.image, backgroundColor: Colors.redAccent),
                             activity: DataSpaceActivity(userId: user.id),
-                            labelDescription: 'Media, storage, dijeljeni podaci isl.'),
+                            labelDescription: 'Your stored data and shared media'),
 
                         buildSectionTitle("Preferences"),
                         buildDrawerItem(context, 'Account',
@@ -185,5 +204,36 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
             )
         )
     );
+  }
+
+  void setPresenceStatusOnline() async {
+    PresenceEvent presenceEvent = new PresenceEvent();
+    presenceEvent.userPhoneNumber = user.fullPhoneNumber;
+    presenceEvent.status = true;
+
+    sendPresenceEvent(presenceEvent);
+    await UserService.setUserStatus(true);
+    user = await UserService.getUser();
+    setState(() {
+    });
+
+    Navigator.pop(context);
+    scaffold.showSnackBar(SnackBarsComponent.success('Your online status will be publicly visible.'));
+  }
+
+
+  void setPresenceStatusOffline() async {
+    PresenceEvent presenceEvent = new PresenceEvent();
+    presenceEvent.userPhoneNumber = user.fullPhoneNumber;
+    presenceEvent.status = false;
+
+    sendPresenceEvent(presenceEvent);
+    await UserService.setUserStatus(false);
+    user = await UserService.getUser();
+    setState(() {
+    });
+
+    Navigator.pop(context);
+    scaffold.showSnackBar(SnackBarsComponent.info("Your status will be shown as 'offline'."));
   }
 }

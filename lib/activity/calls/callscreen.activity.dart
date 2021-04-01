@@ -29,16 +29,19 @@ class CallScreenWidget extends StatefulWidget {
 
   final String direction;
 
+  final Call incomingCall;
+
   const CallScreenWidget({Key key,
     this.target,
     this.contactName,
     this.fullPhoneNumber,
     this.profileImageWidget,
     this.direction,
-    this.backgroundColor}) : super(key: key);
+    this.backgroundColor,
+    this.incomingCall}) : super(key: key);
 
   @override
-  CallScreenActivityState createState() => CallScreenActivityState(direction: direction);
+  CallScreenActivityState createState() => CallScreenActivityState(direction: direction, call: incomingCall);
 }
 
 class CallScreenActivityState extends State<CallScreenWidget> {
@@ -67,11 +70,12 @@ class CallScreenActivityState extends State<CallScreenWidget> {
 
   CallStateEnum callState = CallStateEnum.NONE;
 
-  CallScreenActivityState({this.direction}) : super();
+  CallScreenActivityState({this.direction, this.call}) : super();
 
   void initCall() async {
     await Future.delayed(Duration(seconds: 1));
-    sipClientService.call('1004');
+    print('DEBUGGING ' + widget.target);
+    sipClientService.call(widget.target);
   }
 
   @override
@@ -79,7 +83,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
     super.initState();
 
     callStatePublisher.addListener('123', (CallEvent callEvent) {
-      print('CALL STATE PUBLISHER');
+      print('CALL STATE PUBLISHER - CALLSCREEN');
       var call = callEvent.call;
       var callState = callEvent.callState;
       if (mounted) {
@@ -142,7 +146,9 @@ class CallScreenActivityState extends State<CallScreenWidget> {
       }
     });
 
-    initCall();
+    if (direction == 'OUTGOING') {
+      initCall();
+    }
   }
 
   @override
@@ -153,7 +159,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
   }
 
   void disposeCallObjects() {
-    if (call.state != CallStateEnum.FAILED && call.state != CallStateEnum.ENDED) {
+    if (call != null && call.state != CallStateEnum.FAILED && call.state != CallStateEnum.ENDED) {
       call.hangup();
     }
 
@@ -166,8 +172,8 @@ class CallScreenActivityState extends State<CallScreenWidget> {
     disposeCallObjects();
   }
 
-  void onHandleAccept() {
-    // call.answer(helper.buildCallOptions());
+  void onAccept() {
+    sipClientService.answer(call);
   }
 
   void onToggleMute() {
@@ -319,8 +325,13 @@ class CallScreenActivityState extends State<CallScreenWidget> {
           ActionButton(
             fillColor: Colors.green,
             icon: Icons.phone,
-            onPressed: () => onHandleAccept(),
-          )
+            onPressed: () => onAccept(),
+          ),
+          ActionButton(
+            onPressed: () => onHangup(),
+            icon: Icons.call_end,
+            fillColor: Colors.red,
+          ),
         ]);
       }
     }

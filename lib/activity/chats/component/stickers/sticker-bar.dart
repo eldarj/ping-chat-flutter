@@ -6,17 +6,9 @@ import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 class StickerBar extends StatefulWidget {
-  final ClientDto peer;
-
-  final String myContactName;
-
-  final String peerContactName;
-
-  final int contactBindingId;
-
   final Function(String) sendFunc;
 
-  const StickerBar({Key key, this.peer, this.myContactName, this.peerContactName, this.contactBindingId, this.sendFunc}) : super(key: key);
+  const StickerBar({Key key, this.sendFunc}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => StickerBarState();
@@ -25,7 +17,7 @@ class StickerBar extends StatefulWidget {
 class StickerBarState extends State<StickerBar> {
   StickerService stickerService = new StickerService();
 
-  int selectedIndex = 0;
+  int selectedIndex = 1;
 
   Map recentStickers;
 
@@ -47,13 +39,12 @@ class StickerBarState extends State<StickerBar> {
       1: ['stitch6.png','stitch8.png','stitch11.png','stitch10.png',],
     },
     4: {
-      0: ['shark1.png','shark2.png','shark3.png','shark4.png','simpson1.png'],
-      1: ['kid1.png','guy1.png','drake1.png','drake2.png']
+      0: ['shark2.png','shark3.png','simpson1.png', 'kid1.png', 'guy1.png'],
+      1: ['drake1.png','drake2.png']
     }
   };
 
   loadRecentStickers() async {
-    await Future.delayed(Duration(seconds: 1));
     recentStickers = await stickerService.loadRecent();
     setState(() {
       loadingRecent = false;
@@ -122,7 +113,7 @@ class StickerBarState extends State<StickerBar> {
   buildStickerGrid() {
     if (selectedIndex == 0) {
       return !loadingRecent ? _buildStickers(recentStickers)
-          : Spinner();
+          : Container(margin: EdgeInsets.all(20), child: Spinner());
     } else {
       return _buildStickers(stickersMap[selectedIndex]);
     }

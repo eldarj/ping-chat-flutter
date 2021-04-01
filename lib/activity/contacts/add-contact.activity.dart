@@ -59,7 +59,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Novi kontakt');
+    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'New contact');
     drawer = new NavigationDrawerComponent();
   }
 
@@ -78,8 +78,8 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
                       borderRadius: BorderRadius.circular(50.0),
                       color: Colors.grey.shade400
                   ),
-                  child: Icon(Icons.person, color: Colors.grey.shade300, size: 25)),
-              Container(child: Text('Novi kontakt', style: TextStyle(fontSize: 16))),
+                  child: Icon(Icons.person_add_alt_1, color: Colors.grey.shade300, size: 25)),
+              Container(child: Text('Add a new contact', style: TextStyle(fontSize: 16))),
             ],
           ),
           Divider(height: 25, thickness: 1),
@@ -102,8 +102,8 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
             controller: phoneNumberController,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-                hintText: 'Broj telefona',
-                labelText: 'Broj telefona',
+                hintText: 'Phonenumber',
+                labelText: 'Phonenumber',
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.all(15)),
           ),
@@ -116,8 +116,8 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
               controller: contactNameController,
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
-                  hintText: 'Ime kontakta',
-                  labelText: 'Ime kontakta',
+                  hintText: 'Contact name',
+                  labelText: 'Contact name',
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.all(15)),
             ),
@@ -128,7 +128,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
           Container(
             child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
               GradientButton(
-                child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Dalje'),
+                child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Add'),
                 onPressed: countryCodesLoaded && !displayLoader ?
                     () => onGetStarted(context) : null,
               )
@@ -141,17 +141,19 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
   void onGetStarted(BuildContext context) {
     // refresh the state
+    scaffold.removeCurrentSnackBar();
+
     setState(() {
       phoneNumberValidationMessage = phoneNumberController.text.length == 0
-          ? 'Unesite broj telefona'
-          : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Broj može sadržati samo cifre.' : '';
+          ? 'Enter a phonenumber'
+          : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Phonenumber can contain digits only.' : '';
 
-      contactNameValidationMessage = contactNameController.text.length < 3 ? 'Unesite ime kontakta' : '';
+      contactNameValidationMessage = contactNameController.text.length < 3 ? 'Enter a contact name' : '';
     });
 
     if (phoneNumberValidationMessage.length > 0) {
       scaffold.removeCurrentSnackBar();
-      scaffold.showSnackBar(SnackBarsComponent.error(content: 'Molimo ispravite greške.', duration: Duration(seconds: 2)));
+      scaffold.showSnackBar(SnackBarsComponent.error(content: 'Please fix the above errors', duration: Duration(seconds: 2)));
     } else {
       setState(() { displayLoader = true; });
       doSendAuthRequest(dialCodesMap[selectedCallingCodeId], phoneNumberController.text, contactNameController.text)
@@ -190,7 +192,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
       ));
     } else {
       scaffold.removeCurrentSnackBar();
-      scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste dodali kontakt ${contactDto.contactPhoneNumber}'));
+      scaffold.showSnackBar(SnackBarsComponent.success('You successfully added ${contactDto.contactPhoneNumber}'));
 
       await showDialog(context: context, builder: (BuildContext context) {
         return InviteContactDialog(contactName: contactDto.contactName,
@@ -198,7 +200,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
       }).then((invited) {
         if (invited != null && invited) {
           scaffold.removeCurrentSnackBar();
-          scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste poslali pozivnicu na ${contactDto.contactPhoneNumber}'));
+          scaffold.showSnackBar(SnackBarsComponent.success('Successfully sent to ${contactDto.contactPhoneNumber}'));
         }
         NavigatorUtil.push(context, ContactsActivity(
             displaySavedContactSnackbar: true,

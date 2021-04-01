@@ -79,7 +79,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
   int currentDirectoryNodeId = 0;
 
-  String currentDirectoryNodeName = 'Moj prostor';
+  String currentDirectoryNodeName = 'My dataspace';
 
   int gridHorizontalSize = 2;
 
@@ -90,6 +90,8 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   bool displayDeleteLoader = false;
 
   List<File> files;
+
+  double contentOpacity = 1;
 
   Queue<DSNodeDto> nodeBreadcrumbs = new Queue();
 
@@ -119,7 +121,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     dsNodeDto.nodeName = fileName;
     dsNodeDto.nodeType = fileType;
     dsNodeDto.fileUrl = fileUrl;
-    dsNodeDto.description = 'Uploaded to data space';
+    dsNodeDto.description = 'Uploaded to my data space';
     dsNodeDto.fileSizeBytes = fileSize;
     dsNodeDto.pathOnSourceDevice = file.path;
 
@@ -191,14 +193,14 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
           doGetData().then(onGetDataSuccess, onError: onGetDataError);
         } else {
           setState(() {
-            currentDirectoryNodeName = 'Moj prostor';
+            currentDirectoryNodeName = 'My dataspace';
             currentDirectoryNodeId = 0;
             doGetData().then(onGetDataSuccess, onError: onGetDataError);
           });
         }
       } else {
         setState(() {
-          currentDirectoryNodeName = 'Moj prostor';
+          currentDirectoryNodeName = 'My dataspace';
           currentDirectoryNodeId = 0;
           doGetData().then(onGetDataSuccess, onError: onGetDataError);
         });
@@ -229,7 +231,11 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
           floatingActionButton: buildFloatingActionButton(),
           body: Builder(builder: (context) {
             scaffold = Scaffold.of(context);
-            return buildActivityContent();
+            return AnimatedOpacity(
+                opacity: contentOpacity,
+                duration: Duration(milliseconds: 250),
+                child: buildActivityContent()
+            );
           })
       ),
     );
@@ -247,19 +253,29 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
               alignment: Alignment.bottomRight,
               children: <Widget>[
                 GestureDetector(
-                  onHorizontalDragEnd: (DragEndDetails details) {
+                  onHorizontalDragEnd: (DragEndDetails details) async {
                     if (details.primaryVelocity > 0) {
-                      setState(() {
-                        if (gridHorizontalSize < 3) {
+                      if (gridHorizontalSize < 3) {
+                        setState(() {
                           gridHorizontalSize++;
-                        }
-                      });
+                          contentOpacity = 0.5;
+                        });
+                        await Future.delayed(Duration(milliseconds: 500));
+                        setState(() {
+                          contentOpacity = 1;
+                        });
+                      }
                     } else if (details.primaryVelocity < 0) {
-                      setState(() {
-                        if (gridHorizontalSize > 1) {
+                      if (gridHorizontalSize > 1) {
+                        setState(() {
                           gridHorizontalSize--;
-                        }
-                      });
+                          contentOpacity = 0.5;
+                        });
+                        await Future.delayed(Duration(milliseconds: 500));
+                        setState(() {
+                          contentOpacity = 1;
+                        });
+                      }
                     }
                   },
                   child: GridView.builder(
@@ -278,7 +294,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
           w = Center(
             child: Container(
               margin: EdgeInsets.all(25),
-              child: Text('Nemate podataka', style: TextStyle(color: Colors.grey)),
+              child: Text('No media to display', style: TextStyle(color: Colors.grey)),
             ),
           );
         }
@@ -309,7 +325,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                  child: Icon(Icons.folder, color: Colors.grey.shade600)),
+                  child: Icon(Icons.folder_open, color: Colors.grey.shade600)),
               Text(node.nodeName),
             ],
           ),
@@ -401,7 +417,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
         },
         child: Container(
             width: 50,
-            child: Icon(Icons.folder_open, color: Colors.grey.shade600)));
+            child: Icon(Icons.create_new_folder_outlined, color: Colors.grey.shade600)));
   }
 
   buildFloatingActionButton() {

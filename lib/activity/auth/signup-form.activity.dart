@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
@@ -155,7 +156,7 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
 
     scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste snimili podatke!'));
 
-    NavigatorUtil.replace(context, ContactsActivity());
+    NavigatorUtil.replace(context, ChatListActivity());
   }
 
   void onUpdateInfoError(_) {

@@ -104,12 +104,14 @@ class MessageComponentState extends State<MessageComponent> {
   }
 
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
+    print(message.messageType);
     String desc = message.fileSizeFormatted();
     String title = message.fileName;
 
     var iconBg = widget.isPeerMessage ? CompanyColor.blueDark : CompanyColor.accentGreenLight;
 
-    Widget iconWidget = Icon(Icons.ondemand_video, color: Colors.grey.shade100, size: 20);
+    IconData icon = message.messageType == 'MEDIA' ? Icons.ondemand_video : Icons.file_copy_outlined;
+    Widget iconWidget = Icon(icon, color: Colors.grey.shade100, size: 20);
 
     if (message.messageType == 'RECORDING') {
       title = 'Recording';

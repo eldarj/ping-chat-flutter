@@ -11,7 +11,7 @@ class WsClient {
 
   StompClient _stompClient;
 
-  WsClient(userToken, {Function onConnectedFunc}) {
+  WsClient(userToken, {isActive = true, Function onConnectedFunc}) {
     developer.log('WsClient - getClient - tryConnect with token: $userToken');
     _stompClient = StompClient(
         config: StompConfig(
@@ -19,6 +19,9 @@ class WsClient {
             reconnectDelay: 5000,
             webSocketConnectHeaders: {
               'authorization': 'Bearer ${userToken}',
+            },
+            stompConnectHeaders: {
+              'isActiveHeader': isActive.toString()
             },
             onStompError: (error) {
               developer.log('WsClient - getClient - onStompError: $error');

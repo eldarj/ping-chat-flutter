@@ -50,6 +50,10 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
 
   ScrollController gridScrollController = new ScrollController();
 
+  double contentOpacity = 1;
+
+  bool gotoTopButtonVisible = false;
+
   onInit() async {
     userId = await UserService.getUserId();
     doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
@@ -78,26 +82,32 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
     return Scaffold(
       appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleWidget:           Container(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Dijeljeno', style: TextStyle(fontWeight: FontWeight.normal)),
+          Text('Shared media', style: TextStyle(fontWeight: FontWeight.normal)),
           Text(widget.peerContactName, style: TextStyle(fontSize: 16, color: Colors.grey))
         ]),
       )),
       body: Builder(builder: (context) {
         scaffold = Scaffold.of(context);
-        return Container(
+        return AnimatedOpacity(
+          opacity: contentOpacity,
+          duration: Duration(milliseconds: 250),
           child: buildContent(),
         );
       }),
-      floatingActionButton: FloatingActionButton(
-        mini: true,
-        backgroundColor: Colors.white,
-        elevation: 1,
-        child: Icon(Icons.arrow_upward, color: CompanyColor.blueDark),
-        onPressed: () {
-          gridScrollController.animateTo(0.0,
-              curve: Curves.easeOut,
-              duration: const Duration(seconds: 1));
-        },
+      floatingActionButton: AnimatedOpacity(
+        duration: Duration(milliseconds: 500),
+        opacity: gotoTopButtonVisible ? 1 : 0,
+        child: FloatingActionButton(
+          mini: true,
+          backgroundColor: Colors.white,
+          elevation: 1,
+          child: Icon(Icons.arrow_upward, color: CompanyColor.blueDark),
+          onPressed: () {
+            gridScrollController.animateTo(0.0,
+                curve: Curves.easeOut,
+                duration: const Duration(seconds: 1));
+          },
+        ),
       ),
     );
   }
@@ -109,35 +119,63 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
       if (!isError) {
         if (nodes != null && nodes.length > 0) {
           w = GestureDetector(
-            onHorizontalDragEnd: (DragEndDetails details) {
+            onHorizontalDragEnd: (DragEndDetails details) async {
               if (details.primaryVelocity > 0) {
-                setState(() {
-                  if (gridHorizontalSize < 4) {
+                if (gridHorizontalSize < 4) {
+                  setState(() {
                     gridHorizontalSize++;
-                  }
-                });
+                    contentOpacity = 0.5;
+                  });
+                  await Future.delayed(Duration(milliseconds: 500));
+                  setState(() {
+                    contentOpacity = 1;
+                  });
+                }
               } else if (details.primaryVelocity < 0) {
-                setState(() {
-                  if (gridHorizontalSize > 1) {
+                if (gridHorizontalSize > 1) {
+                  setState(() {
                     gridHorizontalSize--;
-                  }
-                });
+                    contentOpacity = 0.5;
+                  });
+                  await Future.delayed(Duration(milliseconds: 500));
+                  setState(() {
+                    contentOpacity = 1;
+                  });
+                }
               }
             },
-            child: GridView.builder(
-                controller: gridScrollController,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: gridHorizontalSize),
-                itemCount: nodes.length, itemBuilder: (context, index) {
-              var node = nodes[index];
-              return buildSingleNode(node);
-            }),
+            child: NotificationListener(
+              onNotification: (notification) {
+                bool newVisibility;
+                if (gridScrollController.position.pixels > 350) {
+                  newVisibility = true;
+                } else {
+                  newVisibility = false;
+                }
+
+                if (gotoTopButtonVisible != newVisibility) {
+                  setState(() {
+                    gotoTopButtonVisible = newVisibility;
+                  });
+                }
+
+                return true;
+              },
+              child: GridView.builder(
+                  controller: gridScrollController,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisSpacing: 5, mainAxisSpacing: 5, crossAxisCount: gridHorizontalSize),
+                  itemCount: nodes.length, itemBuilder: (context, index) {
+                var node = nodes[index];
+                return buildSingleNode(node);
+              }),
+            ),
           );
         } else {
           w = Center(
             child: Container(
               margin: EdgeInsets.all(25),
-              child: Text('Nemate dijeljenih podataka', style: TextStyle(color: Colors.grey)),
+              child: Text("You don't have any shared media", style: TextStyle(color: Colors.grey)),
             ),
           );
         }
@@ -225,7 +263,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
         child: fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
             : Text('TODO: fixme'),
       );
-    } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
+    } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA' || node.nodeType == 'FILE') {
       _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: widget.picturesPath);
     } else {
       _w = Center(child: Text('Unrecognized media.'));

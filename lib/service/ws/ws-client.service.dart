@@ -42,7 +42,8 @@ class WsClientService {
 
   _initializeWsHandlers() async {
     String userToken = await UserService.getToken();
-    wsClient = new WsClient(userToken, onConnectedFunc: () {
+    bool isActive = await UserService.getUserStatus();
+    wsClient = new WsClient(userToken, isActive: isActive, onConnectedFunc: () {
       wsClient.subscribe(destination: '/user/messages/receive', callback: (frame) async {
         MessageDto newMessage = MessageDto.fromJson(json.decode(frame.body));
         receivingMessagesPub.subject.add(newMessage);
