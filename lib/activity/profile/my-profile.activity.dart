@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/profile/profile-image-upload/profile-image-upload.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
@@ -15,11 +15,10 @@ import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
-import 'package:flutterping/util/widget/base.state.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:intl/intl.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class MyProfileActivity extends StatefulWidget {
   @override
@@ -78,60 +77,43 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                       color: Colors.white
                   ),
                   child: Column(children: [
-                    Row(children: [
-                      GestureDetector(
-                        onTap: pushProfileImageUploadActivity,
-                        child: Container(
-                            margin: EdgeInsets.only(left: 5, right: 10),
-                            child: Stack(
-                              alignment: AlignmentDirectional.bottomEnd,
-                              children: <Widget>[
-                                new RoundProfileImageComponent(url: clientDto.profileImagePath,
-                                    height: 100, width: 100, borderRadius: 20),
-                                Container(
-                                    margin: EdgeInsets.all(5),
-                                    padding: EdgeInsets.all(5),
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(30),
-                                        color: Theme.of(context).accentColor,
-                                        boxShadow: [BoxShadow(color: Colors.grey.shade300, offset: Offset.fromDirection(1))]
-                                    ),
-                                    child: Icon(Icons.edit, color: Colors.white, size: 15))
-                              ],
-                            )
-                        ),
-                      ),
-                      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(
-                          "Hello there,",
-                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w400, fontSize: 24),
-                        ),
-                        Text(clientDto.firstName + ' ' + clientDto.lastName,
-                            style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 27)),
-                      ]),
-                    ]),
-                    Container(
-                        margin: EdgeInsets.only(left: 10, top: 10),
-                        child: buildTwoColumns([
-                          buildSection('Broj telefona', text: clientDto.countryCode.dialCode + " " + clientDto.phoneNumber),
-                        ], [
-                          buildSection('Račun kreiran', text: createdAtFormatted),
-                        ])
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(left: 20, bottom: 10),
-                      child: Row(
-                        children: <Widget>[
-                          Container(
-                              margin: EdgeInsets.only(right: 10, left: 1),
-                              child: CountryIconComponent
-                                  .buildCountryIcon(clientDto.countryCode.countryName, height: 15, width: 15)
-                          ),
-                          Container(
-                              child: Text(clientDto.countryCode.countryName)
+                    GestureDetector(
+                      onTap: pushProfileImageUploadActivity,
+                      child: Container(
+                          margin: EdgeInsets.only(left: 5, right: 10),
+                          child: Stack(
+                            alignment: AlignmentDirectional.bottomEnd,
+                            children: [
+                              new RoundProfileImageComponent(url: clientDto.profileImagePath,
+                                  border: Border.all(color: Colors.grey.shade200, width: 1),
+                                  height: 150, width: 150, borderRadius: 20),
+                              Container(
+                                  margin: EdgeInsets.all(5),
+                                  padding: EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(30),
+                                      color: Theme.of(context).accentColor,
+                                      boxShadow: [BoxShadow(color: Colors.grey.shade300, offset: Offset.fromDirection(1))]
+                                  ),
+                                  child: Icon(Icons.edit, color: Colors.white, size: 15))
+                            ],
                           )
-                        ],
                       ),
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.only(left: 30, right: 30, top: 15, bottom: 15),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(
+                              "Hello there,",
+                              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w400, fontSize: 24),
+                            ),
+                            Text(clientDto.firstName + ' ' + clientDto.lastName,
+                                style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 27)),
+                          ]),
+                        ),
+                      ],
                     ),
                   ])
               ),
@@ -144,26 +126,29 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      buildSectionHeader('Media & Storage', icon: Icons.image),
-                      buildTwoColumns([
-                        buildSection('Izdavalac', text: 'clientDto.drivingLicenceIssuedFrom'),
-                      ], [
-                        buildSection('Datum izdavanja', text: 'clientDto.drivingLicenceDate'),
-                      ]),
-
-                      buildSectionHeader('Sačuvano', icon: Icons.bookmark_border),
-                      buildTwoColumns([
-                        buildSection('Godište', text: 'clientDto.car.year'),
-                      ], [
-                        buildSection('Opcije', child: Text('CarOptionsComponent(options: jsonDecode(clientDto.car.options))')),
-                      ]),
-
-                      buildSectionHeader('Favourite contacts', icon: Icons.star_border),
-                      buildTwoColumns([
-                        buildSection('Oznaka licence', text: 'clientDto.taxiLicenceNumber'),
-                      ], [
-                        buildSection('Datum izdavanja', text: 'getFormattedDate(clientDto.taxiLicenceDate)'),
-                      ]),
+                      Container(
+                          margin: EdgeInsets.only(left: 10, top: 10),
+                          child: buildTwoColumns([
+                            buildSection('Broj telefona', text: clientDto.countryCode.dialCode + " " + clientDto.phoneNumber),
+                          ], [
+                            buildSection('Račun kreiran', text: createdAtFormatted),
+                          ])
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 20, bottom: 10),
+                        child: Row(
+                          children: [
+                            Container(
+                                margin: EdgeInsets.only(right: 10, left: 1),
+                                child: CountryIconComponent
+                                    .buildCountryIcon(clientDto.countryCode.countryName, height: 15, width: 15)
+                            ),
+                            Container(
+                                child: Text(clientDto.countryCode.countryName)
+                            )
+                          ],
+                        ),
+                      ),
                     ]
                 ),
               )
@@ -185,21 +170,6 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
     return widget;
   }
 
-
-  Widget buildSectionHeader(title, { icon }) {
-    return Container(
-        padding: EdgeInsets.only(top: 20, left: 5, bottom: 10),
-        margin: EdgeInsets.only(left: 5, bottom: 10),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(
-          width: 1, color: Colors.grey.shade300,
-        ))),
-        child: Row(children: [
-          Container(
-              margin: EdgeInsets.only(right: 5),
-              child: icon != null ? Icon(icon, size: 25) : Container()),
-          Text(title, style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold))
-        ]));
-  }
 
   Widget buildSection(title, {text, child, titleLeftMargin: 0.0}) {
     if (child == null && text is int) {
