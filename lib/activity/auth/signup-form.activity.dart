@@ -1,17 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
-import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/shared/component/gradient-button.component.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:http/http.dart' as http;
 
 class SignUpFormActivity extends StatefulWidget {
   ClientDto clientDto;
@@ -23,7 +21,7 @@ class SignUpFormActivity extends StatefulWidget {
 }
 
 class SignUpFormActivityState extends State<SignUpFormActivity> {
-  static const String INVALID_FIELD_MESSAGE = 'Polja moraju biti duža od 3 slova';
+  static const String INVALID_FIELD_MESSAGE = 'Fields have to contain at least 3 characters';
 
   ScaffoldState scaffold;
 
@@ -62,8 +60,8 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
                               onChanged: refreshState,
                               keyboardType: TextInputType.text,
                               decoration: InputDecoration(
-                                  hintText: 'Ime',
-                                  labelText: 'Ime',
+                                  hintText: 'Firstname',
+                                  labelText: 'Firstname',
                                   border: OutlineInputBorder(),
                                   contentPadding: EdgeInsets.all(15)),
                             )),
@@ -72,8 +70,8 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
                               onChanged: refreshState,
                               keyboardType: TextInputType.text,
                               decoration: InputDecoration(
-                                  hintText: 'Prezime',
-                                  labelText: 'Prezime',
+                                  hintText: 'Lastname',
+                                  labelText: 'Lastname',
                                   border: OutlineInputBorder(),
                                   contentPadding: EdgeInsets.all(15)),
                             )),
@@ -86,7 +84,7 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
                               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                                 GradientButton(
                                     child: displayLoader ? Container(height: 20, width: 20, child: Spinner())
-                                        : Text('Snimi'),
+                                        : Text('Save'),
                                     onPressed: areInputsValid() && !displayLoader ? () {
                                       doUpdateFirstNameLastName(firstNameController.text, lastNameController.text)
                                           .then(onUpdateInfoSuccess, onError: onUpdateInfoError);
@@ -103,19 +101,19 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
   }
 
   Container _buildImageCover() {
-    return Container(child: LogoComponent.build(imageHeight: 60, displayText: false));
+    return Container(child: LogoComponent.build());
   }
 
   List<Widget> _buildDescriptionTextWidgets() {
     return [
       Container(
         margin: EdgeInsets.only(top: 15),
-        child: Text('Odlično, spremni ste!',
+        child: Text('Awesome, you are ready!',
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
       ),
       Container(
           margin: EdgeInsets.only(top: 10, bottom: 10),
-          child: Text('Unesite vaše ime i prezime'))
+          child: Text('Please enter your first and last name before wrapping up your registration'))
     ];
   }
 
@@ -154,7 +152,7 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
       displayLoader = false;
     });
 
-    scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste snimili podatke!'));
+    scaffold.showSnackBar(SnackBarsComponent.success('You successfully registered!'));
 
     NavigatorUtil.replace(context, ChatListActivity());
   }

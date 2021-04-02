@@ -3,23 +3,21 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutterping/activity/chats/chat-list.activity.dart';
-import 'package:flutterping/activity/contacts/contacts.activity.dart';
-import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:flutterping/shared/component/gradient-button.component.dart';
-import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutterping/activity/auth/signup-form.activity.dart';
+import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/jwt-token-dto.model.dart';
-import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
+import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/component/top-pane.component.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:http/http.dart' as http;
 
 class SmsValidationActivity extends StatefulWidget {
   @override

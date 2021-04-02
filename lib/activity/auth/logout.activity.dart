@@ -3,15 +3,10 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:flutterping/activity/auth/login.activity.dart';
-import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
-import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/util/extension/http.response.extension.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 
 class LogoutActivity extends StatefulWidget {
   @override
@@ -40,7 +35,7 @@ class LogoutActivityState extends State<LogoutActivity> {
       displayLoader = false;
     });
 
-    scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste se odjavili.'));
+    scaffold.showSnackBar(SnackBarsComponent.success('You logged out.'));
 
     await Future.delayed(Duration(seconds: 1));
 
@@ -68,7 +63,7 @@ class LogoutActivityState extends State<LogoutActivity> {
                               fontSize: 70,
                               color: Colors.black87,
                             ))),
-                            Text("Odjavljujemo vas, molimo pričekajte."),
+                            Text("We're logging you out, please wait."),
                           ],
                         ),
                       ),
