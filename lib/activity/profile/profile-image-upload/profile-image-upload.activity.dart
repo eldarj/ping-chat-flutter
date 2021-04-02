@@ -1,18 +1,15 @@
-
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
 
 class ProfileImageUploadActivity extends StatefulWidget {
   @override
@@ -106,19 +103,19 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
         child: Container(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
+            children: [
               RaisedButton(
                   color: Colors.grey,
                   colorBrightness: Brightness.dark,
                   onPressed: isLoadingSaveButton || isSaveButtonSuccess ? null : () {
                     Navigator.pop(context);
                   },
-                  child: Text('Odustani')
+                  child: Text('Cancel')
               ),
               ButtonBar(
                 buttonPadding: EdgeInsets.all(0),
                 buttonHeight: 60,
-                children: <Widget>[
+                children: [
                   RaisedButton(
                     onPressed: isLoadingSaveButton || isSaveButtonSuccess ? null : chooseImage,
                     child: Icon(Icons.photo_library),
@@ -150,7 +147,7 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
         ) : Container(margin: EdgeInsets.only(right: 10),
             child: isSaveButtonSuccess ? Container(
                 child: Icon(Icons.check_circle, color: Colors.green)
-            ) : Text('Snimi'))
+            ) : Text('Save'))
     );
   }
 
