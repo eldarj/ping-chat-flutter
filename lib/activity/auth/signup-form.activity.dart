@@ -51,11 +51,11 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
                   width: 300,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
+                    children: [
                       _buildImageCover(),
                       Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
+                          children: [
                             ..._buildDescriptionTextWidgets(),
                             Container(child: TextField(
                               controller: firstNameController,

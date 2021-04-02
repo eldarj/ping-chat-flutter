@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +16,8 @@ class PolicyInfoActivity extends StatelessWidget {
           actions: [
             Container(
                 margin: EdgeInsets.only(right: 20),
-                child: Center(child: Text('Last updated 9.12.2020', style: TextStyle(fontSize: 12, color: Colors.grey),)))
+                child: Center(child: Text('Last updated 2.4.2021',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),)))
           ],
           backgroundColor: Colors.white),
       body: Builder(builder: (context) {

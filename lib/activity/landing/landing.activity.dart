@@ -5,7 +5,6 @@ import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
@@ -13,10 +12,10 @@ import 'package:permission_handler/permission_handler.dart';
 
 class LandingActivity extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => _LandingActivityState();
+  State<StatefulWidget> createState() => LandingActivityState();
 }
 
-class _LandingActivityState extends BaseState<LandingActivity> {
+class LandingActivityState extends BaseState<LandingActivity> {
   @override
   void initState() {
     super.initState();
@@ -27,8 +26,7 @@ class _LandingActivityState extends BaseState<LandingActivity> {
     var user = await UserService.getUser();
     await Permission.microphone.request();
     if (user == null) {
-      NavigatorUtil.push(context, PolicyActivity());
-      return;
+      NavigatorUtil.replace(context, PolicyActivity());
     } else {
       NavigatorUtil.replace(context, ChatListActivity());
     }

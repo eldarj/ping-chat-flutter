@@ -34,9 +34,6 @@ class SmsValidationState extends State<SmsValidationActivity> {
   bool displayLoader = false;
 
   String smsAuthenticationCode = '';
-  String smsValidationMessage = '';
-  int smsValidationRetryCount = 0;
-
   String dialCodeArg;
   String phoneNumberArg;
 
@@ -66,11 +63,10 @@ class SmsValidationState extends State<SmsValidationActivity> {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
+                  children: [
                     LogoComponent.build(),
                     _buildDescriptionContainer(),
                     _buildPinCodeContainer(),
-                    _buildValidationContainer(),
                     _buildActionContainer(context)
                   ])));
         }));
@@ -83,18 +79,10 @@ class SmsValidationState extends State<SmsValidationActivity> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             GradientButton(
-                child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Dalje'),
+                child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Verify'),
                 onPressed: smsAuthenticationCode.length == 6 && !displayLoader ?
                     () => onGetValidated(context) : null)
           ]),
-    );
-  }
-
-  Container _buildValidationContainer() {
-    return Container(
-        margin: EdgeInsets.only(top: 5, left: 2),
-        child: Text(smsValidationMessage,
-            style: TextStyle(color: Colors.red))
     );
   }
 
@@ -112,8 +100,8 @@ class SmsValidationState extends State<SmsValidationActivity> {
             });
           },
           decoration: InputDecoration(
-              hintText: 'Sestocifreni kod',
-              labelText: 'SMS PIN Kod',
+              hintText: 'Your 2FA PIN',
+              labelText: '2FA PIN',
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.all(15)),
         )
@@ -124,7 +112,7 @@ class SmsValidationState extends State<SmsValidationActivity> {
     return Container(
         margin: EdgeInsets.only(left: 2.5, right: 2.5, top: 15, bottom: 15), child: RichText(
         text: TextSpan(
-          text: 'Molimo unesite šestocifreni PIN kod koji smo vam poslali na ',
+          text: 'Please enter the 6-digit 2FA PIN Code which we\'ve sent you to ',
           style: TextStyle(color: Colors.black87),
           children: [
             TextSpan(text: ' $dialCodeArg $phoneNumberArg', style: TextStyle(color: CompanyColor.bluePrimary, fontWeight: FontWeight.bold))
@@ -133,7 +121,7 @@ class SmsValidationState extends State<SmsValidationActivity> {
   }
 
   void showSuccessSnackbar() {
-    scaffold.showSnackBar(SnackBarsComponent.success('Odlično! Još jedan korak i spremni ste.'));
+    scaffold.showSnackBar(SnackBarsComponent.success('Awesome! One more step and you are ready.'));
   }
 
   void onGetValidated(BuildContext context) {
@@ -148,6 +136,8 @@ class SmsValidationState extends State<SmsValidationActivity> {
   }
 
   Future<Map<String, dynamic>> doSendAuthRequest(String dialCode, String phoneNumber, String pinCode) async {
+    scaffold.removeCurrentSnackBar();
+
     http.Response response = await HttpClientService.post('/api/authenticate',
         headers: {'phoneNumber': phoneNumber, 'dialCode': dialCode, 'pinCode': pinCode});
 
@@ -185,9 +175,6 @@ class SmsValidationState extends State<SmsValidationActivity> {
     scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () {
       setState(() {
         displayLoader = true;
-        smsValidationMessage = ++smsValidationRetryCount > 3
-            ? 'Imate problema? Molimo kontaktirajte support@ping.me'
-            : '';
       });
       doSendAuthRequest(dialCodeArg, phoneNumberArg, smsAuthenticationCode)
           .then(onAuthRequestSuccess, onError: onAuthRequestError);

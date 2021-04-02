@@ -22,21 +22,21 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
         body: FutureBuilder(builder: (context, snapshot) {
           scaffold = Scaffold.of(context);
           return Container(
-              alignment: Alignment.topLeft,
               color: Colors.white,
+              alignment: Alignment.topLeft,
               child: Container(
                 child: Column(
-                    children: <Widget>[
+                    children: [
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
+                          children: [
                             Container(
                                 child: LogoComponent.build(orientation: LogoOrientation.vertical, displayText: false)),
                             Container(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: <Widget>[
+                                  children: [
                                     Container(
                                       margin: EdgeInsets.only(bottom: 5),
                                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -46,7 +46,7 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
                                             NavigatorUtil.push(context, PolicyInfoActivity());
                                           },
                                           child: Text("Terms of Services and Privacy Policy", style: TextStyle(
-                                            color: Colors.blue, decoration: TextDecoration.underline, // TODO: add info activity
+                                            color: Colors.blue, decoration: TextDecoration.underline,
                                           )),
                                         ),
                                       ]),
@@ -73,6 +73,7 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
     setState(() {
       displayLoader = true;
     });
+
     NavigatorUtil.replace(context, LoginActivity());
   }
 }

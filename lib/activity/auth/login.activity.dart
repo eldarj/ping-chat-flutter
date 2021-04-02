@@ -14,11 +14,8 @@ import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
-// TODO: Skip login if user is logged in
-//        -- use sharedPreferences to remember token and check on init
 class LoginActivity extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => new LoginActivityState();
@@ -38,20 +35,20 @@ class LoginActivityState extends State<LoginActivity> {
 
   String selectedCallingCodeId = 'placeholder';
   List<DropdownMenuItem<String>> callingCodes = [
-    DropdownMenuItem(value: 'placeholder', child: Text('Pozivni'))
+    DropdownMenuItem(value: 'placeholder', child: Text('Country code'))
   ];
 
   init() async {
     setState(() {
       this.displayLoader = true;
     });
+    doGetCountryCodes().then(onSuccessCountryCodes, onError: onErrorCountryCodes);
   }
 
   @override
   void initState() {
-    init();
-    doGetCountryCodes().then(onSuccessCountryCodes, onError: onErrorCountryCodes);
     super.initState();
+    init();
   }
 
   @override
@@ -71,7 +68,7 @@ class LoginActivityState extends State<LoginActivity> {
               absorbing: !countryCodesLoaded,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
+                children: [
                   LogoComponent.build(),
                   _buildDescriptionContainer(),
                   _buildCountryCodeContainer(),
@@ -88,7 +85,7 @@ class LoginActivityState extends State<LoginActivity> {
     return Container(
       child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
         GradientButton(
-          child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Dalje'),
+          child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Get started'),
           onPressed: countryCodesLoaded && !displayLoader ?
               () => onGetStarted(context) : null,
         )
@@ -96,15 +93,19 @@ class LoginActivityState extends State<LoginActivity> {
     );
   }
 
-  TextField _buildPhoneNumberContainer() {
-    return TextField(
-      controller: phoneNumberController,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-          hintText: 'Broj telefona',
-          labelText: 'Broj telefona',
-          border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.all(15)),
+  Widget _buildPhoneNumberContainer() {
+    return AnimatedOpacity(
+      opacity: countryCodesLoaded ? 1 : 0.5,
+      duration: Duration(milliseconds: 500),
+      child: TextField(
+        controller: phoneNumberController,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+            hintText: 'Phonenumber',
+            labelText: 'Phonenumber',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.all(15)),
+      ),
     );
   }
 
@@ -114,28 +115,32 @@ class LoginActivityState extends State<LoginActivity> {
     );
   }
 
-  Container _buildCountryCodeContainer() {
-    return Container(
-        margin: EdgeInsets.only(top: 10, bottom: 20),
-        padding: EdgeInsets.only(left: 10.0, right: 10.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5.0),
-          border: Border.all(color: Colors.grey, style: BorderStyle.solid, width: 1),
-        ),
-        child: DropdownButtonHideUnderline(
-            child: DropdownButton(
-              isExpanded: true,
-              value: selectedCallingCodeId,
-              items: callingCodes,
-              onChanged: (selection) => onChangeCountryCode(selection),
-            ))
+  Widget _buildCountryCodeContainer() {
+    return AnimatedOpacity(
+      opacity: countryCodesLoaded ? 1 : 0.5,
+      duration: Duration(milliseconds: 500),
+      child: Container(
+          margin: EdgeInsets.only(top: 10, bottom: 20),
+          padding: EdgeInsets.only(left: 10.0, right: 10.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5.0),
+            border: Border.all(color: Colors.grey, style: BorderStyle.solid, width: 1),
+          ),
+          child: DropdownButtonHideUnderline(
+              child: DropdownButton(
+                isExpanded: true,
+                value: selectedCallingCodeId,
+                items: callingCodes,
+                onChanged: (selection) => onChangeCountryCode(selection),
+              ))
+      ),
     );
   }
 
   Container _buildDescriptionContainer() {
     return Container(
         margin: EdgeInsets.only(left: 2.5, right: 2.5, top: 10, bottom: 5), child: Text(
-        'Poslaćemo vam SMS PIN kod za verifikaciju broja telefona'
+        'We\'ll send you a 2FA PIN verification code via SMS'
     ));
   }
 
@@ -143,12 +148,12 @@ class LoginActivityState extends State<LoginActivity> {
     // refresh the state
     setState(() {
       phoneNumberValidationMessage = phoneNumberController.text.length == 0
-          ? 'Unesite broj telefona'
-          : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Broj može sadržati samo cifre.' : '';
+          ? 'Enter your phonenumber'
+          : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Phonenumber can contain digits only.' : '';
     });
 
     if (phoneNumberValidationMessage.length > 0) {
-      scaffold.showSnackBar(SnackBarsComponent.error(content: 'Molimo ispravite greške.', duration: Duration(seconds: 2)));
+      scaffold.showSnackBar(SnackBarsComponent.error(content: 'Please fix the above errors', duration: Duration(seconds: 2)));
     } else {
       setState(() { displayLoader = true; });
       doSendAuthRequest(dialCodesMap[selectedCallingCodeId], phoneNumberController.text)

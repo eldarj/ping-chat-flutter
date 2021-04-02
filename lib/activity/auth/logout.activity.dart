@@ -59,7 +59,7 @@ class LogoutActivityState extends State<LogoutActivity> {
               color: Colors.white,
               child: Container(
                 child: Column(
-                    children: <Widget>[
+                    children: [
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
