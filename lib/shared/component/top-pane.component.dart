@@ -5,7 +5,7 @@ class TopPaneComponent {
     return Container(
         child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
+            children: [
               Expanded(
                 flex: 3,
                 child: Container(
@@ -34,7 +34,7 @@ class TopPaneComponent {
                 flex: 1,
                 child: Container(
                     margin: EdgeInsets.all(15),
-                    child: Text('Ukoliko imate problema, molimo kontaktirajte support@ping.me',
+                    child: Text('Experiencing any issues? Please ping us at support@ping.me',
                         style: TextStyle(
                             fontWeight: FontWeight.w300,
                             color: Colors.grey.shade600,

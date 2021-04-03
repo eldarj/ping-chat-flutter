@@ -1,10 +1,8 @@
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
-import 'package:flutterping/util/widget/base.state.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class BottomNavigationComponent extends StatelessWidget {
@@ -20,6 +18,7 @@ class BottomNavigationComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      selectedItemColor: CompanyColor.blueDark,
       backgroundColor: Colors.white,
       items: [
         BottomNavigationBarItem(

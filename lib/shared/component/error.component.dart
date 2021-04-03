@@ -1,8 +1,12 @@
-
 import 'package:flutter/material.dart';
 
 class ErrorComponent {
-  static Widget build({icon = Icons.error_outline, text = 'Dogodila se greška.', actionLabel = 'Pokušaj ponovo', actionOnPressed}) {
+  static Widget build({
+    icon = Icons.error_outline,
+    text = 'Something went wrong',
+    actionLabel = 'Try again',
+    actionOnPressed
+  }) {
     return Center(
       child: Container(
         width: 230,
@@ -11,11 +15,14 @@ class ErrorComponent {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                  child: Icon(icon, size: 60)),
+                  child: Icon(icon, color: Colors.grey, size: 60)),
               Container(
                   margin: EdgeInsets.only(bottom: 20, top: 10),
-                  child: Text(text,
-                      textAlign: TextAlign.center)),
+                  child: Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey),
+                  )),
               actionOnPressed != null ? FlatButton(color: Colors.red.shade400,
                   onPressed: actionOnPressed,
                   child: Text(actionLabel, style: TextStyle(color: Colors.white))

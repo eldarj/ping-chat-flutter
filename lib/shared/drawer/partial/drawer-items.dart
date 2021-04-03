@@ -1,7 +1,5 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 Widget buildSectionTitle(String sectionTitle) {

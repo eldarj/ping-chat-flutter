@@ -6,7 +6,7 @@ class SnackBarsComponent {
     return SnackBar(
         duration: duration,
         backgroundColor: CompanyColor.red,
-        content: Text(content != null ? content : 'Something went wrong.'),
+        content: Text(content != null ? content : 'Whoops! Something went wrong.'),
         action: SnackBarAction(textColor: Colors.white,
             label: actionOnPressed == null ? '' : actionLabel != null ? actionLabel : 'Try again',
             onPressed: actionOnPressed != null ? actionOnPressed : () {}));
