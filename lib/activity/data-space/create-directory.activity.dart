@@ -37,7 +37,7 @@ class CreateDirectoryActivity extends StatefulWidget {
 class CreateDirectoryActivityState extends BaseState<CreateDirectoryActivity> {
   bool displayLoader = false;
 
-  static final validDirectoryNameChars = RegExp(r'^[a-zA-Z]+$');
+  static final validDirectoryNameChars = RegExp(r'^[a-zA-Z0-9]+$');
 
   TextEditingController directoryNameController = TextEditingController();
   String directoryNameValidationMessage = '';
