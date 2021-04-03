@@ -3,11 +3,13 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutterping/activity/calls/callscreen.activity.dart';
 import 'package:flutterping/activity/chats/component/settings/chat-settings-menu.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
@@ -16,6 +18,7 @@ import 'package:flutterping/activity/chats/single-chat/partial/chat-input-row.co
 import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/message-download-progress.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
@@ -97,6 +100,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   Function userPresenceSubscriptionFn;
 
   String picturesPath;
+
+  ContactDto contact;
 
   onInit() async {
     picturesPath = await new StorageIOService().getPicturesPath();
@@ -305,11 +310,36 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 ),
               ),
             ),
-            actions: [ChatSettingsMenu(
-                peer: widget.peer,
-                picturesPath: picturesPath,
-                peerContactName: widget.peerContactName,
-                contactBindingId: widget.contactBindingId)]
+            actions: [
+              Padding(
+                  padding: EdgeInsets.only(right: 20.0),
+                  child: GestureDetector(
+                    child: Icon(Icons.call, size: 20),
+                    onTap: () {
+                      NavigatorUtil.replace(context, new CallScreenWidget(
+                        target: widget.peer.fullPhoneNumber,
+                        contactName: widget.peerContactName,
+                        fullPhoneNumber: widget.peer.fullPhoneNumber,
+                        profileImageWidget: widget.peer.profileImagePath != null ? CachedNetworkImage(
+                          imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                              margin: EdgeInsets.all(15),
+                              child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
+                        ) : null,
+                        direction: 'OUTGOING',
+                      ));
+                    },
+                  )
+              ),
+              ChatSettingsMenu(
+                  userId: userId,
+                  myContactName: widget.myContactName,
+                  statusLabel: widget.statusLabel,
+                  peer: widget.peer,
+                  picturesPath: picturesPath,
+                  peerContactName: widget.peerContactName,
+                  contactBindingId: widget.contactBindingId)
+            ]
         ),
         drawer: NavigationDrawerComponent(),
         body: Builder(builder: (context) {
@@ -518,7 +548,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         '?pageNumber=' + (page - 1).toString() +
         '&pageSize=' + pageSize.toString() +
         '&userId=' + userId.toString() +
-        '&anotherUserId=' + widget.peer.id.toString();
+        '&contactUserId=' + widget.peer.id.toString();
 
     http.Response response = await HttpClientService.get(url);
 
@@ -527,8 +557,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
     }
 
     dynamic result = response.decode();
-
-    return {'messages': result['page'], 'totalElements': result['totalElements']};
+    print(result['contact']);
+    return {
+      'messages': result['page'],
+      'totalElements': result['totalElements'],
+      'contact': result['additionalData']['contact']
+    };
   }
 
   onGetMessagesSuccess(result) async {
@@ -536,6 +570,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     List fetchedMessages = result['messages'];
     totalMessages = result['totalElements'];
+    contact = ContactDto.fromJson(result['contact']);
 
     MessageDto prevMessage;
     List<MessageSeenDto> unseenMessages = new List();

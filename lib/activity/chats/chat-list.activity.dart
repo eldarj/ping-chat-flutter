@@ -31,6 +31,7 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sip_ua/sip_ua.dart';
 
 class ChatListActivity extends StatefulWidget {
@@ -222,9 +223,14 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
   }
 
+  initPermissions() async {
+    await Permission.microphone.request();
+  }
+
   @override
   initState() {
     super.initState();
+    initPermissions();
     initListenersAndGetData();
     initPresenceFetcher();
   }
