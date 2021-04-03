@@ -9,7 +9,8 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="flutterping"
         android:usesCleartextTraffic="true"
-        android:icon="@mipmap/ic_launcher">
+        android:roundIcon="@mipmap/ping_launcher_round"
+        android:icon="@mipmap/ping_launcher">
 
         <provider
                 android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider"
@@ -63,5 +64,6 @@
     <uses-permission android:name="android.permission.VIDEO_CAPTURE" />
     <uses-permission android:name="android.permission.AUDIO_CAPTURE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 </manifest>

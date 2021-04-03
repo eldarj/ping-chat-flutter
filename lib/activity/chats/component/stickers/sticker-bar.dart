@@ -39,8 +39,8 @@ class StickerBarState extends State<StickerBar> {
       1: ['stitch6.png','stitch8.png','stitch11.png','stitch10.png',],
     },
     4: {
-      0: ['shark2.png','shark3.png','simpson1.png', 'kid1.png', 'guy1.png'],
-      1: ['drake1.png','drake2.png']
+      0: ['emoti-1.png','emoti-2.png','emoti-3.png','emoti-4.png','emoti-5.png'],
+      1: ['emoti-8.png', 'emoti-7.png', 'emoti-6.png', 'fit-1.png']
     }
   };
 
@@ -124,7 +124,7 @@ class StickerBarState extends State<StickerBar> {
 
     return Container(
       child: stickers.length > 0 ? ListView(
-        children: <Widget>[
+        children: [
           ...stickers.entries.map((mapEntry) {
             return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
               ...mapEntry.value.map((stickerName) {
