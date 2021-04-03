@@ -2,59 +2,35 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
-import 'package:flutterping/activity/data-space/component/appbar-options.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-document.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
 import 'package:flutterping/activity/data-space/create-directory.activity.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
-import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
-import 'package:flutterping/model/message-dto.model.dart';
-import 'package:flutterping/model/message-seen-dto.model.dart';
-import 'package:flutterping/model/presence-event.model.dart';
-import 'package:flutterping/service/messaging/unread-message.publisher.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/data-space/data-space-new-directory.publisher.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
-import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
-import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
-import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/widget/base.state.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:flutterping/util/other/date-time.util.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
-import 'package:flutterping/model/ds-node-dto.model.dart';
-import 'package:flutterping/model/message-dto.model.dart';
-import 'package:flutterping/service/messaging/message-sending.service.dart';
-import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/file-type-resolver.util.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/util/widget/base.state.dart';
 import 'package:tus_client/tus_client.dart';
 
 
@@ -390,13 +366,13 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             loaderSize: 25,
             onPressed: () {
               var dialog = GenericAlertDialog(
-                  title: 'Izbriši trenutni direktorij?',
-                  message: 'Direktorij "${currentDirectoryNodeName}" će biti izbrisan sa svim sadržavajućim datotekama.',
+                  title: 'Delete directory',
+                  message: 'Directory "${currentDirectoryNodeName}" will be deleted with all it\'s content.',
                   onPostivePressed: () {
                     doDeleteDirectory().then(onDeleteDirectorySuccess, onError: onDeleteDirectoryError);
                   },
-                  positiveBtnText: 'Izbriši',
-                  negativeBtnText: 'Odustani');
+                  positiveBtnText: 'Delete',
+                  negativeBtnText: 'Cancel');
               showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
             }
         ),
@@ -474,17 +450,18 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     }
 
     var decode = response.decode();
-    var list = List<DSNodeDto>.from(decode.map((e) => DSNodeDto.fromJson(e)));
-    var list2 = list.toList();
-    return list2;
+    var list = List<DSNodeDto>.from(decode.map((e) => DSNodeDto.fromJson(e))).toList();
+    return list;
   }
 
   void onGetDataSuccess(result) async {
+    await Future.delayed(Duration(milliseconds: 500));
+
     setState(() {
       nodes = result;
       displayLoader = false;
-      isError = false;
       displayUploadingFiles = false;
+      isError = false;
     });
   }
 
@@ -525,7 +502,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     await Future.delayed(Duration(seconds: 1));
 
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste direktorij.'));
+    scaffold.showSnackBar(SnackBarsComponent.info('Directory deleted.'));
     setState(() {
       displayDeleteLoader = false;
     });

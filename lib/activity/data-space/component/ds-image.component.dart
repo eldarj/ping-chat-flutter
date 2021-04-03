@@ -1,11 +1,7 @@
-
-import 'package:flutter/cupertino.dart';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/main.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
 
 class DSImage extends StatelessWidget {
   DSImage(

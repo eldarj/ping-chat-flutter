@@ -1,21 +1,17 @@
-
-
 import 'dart:io';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutterping/main.dart';
+import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/util/widget/base.state.dart';
-import 'package:path/path.dart';
-import 'package:flutterping/util/extension/duration.extension.dart';
-import 'package:open_file/open_file.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutterping/main.dart';
-import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/util/widget/base.state.dart';
+import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
+import 'package:path/path.dart';
 
 class DSDocument extends StatefulWidget {
   final DSNodeDto node;

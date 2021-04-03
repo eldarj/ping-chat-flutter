@@ -3,23 +3,17 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutterping/activity/contacts/contacts.activity.dart';
-import 'package:flutterping/activity/contacts/dialog/invite-contact.dialog.dart';
-import 'package:flutterping/model/contact-dto.model.dart';
-import 'package:flutterping/model/country-code-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/service/data-space/data-space-new-directory.publisher.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
+import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
-import 'package:flutterping/util/exception/custom-exception.dart';
-import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
 
 class CreateDirectoryActivity extends StatefulWidget {
   final int userId;

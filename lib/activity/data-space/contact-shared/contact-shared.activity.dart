@@ -1,25 +1,23 @@
-import 'dart:convert';
 import 'dart:io';
-import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
-import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
+import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
+import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
+import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/shared/app-bar/base.app-bar.dart';
+import 'package:flutterping/shared/component/error.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
-import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/component/error.component.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
+import 'package:http/http.dart' as http;
 
 class ContactSharedActivity extends StatefulWidget {
   final ClientDto peer;
