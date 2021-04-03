@@ -38,12 +38,12 @@ class InviteContactDialogState extends BaseState<InviteContactDialog> {
         actionsPadding: EdgeInsets.only(right: 10),
         actions: [
           FlatButton(
-              child: Text('Ne', style: TextStyle(fontWeight: FontWeight.w400, color: Theme.of(context).accentColor)),
+              child: Text('No', style: TextStyle(fontWeight: FontWeight.w400, color: Theme.of(context).accentColor)),
               onPressed: () {
                 Navigator.of(context).pop();
               }),
           GradientButton(
-              child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Da'),
+              child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Yes'),
               bubble: GradientButtonBubble.fromBottomRight,
               onPressed: () {
                 doSendAuthRequest().then(onSuccessAuthRequest, onError: onErrorAuthRequest);

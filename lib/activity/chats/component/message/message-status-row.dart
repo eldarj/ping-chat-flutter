@@ -44,7 +44,7 @@ class _MessageStatusRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
+      children: [
         displaySeen ? Container(
             margin: EdgeInsets.only(right: 2.5),
             child: statusIconWidget

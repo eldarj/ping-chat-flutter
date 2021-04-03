@@ -222,21 +222,25 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      !widget.favorite ? FlatButton(onPressed: () {}, child: Row(
-                        children: <Widget>[
-                          Container(
-                              margin: EdgeInsets.only(right: 10),
-                              child: Icon(Icons.star, color: Colors.yellow.shade700)),
-                          Text('Add to favourites', style: TextStyle(color: Colors.grey.shade700)),
-                        ],
-                      )) : FlatButton(onPressed: () {}, child: Row(
-                        children: <Widget>[
-                          Container(
-                              margin: EdgeInsets.only(right: 10),
-                              child: Icon(Icons.star_border, color: Colors.yellow.shade700)),
-                          Text('Remove from favourites', style: TextStyle(color: Colors.grey.shade700)),
-                        ],
-                      ))
+                      !widget.favorite ? TextButton(
+                          onPressed: () {},
+                          child: Row(
+                            children: [
+                              Container(
+                                  margin: EdgeInsets.only(right: 10),
+                                  child: Icon(Icons.star, color: Colors.yellow.shade700)),
+                              Text('Add to favourites', style: TextStyle(color: Colors.grey.shade700)),
+                            ],
+                          )) : TextButton(
+                          onPressed: () {},
+                          child: Row(
+                            children: [
+                              Container(
+                                  margin: EdgeInsets.only(right: 10),
+                                  child: Icon(Icons.star_border, color: Colors.yellow.shade700)),
+                              Text('Remove from favourites', style: TextStyle(color: Colors.grey.shade700)),
+                            ],
+                          ))
                     ]),
               ),
               Container(
@@ -277,7 +281,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return Column(children: [
       Stack(
         alignment: Alignment.topCenter,
-        children: <Widget>[
+        children: [
           Row(children: [
             Container(height: 250, width: DEVICE_MEDIA_SIZE.width, color: CompanyColor.bluePrimary)
           ]),
@@ -285,7 +289,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
             height: 350,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
+              children: [
                 AnimatedContainer(
                   duration: Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
@@ -314,7 +318,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
         padding: EdgeInsets.only(top: 10, left: 10, bottom: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
+          children: [
             Row(children: [
               Container(
                   margin: EdgeInsets.only(right: 5),
@@ -401,7 +405,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
           }
         },
         child: fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
-            : Text('TODO: fixme'),
+            : Text('TODO: fixme 1'),
       );
     } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA' || node.nodeType == 'FILE') {
       _w = DSMedia(node: node, gridHorizontalSize: 3, picturesPath: picturesPath);
@@ -411,7 +415,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
     return Container(
         child: fileExists ? _w
-            : Text('TODO: fixme'));
+            : Text('TODO: fixme 4'));
   }
 
   Future doGetSharedData() async {
@@ -430,7 +434,6 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   void onGetSharedDataSuccess(nodes) async {
-    print(nodes.length.toString());
     this.nodes = nodes;
 
     setState(() {
@@ -452,5 +455,37 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
       doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
     }));
+  }
+
+  Future<ContactDto> doUpdateFavourites(int contactId, bool favorite, int index) async {
+    String url = '/api/contacts/${contactId}/favourite';
+
+    http.Response response = await HttpClientService.post(url, body: !favorite);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    // return contactDto;
+  }
+
+  onUpdateFavouritesSuccess(name, favorite) {
+    setState(() {
+      // isFavorite = favorite;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    if (true) {
+      scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste dodali ${widget.contactName} u omiljene.'));
+    } else {
+      scaffold.showSnackBar(SnackBarsComponent.info('Uklonili ste ${widget.contactName} iz omiljenih.'));
+    }
+  }
+
+  onUpdateFavouritesError(error) {
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(
+        content: 'Nismo uspjeli dodati kontakt u omiljene, molimo pokušajte ponovo.'
+    ));
   }
 }

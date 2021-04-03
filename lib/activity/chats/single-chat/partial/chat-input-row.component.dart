@@ -207,7 +207,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
         width: DEVICE_MEDIA_SIZE.width, height: 55,
         child: Stack(
           alignment: Alignment.bottomLeft,
-          children: <Widget>[
+          children: [
             Container(
               child: Row(children: [
                 Container(
@@ -249,7 +249,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
             ),
             widget.displaySendButton ? Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
+              children: [
                 Container(
                     margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
                     height: 45, width: 45,
@@ -277,7 +277,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
       width: DEVICE_MEDIA_SIZE.width,
       child: Stack(
         alignment: Alignment.bottomRight,
-        children: <Widget>[
+        children: [
           IgnorePointer(
             ignoring: !isRecording,
             child: FadeTransition(

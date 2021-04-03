@@ -104,7 +104,6 @@ class MessageComponentState extends State<MessageComponent> {
   }
 
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
-    print(message.messageType);
     String desc = message.fileSizeFormatted();
     String title = message.fileName;
 
@@ -123,7 +122,7 @@ class MessageComponentState extends State<MessageComponent> {
 
       iconWidget = Stack(
         alignment: Alignment.center,
-        children: <Widget>[
+        children: [
           Container(
               margin: EdgeInsets.only(bottom: message.isRecordingPlaying ? 12.5 : 0),
               child: Icon(icon, color: Colors.grey.shade100, size: 20)),
@@ -179,6 +178,8 @@ class MessageComponentState extends State<MessageComponent> {
     BoxDecoration messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
 
     if (widget.message.deleted) {
+      print('MESSAGE DELETED');
+
       _messageWidget = MessageDeleted();
 
     } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
@@ -198,6 +199,7 @@ class MessageComponentState extends State<MessageComponent> {
           widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
 
     } else if (widget.message.messageType == 'IMAGE') {
+      print('MESSAGE IMAGE');
       String filePath = widget.isPeerMessage
           ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;

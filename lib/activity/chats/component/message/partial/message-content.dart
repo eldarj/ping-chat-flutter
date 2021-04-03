@@ -44,7 +44,7 @@ class MessageDeleted extends StatelessWidget {
       child: Row(
           children: [
             Container(child: Icon(Icons.delete_outline, color: Colors.grey.shade400, size: 16)),
-            Text('Poruka izbrisana', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey.shade400))
+            Text('Deleted', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey.shade400))
           ]
       ),
     );
@@ -86,7 +86,7 @@ class MessageImage extends StatelessWidget {
             alignment: Alignment.center,
             child: Spinner())
             : fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
-            : Text('TODO: fixme'));
+            : Icon(Icons.broken_image_outlined, color: Colors.grey.shade400));
 
     Widget colorFilteredImage;
     if (isUploading) {

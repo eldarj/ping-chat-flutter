@@ -57,7 +57,7 @@ Widget messageStatus(sentTimestamp, sent, received, seen, {displayStatusIcon = t
   return Row(
     mainAxisAlignment: MainAxisAlignment.end,
     crossAxisAlignment: CrossAxisAlignment.center,
-    children: <Widget>[
+    children: [
       displayStatusIcon ? Container(
           margin: EdgeInsets.only(right: 2.5),
           child: statusIconWidget

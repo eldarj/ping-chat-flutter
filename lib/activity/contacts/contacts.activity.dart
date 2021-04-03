@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
+import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -39,6 +40,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
   int userId = 0;
 
+  String username;
+
   List<ContactDto> contacts = new List();
   int totalContacts = 0;
 
@@ -48,9 +51,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
   int selectedTabIndex = 0;
 
-  getUserAndGetRides() async {
-    dynamic user = await UserService.getUser();
+  getContacts() async {
+    var user = await UserService.getUser();
     userId = user.id;
+    username = user.firstName;
 
     doGetContacts().then(onGetContactsSuccess, onError: onGetContactsError);
   }
@@ -64,7 +68,18 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
             .success('Contact ${widget.savedContactName} (${widget.savedContactPhoneNumber}) successfully added!'));
       });
     }
-    getUserAndGetRides();
+    getContacts();
+  }
+
+  @override
+  preRender() async {
+    floatingActionButton = FloatingActionButton(
+      backgroundColor: Colors.white,
+      elevation: 1,
+      child: Icon(Icons.arrow_upward, color: CompanyColor.blueDark),
+      onPressed: () {
+      },
+    );
   }
 
   @override
@@ -78,7 +93,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                   PopupMenuButton<String>(
                     onSelected: (choice) {
                       if (choice == 'search') {
-
+                        NavigatorUtil.push(context, SearchContactsActivity(
+                          type: SearchContactsType.CONTACT,
+                          contacts: contacts,
+                        ));
                       } else if (choice == 'newcontact') {
                         NavigatorUtil.push(context, AddContactActivity());
                       }
@@ -127,6 +145,19 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                 )),
             drawer: NavigationDrawerComponent(),
             bottomNavigationBar: new BottomNavigationComponent(currentIndex: 1).build(context),
+            floatingActionButton: FloatingActionButton(
+              elevation: 1,
+              backgroundColor: CompanyColor.blueDark,
+              child: Icon(Icons.search, color: Colors.white),
+              onPressed: () {
+                print('USER ID');
+                print(userId.toString());
+                NavigatorUtil.push(context, SearchContactsActivity(
+                    type: SearchContactsType.CONTACT,
+                    contacts: contacts
+                ));
+              },
+            ),
             body: Builder(builder: (context) {
               scaffold = Scaffold.of(context);
               return buildActivityContent();
@@ -150,19 +181,20 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                   child: selectedTabIndex == 0 ? Column(
                     children: [
                       RoundProfileImageComponent(displayQuestionMarkImage: true),
-                      Text('Nemate niti jedan kontakt', style: TextStyle(color: Colors.grey)),
+                      Text('You don\'t have any contacts, add one and start Pinging!',
+                          textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
                       Container(
                         margin: EdgeInsets.only(top: 25),
-                        child: GradientButton(text: 'Dodaj kontakt', onPressed: () {
+                        child: GradientButton(text: 'Add a contact', onPressed: () {
                           NavigatorUtil.push(context, AddContactActivity());
                         }),
                       )                    ],
-                  ) : Text('Nemate niti jedan kontakt u omiljenim', style: TextStyle(color: Colors.grey)),
+                  ) : Text('You don\'t have any contacts in your favorites', style: TextStyle(color: Colors.grey)),
                 ),
               ),
               Container(
-                  margin: EdgeInsets.only(top: 10, bottom: 10),
-                  child: Text(totalContacts > 0 ? 'Showing ${contacts.length} of ${totalContacts}' : '')
+                  child: Text(totalContacts > 0 ? 'Showing ${contacts.length} of ${totalContacts}' : '',
+                      style: TextStyle(color: Colors.grey.shade400, fontSize: 12))
               ),
               Opacity(
                   opacity: isLoadingOnScroll ? 1 : 0,
@@ -213,20 +245,22 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                   contactName: contact.contactName,
                   contactBindingId: contact.contactBindingId,
                   favorite: contact.favorite,
+                  statusLabel: '',
+                  myContactName: username,
                 ));
               },
               child: Slidable(
                 actionPane: SlidableDrawerActionPane(),
                 actionExtentRatio: 0.2,
                 actions: [],
-                secondaryActions: <Widget>[
+                secondaryActions: [
                   IconSlideAction(
-                    color: Colors.grey.shade700,
+                    color: Colors.grey.shade500,
                     iconWidget: Icon(contact.favorite ? Icons.star : Icons.star_border, color: Colors.yellow),
                     onTap: () => doUpdateFavourites(contact, index).then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
                   ),
                   IconSlideAction(
-                    color: Colors.grey.shade700,
+                    color: Colors.grey.shade500,
                     iconWidget: Icon(Icons.delete, color: Colors.deepOrange),
                     onTap: () => print('Delete'),
                   ),
@@ -264,11 +298,11 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.start,
-                            children: <Widget>[
+                            children: [
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
+                                  children: [
                                     Container(
                                       alignment: Alignment.topLeft,
                                       child: Column(
@@ -279,7 +313,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                                                 child: Text(contact.contactName,
                                                     style: TextStyle(fontSize: 18,
                                                         fontWeight: FontWeight.bold,
-                                                        color: Colors.black87))),
+                                                        color: Colors.black87))
+                                            ),
                                             contact.contactUser != null ? Visibility(
                                                 visible: contact.contactUser.displayMyFullName,
                                                 child: Text(contact.contactUser.firstName + ' ' +
@@ -386,10 +421,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
   void onGetContactsSuccess(result) {
     scaffold.removeCurrentSnackBar();
 
-    List filteredRides = result['contacts'];
+    List fetchedContacts = result['contacts'];
     totalContacts = result['totalElements'];
 
-    filteredRides.forEach((element) {
+    fetchedContacts.forEach((element) {
       contacts.add(ContactDto.fromJson(element));
     });
 

@@ -186,7 +186,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
-      String pox = "Hey";
       for(var i = messages.length - 1; i >= 0; i--){
         if (messages[i].id == message.id) {
           setState(() {
@@ -394,7 +393,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         widget = Center(
           child: Container(
             margin: EdgeInsets.all(25),
-            child: Text('Here begins history', style: TextStyle(color: Colors.grey)),
+            child: Text('Here begins history. Say hello!', style: TextStyle(color: Colors.grey)),
           ),
         );
       }

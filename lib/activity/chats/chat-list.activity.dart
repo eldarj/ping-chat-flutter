@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
@@ -256,6 +257,14 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Chats'),
         drawer: NavigationDrawerComponent(),
         bottomNavigationBar: new BottomNavigationComponent(currentIndex: 0).build(context),
+        floatingActionButton: FloatingActionButton(
+          elevation: 1,
+          backgroundColor: CompanyColor.blueDark,
+          child: Icon(Icons.message, color: Colors.white),
+          onPressed: () {
+            NavigatorUtil.push(context, SearchContactsActivity());
+          },
+        ),
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
           ROOT_CONTEXT = context;
@@ -277,12 +286,10 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                   child: LinearProgressLoader.build(context)
               ),
               Text(registerStateString),
-              chats != null && chats.length > 0 ? buildListView() :
-              Center(
-                child: Container(
-                  margin: EdgeInsets.all(25),
-                  child: Text('Nemate poruka', style: TextStyle(color: Colors.grey)),
-                ),
+              chats != null && chats.length > 0 ? buildListView() : Container(
+                margin: EdgeInsets.all(25),
+                child: Text('You have no messages',
+                    textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
               )
             ],
           ),
@@ -395,12 +402,12 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
+                    children: [
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
+                          children: [
                             Container(
                               alignment: Alignment.topLeft,
                               child: Column(
@@ -449,7 +456,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       widget = Text('Deleted', style: TextStyle(fontStyle: FontStyle.italic));
     } else if (message.messageType == 'MEDIA') {
       widget = Row(
-        children: <Widget>[
+        children: [
           Container(
               margin: EdgeInsets.only(right: 5),
               child: Icon(Icons.ondemand_video, color: Colors.grey.shade500, size: 15)),
@@ -458,7 +465,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       );
     } else if (message.messageType == 'RECORDING') {
       widget = Row(
-        children: <Widget>[
+        children: [
           Container(
               margin: EdgeInsets.only(right: 5),
               child: Icon(Icons.keyboard_voice, color: Colors.grey.shade500, size: 15)),
@@ -467,7 +474,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       );
     } else if (message.messageType == 'FILE') {
       widget = Row(
-        children: <Widget>[
+        children: [
           Container(
               margin: EdgeInsets.only(right: 5),
               child: Icon(Icons.insert_drive_file, color: Colors.grey.shade500, size: 15)),
@@ -476,7 +483,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       );
     } else if (message.messageType == 'IMAGE') {
       widget = Row(
-        children: <Widget>[
+        children: [
           Container(
               margin: EdgeInsets.only(right: 5),
               child: Icon(Icons.photo_size_select_large, color: Colors.grey.shade500, size: 15)),
@@ -485,7 +492,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       );
     } else if (message.messageType == 'STICKER') {
       widget = Row(
-        children: <Widget>[
+        children: [
           Image.asset('static/graphic/icon/sticker.png', color: Colors.grey.shade500, height: 25, width: 25),
           Text('Sticker', style: TextStyle(color: Colors.grey.shade500)),
         ],
