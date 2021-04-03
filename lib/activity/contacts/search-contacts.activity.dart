@@ -7,21 +7,20 @@ import 'package:flutterping/activity/calls/callscreen.activity.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/error.component.dart';
-import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutterping/model/contact-dto.model.dart';
-import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
-import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
+import 'package:http/http.dart' as http;
 
 enum SearchContactsType {
   CHAT, CONTACT
@@ -248,8 +247,8 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
       infoSection = Text(contact.contactPhoneNumber, style: TextStyle(color: Colors.grey));
       rightsideSection = Row(children: [
         Container(
-          width: 50, height: 50,
-          margin: EdgeInsets.only(right: 20),
+          width: 45, height: 45,
+          margin: EdgeInsets.only(right: 15),
           child: FlatButton(
             color: Colors.grey.shade200,
             padding: EdgeInsets.all(0),
@@ -259,11 +258,11 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                   myContactName: username, peer: contact.contactUser, peerContactName: contact.contactName,
                   statusLabel: '', contactBindingId: contact.contactBindingId));
             },
-            child: Icon(Icons.message, size: 20, color: Colors.grey.shade500),
+            child: Icon(Icons.message, size: 17.5, color: Colors.grey.shade500),
           ),
         ),
         Container(
-          width: 50, height: 50,
+          width: 45, height: 45,
           margin: EdgeInsets.only(right: 5),
           child: FlatButton(
             color: Colors.grey.shade200,
@@ -284,7 +283,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                 direction: 'OUTGOING',
               ));
             },
-            child: Icon(Icons.call, size: 20, color: Colors.grey.shade500),
+            child: Icon(Icons.call, size: 17.5, color: Colors.grey.shade500),
           ),
         ),
       ]);

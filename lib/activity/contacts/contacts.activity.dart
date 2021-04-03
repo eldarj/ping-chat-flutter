@@ -107,8 +107,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                             value: 'search',
                             child: Row(children: [
                               Container(
-                                  width: 50,
-                                  margin:EdgeInsets.only(right: 20),
+                                  width: 30,
+                                  margin:EdgeInsets.only(right: 20, left: 5),
                                   child: Icon(Icons.search)
                               ),
                               Text('Search')
@@ -118,8 +118,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                             value: 'newcontact',
                             child: Row(children: [
                               Container(
-                                  width: 50,
-                                  margin:EdgeInsets.only(right: 20),
+                                  width: 30,
+                                  margin:EdgeInsets.only(right: 20, left: 5),
                                   child: Icon(Icons.person_add)
                               ),
                               Text('Add contact')
@@ -360,16 +360,16 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
     scaffold.removeCurrentSnackBar();
     if (contactDto.favorite) {
-      scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste dodali ${contactDto.contactName} u omiljene.'));
+      scaffold.showSnackBar(SnackBarsComponent.success('${contactDto.contactName} added to favourites.'));
     } else {
-      scaffold.showSnackBar(SnackBarsComponent.info('Uklonili ste ${contactDto.contactName} iz omiljenih.'));
+      scaffold.showSnackBar(SnackBarsComponent.info('${contactDto.contactName} removed from favourites.'));
     }
   }
 
   onUpdateFavouritesError(error) {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(
-        content: 'Nismo uspjeli dodati kontakt u omiljene, molimo pokušajte ponovo.'
+        content: 'Something went wrong, please try again.'
     ));
   }
 

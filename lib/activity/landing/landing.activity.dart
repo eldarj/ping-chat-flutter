@@ -8,7 +8,6 @@ import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class LandingActivity extends StatefulWidget {
   @override
@@ -24,7 +23,6 @@ class LandingActivityState extends BaseState<LandingActivity> {
 
   loadActivity() async {
     var user = await UserService.getUser();
-    await Permission.microphone.request();
     if (user == null) {
       NavigatorUtil.replace(context, PolicyActivity());
     } else {
@@ -38,7 +36,7 @@ class LandingActivityState extends BaseState<LandingActivity> {
         decoration: BoxDecoration(
             gradient: LinearGradient(
                 begin: Alignment.topRight, end: Alignment.bottomLeft,
-                colors: [CompanyColor.blueAccent, CompanyColor.blueDark])),
+                colors: [CompanyColor.blueDark, CompanyColor.blueAccent])),
         child: Center(
             child: Column(mainAxisAlignment: MainAxisAlignment.end, mainAxisSize: MainAxisSize.max, children: [
               Expanded(

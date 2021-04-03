@@ -5,34 +5,27 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/calls/callscreen.activity.dart';
-import 'package:flutterping/activity/calls/dialpad.activity.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
 import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
-import 'package:flutterping/activity/profile/profile-image-upload/profile-image-upload.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
-import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/action-button.component.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
-import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
-import 'package:flutterping/util/widget/base.state.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:intl/intl.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
 
 class SingleContactActivity extends StatefulWidget {
@@ -70,6 +63,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   bool displaySharedDataSpaceLoader = true;
 
   String picturesPath;
+
+  bool favorite;
+
+  bool isFavorite() => favorite ?? widget.favorite;
 
   init() async {
     picturesPath = await new StorageIOService().getPicturesPath();
@@ -121,9 +118,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
         if (widget.peer.profileImagePath != null) {
           profileImageWidget = CachedNetworkImage(imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
-            placeholder: (context, url) => Container(
-                margin: EdgeInsets.all(15),
-                child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
+              placeholder: (context, url) => Container(
+                  margin: EdgeInsets.all(15),
+                  child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100))
           );
         }
 
@@ -222,25 +219,24 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      !widget.favorite ? TextButton(
-                          onPressed: () {},
+                      TextButton(
+                          onPressed: () => doUpdateFavourites()
+                              .then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
                           child: Row(
-                            children: [
-                              Container(
-                                  margin: EdgeInsets.only(right: 10),
-                                  child: Icon(Icons.star, color: Colors.yellow.shade700)),
-                              Text('Add to favourites', style: TextStyle(color: Colors.grey.shade700)),
-                            ],
-                          )) : TextButton(
-                          onPressed: () {},
-                          child: Row(
-                            children: [
-                              Container(
-                                  margin: EdgeInsets.only(right: 10),
-                                  child: Icon(Icons.star_border, color: Colors.yellow.shade700)),
-                              Text('Remove from favourites', style: TextStyle(color: Colors.grey.shade700)),
-                            ],
-                          ))
+                              children: [
+                                Container(
+                                    padding: EdgeInsets.all(7.5),
+                                    margin: EdgeInsets.only(right: 10),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      color: Colors.grey.shade50,
+                                    ),
+                                    child: Icon(isFavorite() ? Icons.star_border : Icons.star,
+                                        color: Colors.yellow.shade700, size: 17)),
+                                Text(isFavorite() ? 'Remove from favourites' : 'Add to favourites',
+                                    style: TextStyle(color: Colors.grey.shade700))
+                              ]
+                          )),
                     ]),
               ),
               Container(
@@ -254,9 +250,30 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FlatButton(onPressed: () {}, child: Text('Delete contact', style: TextStyle(color: CompanyColor.red))),
-                      FlatButton(onPressed: () {}, child: Text('Block contact', style: TextStyle(color: CompanyColor.red))),
-                      FlatButton(onPressed: () {}, child: Text('Delete all messages', style: TextStyle(color: CompanyColor.red))),
+                      TextButton(onPressed: () {},
+                          child: Row(children: [
+                            Container(
+                                padding: EdgeInsets.all(7.5),
+                                margin: EdgeInsets.only(right: 10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.grey.shade50,
+                                ),
+                                child: Icon(Icons.delete, color: Colors.red, size: 17)),
+                            Text('Delete contact', style: TextStyle(color: CompanyColor.red))
+                          ])),
+                      TextButton(onPressed: () {},
+                          child: Row(children: [
+                            Container(
+                                padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
+                                margin: EdgeInsets.only(right: 10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.grey.shade50,
+                                ),
+                                child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
+                            Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
+                          ])),
                     ]),
               )
             ])
@@ -283,7 +300,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
         alignment: Alignment.topCenter,
         children: [
           Row(children: [
-            Container(height: 250, width: DEVICE_MEDIA_SIZE.width, color: CompanyColor.bluePrimary)
+            Container(height: 300, width: DEVICE_MEDIA_SIZE.width, color: CompanyColor.bluePrimary)
           ]),
           Container(
             height: 350,
@@ -294,14 +311,14 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                   duration: Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
                   margin: EdgeInsets.only(bottom: maximizeProfilePhoto ? 0 : 0),
-                  height: maximizeProfilePhoto ? 350 : 200,
-                  width: maximizeProfilePhoto ? DEVICE_MEDIA_SIZE.width : 200,
+                  height: maximizeProfilePhoto ? 350 : 150,
+                  width: maximizeProfilePhoto ? DEVICE_MEDIA_SIZE.width : 150,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(color: Colors.white, width: maximizeProfilePhoto ? 0 : 3),
-                    borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 32.5),
+                    borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 100),
                   ),
-                  child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 30),
+                  child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 100),
                     child: profileImageWidget ?? Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
                   ),
                 ),
@@ -457,35 +474,35 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     }));
   }
 
-  Future<ContactDto> doUpdateFavourites(int contactId, bool favorite, int index) async {
-    String url = '/api/contacts/${contactId}/favourite';
+  Future<bool> doUpdateFavourites() async {
+    String url = '/api/contacts/${widget.peer.id}/favourite';
 
-    http.Response response = await HttpClientService.post(url, body: !favorite);
+    http.Response response = await HttpClientService.post(url, body: !isFavorite());
 
     if(response.statusCode != 200) {
       throw new Exception();
     }
 
-    // return contactDto;
+    return !isFavorite();
   }
 
-  onUpdateFavouritesSuccess(name, favorite) {
+  onUpdateFavouritesSuccess(status) {
     setState(() {
-      // isFavorite = favorite;
+      favorite = status;
     });
 
     scaffold.removeCurrentSnackBar();
-    if (true) {
-      scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste dodali ${widget.contactName} u omiljene.'));
+    if (isFavorite()) {
+      scaffold.showSnackBar(SnackBarsComponent.success('${widget.contactName} added to favourites.'));
     } else {
-      scaffold.showSnackBar(SnackBarsComponent.info('Uklonili ste ${widget.contactName} iz omiljenih.'));
+      scaffold.showSnackBar(SnackBarsComponent.info('${widget.contactName} removed from favourites.'));
     }
   }
 
   onUpdateFavouritesError(error) {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(
-        content: 'Nismo uspjeli dodati kontakt u omiljene, molimo pokušajte ponovo.'
+        content: 'Something went wrong, please try again.'
     ));
   }
 }
