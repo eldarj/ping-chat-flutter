@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +13,8 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
 
   BottomNavigationBar bottomNavigationBar;
 
+  FloatingActionButton floatingActionButton;
+
   var drawer;
 
   @override
@@ -27,10 +27,10 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
   @override
   Widget build(BuildContext context) {
     preRender();
-
     return Scaffold(
         appBar: appBar != null ? appBar : null,
         bottomNavigationBar: bottomNavigationBar != null ? bottomNavigationBar : null,
+        floatingActionButton: floatingActionButton != null ? floatingActionButton : null,
         drawer: drawer != null ? drawer : null,
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
@@ -42,6 +42,4 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
   Widget render() {}
 
   preRender() {}
-
-
 }
