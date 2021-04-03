@@ -27,13 +27,13 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0
-  sip_ua: ^0.3.3
+  sip_ua: ^0.3.5
   http: ^0.12.2
   stomp_dart_client: ^0.3.5
   web_socket_channel: 1.1.0
   sqflite: 1.2.0
   shared_preferences: ^0.5.12+4
-  permission_handler: ^5.0.1+1
+  permission_handler: ^5.1.0+2
   flutter_slidable: ^0.5.7
   cached_network_image: ^2.2.0
   file_picker: ^1.13.3
@@ -44,10 +44,9 @@ dependencies:
   intl: ^0.16.1
   timeago: ^2.0.15
   keyboard_visibility: ^0.5.6
-  stream_chat_flutter: ^0.2.3
   rxdart: ^0.24.1
   flutter_downloader: ^1.5.2
-  path_provider: ^1.6.24
+  path_provider: ^1.6.28
   dart_notification_center: ^1.0.0+1
   functional_widget: ^0.8.0
   open_file: ^3.0.3
@@ -56,9 +55,11 @@ dependencies:
   stop_watch_timer: ^0.6.0
   audioplayers: ^0.17.0
   flutter_spinkit: ^4.1.2
+  ffi: ^1.0.0
+  photo_view: ^0.11.1
+  qr_flutter: ^4.0.0
 
 dev_dependencies:
-  functional_widget: ^0.8.0
   build_runner: ^1.9.0
 
 # For information on the generic Dart part of this file, see the
