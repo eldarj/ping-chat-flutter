@@ -69,7 +69,7 @@ class LoginActivityState extends State<LoginActivity> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  LogoComponent.build(),
+                  LogoComponent.horizontal,
                   _buildDescriptionContainer(),
                   _buildCountryCodeContainer(),
                   _buildPhoneNumberContainer(),

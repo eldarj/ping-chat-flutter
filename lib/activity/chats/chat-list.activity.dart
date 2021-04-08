@@ -1,20 +1,24 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
+import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/messaging/unread-message.publisher.dart';
+import 'package:flutterping/service/notification/notification.service.dart';
 import 'package:flutterping/service/voice/call-state.publisher.dart';
 import 'package:flutterping/service/voice/sip-client.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
@@ -26,6 +30,7 @@ import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
@@ -33,6 +38,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sip_ua/sip_ua.dart';
+import 'package:volume/volume.dart';
 
 class ChatListActivity extends StatefulWidget {
   const ChatListActivity();
@@ -44,6 +50,10 @@ class ChatListActivity extends StatefulWidget {
 class ChatListActivityState extends BaseState<ChatListActivity> {
   static const String STREAMS_LISTENER_ID = "ChatListListener";
 
+  bool displayApp = false;
+
+  bool isAppInForeground = true;
+
   bool displayLoader = true;
 
   int userId;
@@ -53,16 +63,32 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   bool isLoadingOnScroll = false;
   bool noMoreChatsToLoad = false;
-  int pageSize = 50;
+  int pageSize = 15;
   int pageNumber = 1;
 
   Timer presenceTimer;
 
   String registerStateString = 'unknown';
 
+  StreamSubscription<FGBGType> foregroundSubscription;
+
   initListenersAndGetData() async {
     ClientDto user = await UserService.getUser();
     userId = user.id;
+
+    doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
+
+    // Initialize firebase notifications service
+    await Firebase.initializeApp().then((_) {
+      notificationService
+          .initializeNotificationHandlers()
+          .initializeRegister();
+    });
+
+    // Initialize message sound playing
+    foregroundSubscription = FGBGEvents.stream.listen((event) {
+      isAppInForeground = event == FGBGType.foreground;
+    });
 
     // Initialize SIP UA Client
     sipClientService.register(user.fullPhoneNumber, '1234');
@@ -74,6 +100,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
 
     wsClientService.userStatusPub.addListener(STREAMS_LISTENER_ID, (item) {
+      print('HELLO THERE');
       print(item);
     });
 
@@ -93,9 +120,21 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       });
     });
 
-    wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_ID, (message) {
+    wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_ID, (message) async {
       sendReceivedStatus(new MessageSeenDto(id: message.id,
           senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber));
+
+      if (isAppInForeground) {
+        int volume = await Volume.getVol;
+        if (volume > 0) {
+          playMessageSound();
+        } else {
+          Vibrate.vibrate();
+        }
+
+        print('VOLUME');
+        print(volume);
+      }
 
       chats.forEach((chat) => {
         if (chat.contactBindingId == message.contactBindingId) {
@@ -169,8 +208,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         }
       });
     });
-
-    doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
   }
 
   initPresenceFetcher() async {
@@ -221,25 +258,49 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         });
       }
     });
+
+    initAudioStreamType();
+  }
+
+  initAudioStreamType() async {
+    await Volume.controlVolume(AudioManager.STREAM_SYSTEM);
   }
 
   initPermissions() async {
     await Permission.microphone.request();
   }
 
+  initialize() async {
+    if (await UserService.isUserLoggedIn()) {
+      initListenersAndGetData();
+      initPresenceFetcher();
+      initPermissions();
+
+      setState(() {
+        displayApp = true;
+      });
+    } else {
+      NavigatorUtil.replace(context, PolicyActivity());
+    }
+  }
+
   @override
   initState() {
     super.initState();
-    initPermissions();
-    initListenersAndGetData();
-    initPresenceFetcher();
+    initialize();
   }
 
   @override
   deactivate() {
     super.deactivate();
 
-    presenceTimer.cancel();
+    if (foregroundSubscription != null) {
+      foregroundSubscription.cancel();
+    }
+
+    if (presenceTimer != null) {
+      presenceTimer.cancel();
+    }
 
     wsClientService.userStatusPub.removeListener(STREAMS_LISTENER_ID);
     wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
@@ -259,7 +320,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return displayApp ? Scaffold(
         appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Chats'),
         drawer: NavigationDrawerComponent(),
         bottomNavigationBar: new BottomNavigationComponent(currentIndex: 0).build(context),
@@ -276,7 +337,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           ROOT_CONTEXT = context;
           return buildActivityContent();
         })
-    );
+    ) : Container();
   }
 
   Widget buildActivityContent() {
@@ -544,17 +605,18 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }
 
   void onGetChatDataSuccess(result) async {
-    List filteredChats = result['chats'];
+    List fetchedChats = result['chats'];
     totalChatsLoaded += result['totalElements'];
 
     if (result['totalElements'] == 0) {
       noMoreChatsToLoad = true;
     }
 
-    filteredChats.forEach((element) {
+    fetchedChats.forEach((element) {
       chats.add(MessageDto.fromJson(element));
     });
 
+    scaffold.removeCurrentSnackBar();
     setState(() {
       displayLoader = false;
       isLoadingOnScroll = false;

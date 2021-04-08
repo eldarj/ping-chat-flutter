@@ -101,7 +101,7 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
   }
 
   Container _buildImageCover() {
-    return Container(child: LogoComponent.build());
+    return Container(child: LogoComponent.horizontal);
   }
 
   List<Widget> _buildDescriptionTextWidgets() {

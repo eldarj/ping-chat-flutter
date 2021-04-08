@@ -6,6 +6,7 @@ import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
@@ -31,14 +32,13 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                                child: LogoComponent.build(orientation: LogoOrientation.vertical, displayText: false)),
+                            Container(child: LogoComponent.logo),
                             Container(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Container(
-                                      margin: EdgeInsets.only(bottom: 5),
+                                      margin: EdgeInsets.only(top: 25, bottom: 5),
                                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                                         Text("Please read the "),
                                         GestureDetector(
@@ -55,7 +55,9 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
                                     Container(
                                         margin: EdgeInsets.all(25),
                                         child: GradientButton(
-                                            child: Text('Accept'),
+                                            child: displayLoader
+                                                ? Container(height: 20, width: 20, child: Spinner())
+                                                : Text('Accept'),
                                             onPressed: displayLoader ? null : onAcceptPolicy)
                                     )
                                   ],
@@ -64,7 +66,7 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
                           ],
                         ),
                       ),
-                      Opacity(opacity: displayLoader ? 1 : 0, child: LinearProgressLoader.build(context))]),
+                    ]),
               ));
         }));
   }
@@ -73,6 +75,8 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
     setState(() {
       displayLoader = true;
     });
+
+    await Future.delayed(Duration(milliseconds: 500));
 
     NavigatorUtil.replace(context, LoginActivity());
   }

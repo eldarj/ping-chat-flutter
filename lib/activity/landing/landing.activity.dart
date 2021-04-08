@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/component/logo.component.dart';
-import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/widget/base.state.dart';
+import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 
 class LandingActivity extends StatefulWidget {
   @override
@@ -22,34 +21,44 @@ class LandingActivityState extends BaseState<LandingActivity> {
   }
 
   loadActivity() async {
-    var user = await UserService.getUser();
-    if (user == null) {
-      NavigatorUtil.replace(context, PolicyActivity());
-    } else {
+    var isUserLoggedIn = await UserService.isUserLoggedIn();
+
+    setState(() {
+      displayLoader = true;
+    });
+
+    if (isUserLoggedIn) {
+      await Future.delayed(Duration(seconds: 1));
       NavigatorUtil.replace(context, ChatListActivity());
+    } else {
+      await Future.delayed(Duration(seconds: 3));
+      NavigatorUtil.replace(context, PolicyActivity());
     }
   }
 
   @override
   Widget render() {
     return Container(
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topRight, end: Alignment.bottomLeft,
-                colors: [CompanyColor.blueDark, CompanyColor.blueAccent])),
+        color: Colors.white,
         child: Center(
-            child: Column(mainAxisAlignment: MainAxisAlignment.end, mainAxisSize: MainAxisSize.max, children: [
-              Expanded(
-                child: Container(
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    LogoComponent.build(orientation: LogoOrientation.vertical, fontSize: 60,
-                        whiteFace: true,
-                        textColor: Colors.white)
-                  ]),
-                ),
-              ),
-              LinearProgressLoader.build(context)
-            ]))
+            child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Container(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            LogoComponent.vertical
+                          ]
+                      ),
+                    ),
+                  ),
+                  displayLoader ? LinearProgressLoader.build(context) : Container()
+                ]
+            )
+        )
     );
   }
 }

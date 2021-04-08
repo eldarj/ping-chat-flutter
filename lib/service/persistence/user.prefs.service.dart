@@ -3,11 +3,16 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 
-String USER_SHARED_PREFS_KEY = 'USER_DTO_AS_JSON';
-String USER_TOKEN_SHARED_PREFS_KEY = 'USER_DTO_TOKEN_AS_STRING';
+const String USER_SHARED_PREFS_KEY = 'USER_DTO_AS_JSON';
+const String USER_TOKEN_SHARED_PREFS_KEY = 'USER_DTO_TOKEN_AS_STRING';
 
 class UserService {
   static var userVar;
+
+  static Future<bool> isUserLoggedIn() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.containsKey(USER_SHARED_PREFS_KEY);
+  }
 
   static Future<int> getUserId() async {
     ClientDto user = await getUser();
@@ -15,22 +20,16 @@ class UserService {
   }
 
   static Future<ClientDto> getUser() async {
-    if (userVar != null) {
-      return userVar;
-    }
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var userJson = prefs.getString(USER_SHARED_PREFS_KEY);
-
-    if (userJson == null) {
-      return null;
-    }
-
-    var jsonDecodedUserDto = json.decode(userJson);
-
     var userDto;
-    if (jsonDecodedUserDto != null) {
-      userDto = ClientDto.fromJson(jsonDecodedUserDto);
+
+    if (await isUserLoggedIn()) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      var userJson = prefs.getString(USER_SHARED_PREFS_KEY);
+      var jsonDecodedUserDto = json.decode(userJson);
+
+      if (jsonDecodedUserDto != null) {
+        userDto = ClientDto.fromJson(jsonDecodedUserDto);
+      }
     }
 
     return userDto;

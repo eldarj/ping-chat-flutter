@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "768787835230",
+    "project_id": "pingchat-391c6",
+    "storage_bucket": "pingchat-391c6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:768787835230:android:d29f0929d2691b93f3c7cf",
+        "android_client_info": {
+          "package_name": "com.eldarjahijagic.ping.flutterping"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "768787835230-dmh1enk09fob930hjpjd1u32l2b6pqiu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRXhePXJxNnyOR348kQlD4PdhiNWJz-O0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "768787835230-dmh1enk09fob930hjpjd1u32l2b6pqiu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

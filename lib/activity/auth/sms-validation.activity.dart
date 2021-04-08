@@ -62,7 +62,7 @@ class SmsValidationState extends State<SmsValidationActivity> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    LogoComponent.build(),
+                    LogoComponent.horizontal,
                     _buildDescriptionContainer(),
                     _buildPinCodeContainer(),
                     _buildActionContainer(context)
