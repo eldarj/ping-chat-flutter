@@ -146,7 +146,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                   decoration: InputDecoration(
                       hintText: '',
                       prefixIcon: Icon(Icons.search),
-                      labelText: 'Search by name or phonenumber',
+                      labelText: 'Search by name or phone number',
                       contentPadding: EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 15)),
                 )),
           ],

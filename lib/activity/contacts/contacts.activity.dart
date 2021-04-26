@@ -90,44 +90,19 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
             appBar: BaseAppBar.getProfileAppBar(scaffold,
                 titleText: 'Contacts',
                 actions: [
-                  PopupMenuButton<String>(
-                    onSelected: (choice) {
-                      if (choice == 'search') {
+                  IconButton(icon: Icon(Icons.search),
+                      onPressed: () {
                         NavigatorUtil.push(context, SearchContactsActivity(
-                          type: SearchContactsType.CONTACT,
-                          contacts: contacts,
-                        ));
-                      } else if (choice == 'newcontact') {
-                        NavigatorUtil.push(context, AddContactActivity());
-                      }
-                    },
-                    itemBuilder: (BuildContext context) {
-                      return [
-                        PopupMenuItem<String>(
-                            value: 'search',
-                            child: Row(children: [
-                              Container(
-                                  width: 30,
-                                  margin:EdgeInsets.only(right: 20, left: 5),
-                                  child: Icon(Icons.search)
-                              ),
-                              Text('Search')
-                            ])
-                        ),
-                        PopupMenuItem<String>(
-                            value: 'newcontact',
-                            child: Row(children: [
-                              Container(
-                                  width: 30,
-                                  margin:EdgeInsets.only(right: 20, left: 5),
-                                  child: Icon(Icons.person_add)
-                              ),
-                              Text('Add contact')
-                            ])
-                        )
-                      ];
-                    },
-                  )
+                            type: SearchContactsType.CONTACT,
+                            contacts: contacts));
+                      }),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: IconButton(icon: Icon(Icons.person_add),
+                        onPressed: () {
+                          NavigatorUtil.push(context, AddContactActivity());
+                        }),
+                  ),
                 ],
                 bottomTabs: TabBar(
                     onTap: (index) {

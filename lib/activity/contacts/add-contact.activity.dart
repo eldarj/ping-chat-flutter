@@ -41,7 +41,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
   String selectedCallingCodeId = 'placeholder';
   List<DropdownMenuItem<String>> callingCodes = [
-    DropdownMenuItem(value: 'placeholder', child: Text('Pozivni'))
+    DropdownMenuItem(value: 'placeholder', child: Text('Counry code'))
   ];
 
   @override
@@ -59,78 +59,83 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'New contact');
+    appBar = BaseAppBar.getBackAppBar(getScaffoldContext);
     drawer = new NavigationDrawerComponent();
   }
 
   @override
   Widget render() {
     return Container(
-      margin: EdgeInsets.only(left: 30, right: 30, top: 15, bottom: 15),
+      margin: EdgeInsets.only(left: 2.5, right: 2.5, top: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(margin: EdgeInsets.only(right: 10),
-                  width: 50, height: 50,
+              Container(margin: EdgeInsets.only(left: 20, right: 10),
+                  width: 45, height: 45,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50.0),
                       color: Colors.grey.shade400
                   ),
-                  child: Icon(Icons.person_add_alt_1, color: Colors.grey.shade300, size: 25)),
-              Container(child: Text('Add a new contact', style: TextStyle(fontSize: 16))),
+                  child: Icon(Icons.person_add_alt_1, color: Colors.grey.shade300, size: 20)),
+              Container(child: Text('Add a new contact', style: TextStyle(color: Colors.grey.shade700))),
             ],
           ),
           Divider(height: 25, thickness: 1),
           Container(
-              margin: EdgeInsets.only(top: 10, bottom: 15),
-              padding: EdgeInsets.only(left: 10.0, right: 10.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5.0),
-                border: Border.all(color: Colors.grey, style: BorderStyle.solid, width: 1),
+            margin: EdgeInsets.only(left: 20, right: 20),
+            child: Column(children: [
+              Container(
+                  margin: EdgeInsets.only(top: 10, bottom: 15),
+                  padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5.0),
+                    border: Border.all(color: Colors.grey, style: BorderStyle.solid, width: 1),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                      child: DropdownButton(
+                        isExpanded: true,
+                        value: selectedCallingCodeId,
+                        items: callingCodes,
+                        onChanged: (selection) => onChangeCountryCode(selection),
+                      ))
               ),
-              child: DropdownButtonHideUnderline(
-                  child: DropdownButton(
-                    isExpanded: true,
-                    value: selectedCallingCodeId,
-                    items: callingCodes,
-                    onChanged: (selection) => onChangeCountryCode(selection),
-                  ))
-          ),
-          TextField(
-            controller: phoneNumberController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-                hintText: 'Phonenumber',
-                labelText: 'Phonenumber',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.all(15)),
-          ),
-          Container(margin: EdgeInsets.only(top: 5, left: 2),
-              child: Text(phoneNumberValidationMessage, style: TextStyle(color: CompanyColor.red))
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 5),
-            child: TextField(
-              controller: contactNameController,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                  hintText: 'Contact name',
-                  labelText: 'Contact name',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.all(15)),
-            ),
-          ),
-          Container(margin: EdgeInsets.only(top: 5, left: 2),
-              child: Text(contactNameValidationMessage, style: TextStyle(color: CompanyColor.red))
-          ),
-          Container(
-            child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              GradientButton(
-                child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Add'),
-                onPressed: countryCodesLoaded && !displayLoader ?
-                    () => onGetStarted(context) : null,
+              TextField(
+                controller: phoneNumberController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                    hintText: 'Phone number',
+                    labelText: 'Phone number',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.all(15)),
+              ),
+              Container(margin: EdgeInsets.only(top: 5, left: 2),
+                  child: Text(phoneNumberValidationMessage, style: TextStyle(color: CompanyColor.red))
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 5),
+                child: TextField(
+                  controller: contactNameController,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      hintText: 'Contact name',
+                      labelText: 'Contact name',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.all(15)),
+                ),
+              ),
+              Container(margin: EdgeInsets.only(top: 5, left: 2),
+                  child: Text(contactNameValidationMessage, style: TextStyle(color: CompanyColor.red))
+              ),
+              Container(
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  GradientButton(
+                    child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Add'),
+                    onPressed: countryCodesLoaded && !displayLoader ?
+                        () => onGetStarted(context) : null,
+                  )
+                ]),
               )
             ]),
           )
@@ -145,7 +150,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
     setState(() {
       phoneNumberValidationMessage = phoneNumberController.text.length == 0
-          ? 'Enter a phonenumber'
+          ? 'Enter a phone number'
           : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Phonenumber can contain digits only.' : '';
 
       contactNameValidationMessage = contactNameController.text.length < 3 ? 'Enter a contact name' : '';

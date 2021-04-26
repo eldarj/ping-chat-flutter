@@ -101,8 +101,8 @@ class LoginActivityState extends State<LoginActivity> {
         controller: phoneNumberController,
         keyboardType: TextInputType.number,
         decoration: InputDecoration(
-            hintText: 'Phonenumber',
-            labelText: 'Phonenumber',
+            hintText: 'Phone number',
+            labelText: 'Phone number',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.all(15)),
       ),
@@ -148,7 +148,7 @@ class LoginActivityState extends State<LoginActivity> {
     // refresh the state
     setState(() {
       phoneNumberValidationMessage = phoneNumberController.text.length == 0
-          ? 'Enter your phonenumber'
+          ? 'Enter your phone number'
           : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Phonenumber can contain digits only.' : '';
     });
 

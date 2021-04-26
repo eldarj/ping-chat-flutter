@@ -168,7 +168,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       boxShadow: [Shadows.bottomShadow()]
                   ),
                   child: buildTwoColumns([
-                    buildDrawerItem(context, 'Phonenumber',
+                    buildDrawerItem(context, 'Phone number',
                         Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
