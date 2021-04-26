@@ -89,14 +89,14 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                         LoadingButton(color: Colors.transparent, child: Icon(Icons.delete, color: Colors.white),
                             displayLoader: displayLoader, onPressed: () {
                               var dialog = GenericAlertDialog(
-                                  title: "Izbriši sliku",
-                                  message: "Ukoliko je kontakt aktivirao direktno spremanje na uređaj,"
-                                      " datoteku neće biti moguće izbrisati sa istog.",
+                                  title: "Delete",
+                                  message: "Note that some media will still be visible if "
+                                      "the receiver stored it directly on the device.",
                                   onPostivePressed: () {
                                     doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
                                   },
-                                  positiveBtnText: 'Izbriši',
-                                  negativeBtnText: 'Odustani');
+                                  positiveBtnText: 'Delete',
+                                  negativeBtnText: 'Cancel');
                               showDialog(
                                   context: context,
                                   builder: (BuildContext context) => dialog);
