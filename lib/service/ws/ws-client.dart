@@ -15,7 +15,7 @@ class WsClient {
     developer.log('WsClient - getClient - tryConnect with token: $userToken');
     _stompClient = StompClient(
         config: StompConfig(
-            url: 'ws://192.168.1.4:8089/ws/connect',
+            url: 'ws://192.168.1.25:8089/ws/connect',
             reconnectDelay: 5000,
             webSocketConnectHeaders: {
               'authorization': 'Bearer ${userToken}',

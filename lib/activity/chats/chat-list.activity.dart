@@ -136,21 +136,23 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         print(volume);
       }
 
-      chats.forEach((chat) => {
-        if (chat.contactBindingId == message.contactBindingId) {
-          setState(() {
-            chat.text = message.text;
-            chat.sender = message.sender;
-            chat.receiver = message.receiver;
-            chat.senderContactName = message.senderContactName;
-            chat.receiverContactName = message.receiverContactName;
-            chat.sentTimestamp = message.sentTimestamp;
-            chat.messageType = message.messageType;
-            chat.deleted = message.deleted;
-            chat.totalUnreadMessages = message.totalUnreadMessages;
-          })
-        }
-      });
+      MessageDto chat = chats.firstWhere((element) => element.contactBindingId == message.contactBindingId,
+          orElse: null);
+      if (chat != null) {
+        setState(() {
+          chat.text = message.text;
+          chat.sender = message.sender;
+          chat.receiver = message.receiver;
+          chat.senderContactName = message.senderContactName;
+          chat.receiverContactName = message.receiverContactName;
+          chat.sentTimestamp = message.sentTimestamp;
+          chat.messageType = message.messageType;
+          chat.deleted = message.deleted;
+          chat.totalUnreadMessages = message.totalUnreadMessages;
+        });
+      } else {
+        chats.add(message);
+      }
     });
 
     wsClientService.incomingSentPub.addListener(STREAMS_LISTENER_ID, (message) async {

@@ -158,29 +158,13 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                             });
                           },
                         ),
-
                         buildSectionTitle("Data Space"),
                         buildDrawerItem(context, 'My dataspace',
                             buildIcon(icon: Icons.image, backgroundColor: Colors.redAccent),
                             activity: DataSpaceActivity(userId: user.id),
                             labelDescription: 'Your stored data and shared media'),
-
-                        buildSectionTitle("Preferences"),
-                        buildDrawerItem(context, 'Account',
-                            buildIcon(icon: Icons.settings, backgroundColor: Colors.orangeAccent),
-                            labelDescription: 'Account settings'),
-                        buildDrawerItem(context, 'Privacy',
-                            buildIcon(icon: Icons.lock, backgroundColor: Colors.blueGrey,)),
-                        buildDrawerItem(context, 'Notification and Sounds',
-                            buildIcon(icon: Icons.notifications, backgroundColor: Colors.deepPurpleAccent)),
-                        buildDrawerItem(context, 'Media and Storage',
-                            buildIcon(icon: Icons.image)),
-
                         buildSectionTitle("Help & FAQ"),
-                        buildDrawerItem(context, 'Kontaktirajte nas',
-                          buildIcon(icon: Icons.email, backgroundColor: Colors.lightBlue.shade300),
-                        ),
-                        buildDrawerItem(context, 'Uslovi korištenja',
+                        buildDrawerItem(context, 'Terms of Services and Privacy Policy',
                             buildIcon(icon: Icons.copyright, backgroundColor: Colors.blueGrey.shade800),
                             activity: PolicyInfoActivity()
                         ),

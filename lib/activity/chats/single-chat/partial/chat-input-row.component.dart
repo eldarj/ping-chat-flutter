@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -8,11 +7,9 @@ import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/main.dart';
-import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:flutterping/util/other/file-type-resolver.util.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:flutter/cupertino.dart';

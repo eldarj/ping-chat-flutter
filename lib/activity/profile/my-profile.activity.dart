@@ -86,7 +86,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                             children: [
                               new RoundProfileImageComponent(url: clientDto.profileImagePath,
                                   border: Border.all(color: Colors.grey.shade200, width: 1),
-                                  height: 150, width: 150, borderRadius: 20),
+                                  height: 200, width: 200, borderRadius: 20),
                               Container(
                                   margin: EdgeInsets.all(5),
                                   padding: EdgeInsets.all(5),
@@ -107,10 +107,10 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Text(
                               "Hello there,",
-                              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w400, fontSize: 24),
+                              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w400, fontSize: 26),
                             ),
                             Text(clientDto.firstName + ' ' + clientDto.lastName,
-                                style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 27)),
+                                style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 29)),
                           ]),
                         ),
                       ],

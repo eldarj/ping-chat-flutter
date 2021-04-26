@@ -255,13 +255,25 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                 actions: [],
                 secondaryActions: [
                   IconSlideAction(
-                    color: Colors.grey.shade500,
-                    iconWidget: Icon(contact.favorite ? Icons.star : Icons.star_border, color: Colors.yellow),
+                    color: Colors.grey.shade300,
+                    iconWidget: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(contact.favorite ? Icons.star : Icons.star_border, color: Colors.yellow)),
                     onTap: () => doUpdateFavourites(contact, index).then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
                   ),
                   IconSlideAction(
-                    color: Colors.grey.shade500,
-                    iconWidget: Icon(Icons.delete, color: Colors.deepOrange),
+                    color: Colors.grey.shade300,
+                    iconWidget: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(Icons.delete, color: Colors.red)),
                     onTap: () => print('Delete'),
                   ),
                 ],
