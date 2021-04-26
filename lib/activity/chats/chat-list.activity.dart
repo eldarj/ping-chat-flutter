@@ -128,12 +128,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         int volume = await Volume.getVol;
         if (volume > 0) {
           playMessageSound();
-        } else {
-          Vibrate.vibrate();
         }
-
-        print('VOLUME');
-        print(volume);
       }
 
       MessageDto chat = chats.firstWhere((element) => element.contactBindingId == message.contactBindingId,
@@ -190,8 +185,18 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       }
     });
 
+    wsClientService.outgoingSeenPub.addListener(STREAMS_LISTENER_ID, (List<MessageSeenDto> seenMessages) async {
+      var message = seenMessages[0];
+      MessageDto chat = chats.firstWhere((element) => element.sender.fullPhoneNumber == message.senderPhoneNumber,
+          orElse: () => null);
+      if (chat != null) {
+        setState(() {
+          chat.totalUnreadMessages = chat.totalUnreadMessages - 1;
+        });
+      }
+    });
+
     wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
-      String pox = "Hey";
       for(var i = chats.length - 1; i >= 0; i--){
         if (chats[i].contactBindingId == message.contactBindingId) {
           setState(() {
@@ -274,6 +279,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   initialize() async {
     if (await UserService.isUserLoggedIn()) {
+      instantiateWsClientService();
       initListenersAndGetData();
       initPresenceFetcher();
       initPermissions();
@@ -304,20 +310,29 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       presenceTimer.cancel();
     }
 
-    wsClientService.userStatusPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.presencePub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
+    if (wsClientService != null) {
+      wsClientService.userStatusPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.presencePub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
+    }
 
-    unreadMessagePublisher.removeListener(STREAMS_LISTENER_ID);
+    if (unreadMessagePublisher != null) {
+      unreadMessagePublisher.removeListener(STREAMS_LISTENER_ID);
+    }
 
-    sipClientService.removeListener('123');
-    callStatePublisher.removeListener('123');
+    if (sipClientService != null) {
+      sipClientService.removeListener('123');
+    }
+
+    if (callStatePublisher != null) {
+      callStatePublisher.removeListener('123');
+    }
   }
 
   @override

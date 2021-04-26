@@ -76,9 +76,16 @@ class WsClientService {
   }
 }
 
-final wsClientService = WsClientService();
+WsClientService wsClientService;
 
-sendSeenStatus(List<MessageSeenDto> seenMessages) {
+instantiateWsClientService() {
+  if (wsClientService == null) {
+    wsClientService = WsClientService();
+  }
+}
+
+sendSeenStatus(List<MessageSeenDto> seenMessages) async {
+  await Future.delayed(Duration(seconds: 1));
   wsClientService.outgoingSeenPub.sendEvent(seenMessages, '/messages/seen');
 }
 
@@ -87,5 +94,7 @@ sendReceivedStatus(MessageSeenDto messageSeenDto) {
 }
 
 sendPresenceEvent(PresenceEvent presenceEvent) {
-  WsClientService.wsClient.send('/users/status', presenceEvent);
+  if (WsClientService.wsClient != null) {
+    WsClientService.wsClient.send('/users/status', presenceEvent);
+  }
 }
