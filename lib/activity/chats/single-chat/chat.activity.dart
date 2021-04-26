@@ -297,7 +297,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 padding: EdgeInsets.only(left: 5, right: 25),
                 child: Row(
                   children: [
-                    RoundProfileImageComponent(url: widget.peer.profileImagePath,
+                    RoundProfileImageComponent(url: widget.peer?.profileImagePath,
                         height: 45, width: 45, borderRadius: 45, margin: 0),
                     Container(
                       margin: EdgeInsets.only(left: 10),
@@ -320,7 +320,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                         target: widget.peer.fullPhoneNumber,
                         contactName: widget.peerContactName,
                         fullPhoneNumber: widget.peer.fullPhoneNumber,
-                        profileImageWidget: widget.peer.profileImagePath != null ? CachedNetworkImage(
+                        profileImageWidget: widget.peer?.profileImagePath != null ? CachedNetworkImage(
                           imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
                               margin: EdgeInsets.all(15),

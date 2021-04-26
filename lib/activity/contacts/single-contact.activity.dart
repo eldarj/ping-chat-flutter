@@ -35,6 +35,8 @@ class SingleContactActivity extends StatefulWidget {
 
   final String contactName;
 
+  final String contactPhoneNumber;
+
   final int contactBindingId;
 
   final String myContactName;
@@ -43,9 +45,10 @@ class SingleContactActivity extends StatefulWidget {
 
   final bool favorite;
 
+
   const SingleContactActivity({ Key key,
     this.myContactName, this.statusLabel,
-    this.peer, this.userId, this.contactName, this.favorite, this.contactBindingId }) : super(key: key);
+    this.peer, this.userId, this.contactName, this.favorite, this.contactBindingId, this.contactPhoneNumber }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new SingleContactActivityState();
@@ -71,7 +74,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   init() async {
     picturesPath = await new StorageIOService().getPicturesPath();
 
-    doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
+    if (widget.peer != null) {
+      doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
+    }
 
     scrollController.addListener(() async {
       if (scrollController.position.pixels < 50 && maximizeProfilePhoto == false) {
@@ -116,11 +121,12 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     if (!displayLoader) {
       if (!isError) {
 
-        if (widget.peer.profileImagePath != null) {
+        if (widget.peer?.profileImagePath != null) {
           profileImageWidget = CachedNetworkImage(imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
               placeholder: (context, url) => Container(
                   margin: EdgeInsets.all(15),
-                  child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100))
+                  child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)
+              )
           );
         }
 
@@ -132,7 +138,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       color: Colors.white
                   ),
                   child: buildContactProfileSection()),
-              Container(
+              widget.peer != null ? Container(
                   padding: EdgeInsets.only(top: 10, bottom: 25),
                   color: Colors.white,
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -159,7 +165,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                         ));
                       },
                     ),
-                  ])),
+                  ])) : Container(),
               Container(
                   padding: EdgeInsets.all(10),
                   margin: EdgeInsets.only(bottom: 10),
@@ -180,65 +186,16 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                             )),
                         crossAxisAlignment: CrossAxisAlignment.start,
                         padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15),
-                        labelDescription: widget.peer.fullPhoneNumber),
+                        labelDescription: widget.contactPhoneNumber),
                   ], [
-                    buildDrawerItem(context, widget.peer.countryCode.countryName,
+                    widget.peer != null ? buildDrawerItem(context, widget.peer.countryCode.countryName,
                         CountryIconComponent.buildCountryIcon(
                             widget.peer.countryCode.countryName, height: 15, width: 15
-                        )),
+                        )) : Container(),
                   ])
               ),
-              Container(
-                  padding: EdgeInsets.all(10),
-                  margin: EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).backgroundColor,
-                      boxShadow: [Shadows.bottomShadow()]
-                  ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    buildSectionHeader('Shared media', linkWidget: TextButton(
-                      onPressed: () {
-                        NavigatorUtil.push(context, ContactSharedActivity(
-                            peer: widget.peer,
-                            picturesPath: picturesPath,
-                            peerContactName: widget.contactName,
-                            contactBindingId: widget.contactBindingId));
-                      },
-                      child: Text('See more', style: TextStyle(color: CompanyColor.bluePrimary)),
-                    )),
-                    buildDataSpaceListView(),
-                  ])),
-              Container(
-                padding: EdgeInsets.all(10),
-                margin: EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                    color: Theme.of(context).backgroundColor,
-                    boxShadow: [Shadows.bottomShadow()]
-                ),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextButton(
-                          onPressed: () => doUpdateFavourites()
-                              .then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
-                          child: Row(
-                              children: [
-                                Container(
-                                    padding: EdgeInsets.all(7.5),
-                                    margin: EdgeInsets.only(right: 10),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      color: Colors.grey.shade50,
-                                    ),
-                                    child: Icon(isFavorite() ? Icons.star_border : Icons.star,
-                                        color: Colors.yellow.shade700, size: 17)),
-                                Text(isFavorite() ? 'Remove from favourites' : 'Add to favourites',
-                                    style: TextStyle(color: Colors.grey.shade700))
-                              ]
-                          )),
-                    ]),
-              ),
+              sharedMediaSection(),
+              favouriteSection(),
               Container(
                 padding: EdgeInsets.all(10),
                 margin: EdgeInsets.only(bottom: 10),
@@ -262,7 +219,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                                 child: Icon(Icons.delete, color: Colors.red, size: 17)),
                             Text('Delete contact', style: TextStyle(color: CompanyColor.red))
                           ])),
-                      TextButton(onPressed: () {},
+                      widget.peer != null ? TextButton(onPressed: () {},
                           child: Row(children: [
                             Container(
                                 padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
@@ -273,8 +230,22 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                                 ),
                                 child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
                             Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
-                          ])),
+                          ])) : Container(),
                     ]),
+              ),
+              Container(
+                padding: EdgeInsets.all(10),
+                margin: EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                    color: Theme.of(context).backgroundColor,
+                    boxShadow: [Shadows.bottomShadow()]
+                ),
+                child: Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(left: 5, right: 5),
+                    child : Text('This contact isn\'t a registered Ping user.', style: TextStyle(
+                        color: Colors.grey
+                    ))),
               )
             ])
         );
@@ -294,40 +265,114 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return _w;
   }
 
-  Widget buildContactProfileSection() {
-    return Column(children: [
-      Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          Row(children: [
-            Container(height: 300, width: DEVICE_MEDIA_SIZE.width, color: CompanyColor.bluePrimary)
+  Container favouriteSection() {
+    return widget.peer != null ? Container(
+      padding: EdgeInsets.all(10),
+      margin: EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+          color: Theme.of(context).backgroundColor,
+          boxShadow: [Shadows.bottomShadow()]
+      ),
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextButton(
+                onPressed: () => doUpdateFavourites()
+                    .then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
+                child: Row(
+                    children: [
+                      Container(
+                          padding: EdgeInsets.all(7.5),
+                          margin: EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.grey.shade50,
+                          ),
+                          child: Icon(isFavorite() ? Icons.star_border : Icons.star,
+                              color: Colors.yellow.shade700, size: 17)),
+                      Text(isFavorite() ? 'Remove from favourites' : 'Add to favourites',
+                          style: TextStyle(color: Colors.grey.shade700))
+                    ]
+                )),
           ]),
+    ) : Container();
+  }
+
+  Widget sharedMediaSection() {
+    return widget.peer != null ? Container(
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+            color: Theme.of(context).backgroundColor,
+            boxShadow: [Shadows.bottomShadow()]
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          buildSectionHeader('Shared media', linkWidget: TextButton(
+            onPressed: () {
+              NavigatorUtil.push(context, ContactSharedActivity(
+                  peer: widget.peer,
+                  picturesPath: picturesPath,
+                  peerContactName: widget.contactName,
+                  contactBindingId: widget.contactBindingId));
+            },
+            child: Text('See more', style: TextStyle(color: CompanyColor.bluePrimary)),
+          )),
+          buildDataSpaceListView(),
+        ])) : Container();
+  }
+
+  Widget buildContactProfileSection() {
+    Widget w;
+    if (widget.peer != null) {
+      w = Column(children: [
+        Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Row(children: [
+              Container(height: 300, width: DEVICE_MEDIA_SIZE.width, color: CompanyColor.bluePrimary)
+            ]),
+            Container(
+              height: 350,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    margin: EdgeInsets.only(bottom: maximizeProfilePhoto ? 0 : 0),
+                    height: maximizeProfilePhoto ? 350 : 150,
+                    width: maximizeProfilePhoto ? DEVICE_MEDIA_SIZE.width : 150,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.white, width: maximizeProfilePhoto ? 0 : 3),
+                      borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 100),
+                    ),
+                    child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 100),
+                      child: profileImageWidget ?? Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ]);
+    } else {
+      w = Column(
+        children: [
           Container(
-            height: 350,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                AnimatedContainer(
-                  duration: Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  margin: EdgeInsets.only(bottom: maximizeProfilePhoto ? 0 : 0),
-                  height: maximizeProfilePhoto ? 350 : 150,
-                  width: maximizeProfilePhoto ? DEVICE_MEDIA_SIZE.width : 150,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.white, width: maximizeProfilePhoto ? 0 : 3),
-                    borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 100),
-                  ),
-                  child: ClipRRect(borderRadius: BorderRadius.circular(maximizeProfilePhoto ? 0 : 100),
-                    child: profileImageWidget ?? Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
-                  ),
-                ),
-              ],
+            width: 150,
+            height: 150,
+            margin: EdgeInsets.only(top: 10),
+            child: ClipRRect(borderRadius: BorderRadius.circular(100),
+              child: Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH),
             ),
           ),
         ],
-      ),
-    ]);
+      );
+    }
+    return w;
   }
 
   Widget buildSectionHeader(title, { icon, linkWidget }) {

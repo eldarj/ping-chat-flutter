@@ -218,6 +218,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                   peer: contact.contactUser,
                   userId: userId,
                   contactName: contact.contactName,
+                  contactPhoneNumber: contact.contactPhoneNumber,
                   contactBindingId: contact.contactBindingId,
                   favorite: contact.favorite,
                   statusLabel: '',
