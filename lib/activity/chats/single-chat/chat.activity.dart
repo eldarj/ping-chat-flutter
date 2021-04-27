@@ -38,6 +38,7 @@ import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/util/exception/custom-exception.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
@@ -101,7 +102,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   String picturesPath;
 
-  ContactDto contact;
+  // ContactDto contact;
+  bool isContactAdded = true;
+  bool displayAddContactLoader = false;
 
   onInit() async {
     picturesPath = await new StorageIOService().getPicturesPath();
@@ -290,6 +293,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                   userId: userId,
                   contactName: widget.peerContactName,
                   contactBindingId: widget.contactBindingId,
+                  contactPhoneNumber: widget.peer.fullPhoneNumber,
                   favorite: false,
                 ));
               },
@@ -350,6 +354,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
               Flexible(
                 child: Stack(alignment: Alignment.topCenter, children: [
                   buildMessagesList(),
+                  buildAddToContactSection(),
                   displayScrollLoader ? SizedOverflowBox(
                       size: Size(100, 0),
                       child: Container(
@@ -384,6 +389,39 @@ class ChatActivityState extends BaseState<ChatActivity> {
           );
         })
     );
+  }
+
+  Widget buildAddToContactSection() {
+    Widget w = Container();
+
+    if (!isContactAdded) {
+      w = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+              padding: EdgeInsets.only(top: 5, bottom: 5, left: 15, right: 15),
+              alignment: Alignment.center,
+              color: new Color.fromRGBO(170, 170, 170, 0.9),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('This user isn\'t in your contacts', style: TextStyle(
+                      color: Colors.white
+                  )),
+                  FlatButton(
+                      onPressed: () {
+                        doAddContact().then(onAddContactSuccess, onError: onAddContactError);
+                      },
+                      child: displayAddContactLoader ? Spinner(size: 20) : Text('Add', style: TextStyle(
+                          color: Colors.grey.shade700)),
+                      color: Colors.grey.shade50)
+                ],
+              )),
+        ],
+      );
+    }
+
+    return w;
   }
 
   Widget buildMessagesList() {
@@ -557,11 +595,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
     }
 
     dynamic result = response.decode();
-    print(result['contact']);
+
     return {
       'messages': result['page'],
       'totalElements': result['totalElements'],
-      'contact': result['additionalData']['contact']
+      // 'contact': result['additionalData']['contact']
+      'isContactAdded': result['additionalData']['isContactAdded']
     };
   }
 
@@ -570,7 +609,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     List fetchedMessages = result['messages'];
     totalMessages = result['totalElements'];
-    contact = ContactDto.fromJson(result['contact']);
+    // contact = ContactDto.fromJson(result['contact']);
+    isContactAdded = result['isContactAdded'];
 
     MessageDto prevMessage;
     List<MessageSeenDto> unseenMessages = new List();
@@ -634,6 +674,52 @@ class ChatActivityState extends BaseState<ChatActivity> {
       });
 
       doGetMessages(clearRides: true).then(onGetMessagesSuccess, onError: onGetMessagesError);
+    }));
+  }
+
+  Future<String> doAddContact() async {
+    setState(() {
+      displayAddContactLoader = true;
+    });
+
+    http.Response response = await HttpClientService.post('/api/contacts', body: new ContactDto(
+      contactPhoneNumber: widget.peer.fullPhoneNumber,
+      contactName: widget.peerContactName,
+    ));
+
+    if (response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    var decode = json.decode(response.body);
+    if (decode['error'] != null) {
+      throw new Exception();
+    }
+
+    return widget.peerContactName;
+  }
+
+  onAddContactSuccess(String contactName) async {
+    setState(() {
+      displayAddContactLoader = false;
+      isContactAdded = true;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.success('You successfully added $contactName'
+        ' to your contacts'));
+  }
+
+  onAddContactError(error) {
+    setState(() {
+      displayAddContactLoader = false;
+      isContactAdded = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(duration: Duration(seconds: 2), actionOnPressed: () {
+      setState(() { displayLoader = true; });
+      doAddContact().then(onAddContactSuccess, onError: onAddContactError);
     }));
   }
 }

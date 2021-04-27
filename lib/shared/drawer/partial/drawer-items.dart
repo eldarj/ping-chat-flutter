@@ -29,7 +29,7 @@ Widget buildDrawerItem(BuildContext context, String labelName, Widget iconWidget
             Text(labelName, style: TextStyle(
               color: Colors.black,
             )),
-            labelDescription != '' ? Text(labelDescription, style: TextStyle(
+            labelDescription != null && labelDescription != '' ? Text(labelDescription, style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey
             )) : Container()

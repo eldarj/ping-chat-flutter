@@ -19,6 +19,8 @@ class CompanyColor {
 
   static Color grey = Colors.grey;
 
+  static Color iconGrey = Colors.grey.shade700;
+
   static Color backgroundGrey = Colors.grey.shade200;
 
   // Component colors

@@ -90,15 +90,9 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
             appBar: BaseAppBar.getProfileAppBar(scaffold,
                 titleText: 'Contacts',
                 actions: [
-                  IconButton(icon: Icon(Icons.search),
-                      onPressed: () {
-                        NavigatorUtil.push(context, SearchContactsActivity(
-                            type: SearchContactsType.CONTACT,
-                            contacts: contacts));
-                      }),
                   Padding(
                     padding: const EdgeInsets.only(right: 8.0),
-                    child: IconButton(icon: Icon(Icons.person_add),
+                    child: IconButton(icon: Icon(Icons.person_add, color: CompanyColor.iconGrey),
                         onPressed: () {
                           NavigatorUtil.push(context, AddContactActivity());
                         }),
@@ -303,8 +297,11 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                                             ),
                                             contact.contactUser != null ? Visibility(
                                                 visible: contact.contactUser.displayMyFullName,
-                                                child: Text(contact.contactUser.firstName + ' ' +
-                                                    contact.contactUser.lastName)
+                                                child: Text(
+                                                    (contact.contactUser.firstName ?? '')
+                                                        + ' '
+                                                        + (contact.contactUser.lastName ?? '')
+                                                )
                                             ) : Container()
                                           ]
                                       ),

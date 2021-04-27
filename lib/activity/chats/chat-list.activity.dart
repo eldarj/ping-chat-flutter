@@ -82,6 +82,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     await Firebase.initializeApp().then((_) {
       notificationService
           .initializeNotificationHandlers()
+          .initializeLocalPlugin()
           .initializeRegister();
     });
 
@@ -132,7 +133,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       }
 
       MessageDto chat = chats.firstWhere((element) => element.contactBindingId == message.contactBindingId,
-          orElse: null);
+          orElse: () => null);
       if (chat != null) {
         setState(() {
           chat.text = message.text;
@@ -146,7 +147,9 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           chat.totalUnreadMessages = message.totalUnreadMessages;
         });
       } else {
-        chats.add(message);
+        setState(() {
+          chats.insert(0, message);
+        });
       }
     });
 

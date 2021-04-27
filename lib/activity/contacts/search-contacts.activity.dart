@@ -198,6 +198,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
           userId: userId,
           contactName: contact.contactName,
           contactBindingId: contact.contactBindingId,
+          contactPhoneNumber: contact.contactPhoneNumber,
           favorite: contact.favorite,
           statusLabel: '',
           myContactName: username,
@@ -291,8 +292,11 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
       rightsideSection = Text(contact.contactPhoneNumber, style: TextStyle(color: Colors.grey));
       infoSection = contact.contactUser != null ? Visibility(
           visible: contact.contactUser.displayMyFullName,
-          child: Text(contact.contactUser.firstName + ' ' +
-              contact.contactUser.lastName)
+          child: Text(
+              (contact.contactUser.firstName ?? '')
+                  + ' '
+                  + (contact.contactUser.lastName ?? '')
+          )
       ) : Container();
     }
 

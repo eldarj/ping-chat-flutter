@@ -59,24 +59,30 @@ class NotificationService {
   }
 
   Future _onMessage (Map<String, dynamic> message) async {
-    String groupKey = 'onMessageKey';
-    String groupChannelId = 'onMessageChannelId';
-    String groupChannelName = 'onMessageChannelName';
-    String groupChannelDescription = 'onMessageChannelDescription';
-
-    AndroidNotificationDetails androidNotificationDetails = _createAndroidNotificationDetails(groupKey,
-        groupChannelId, groupChannelName, groupChannelDescription);
-
     var notificationMessage = Map.from(message);
-    var notification = notificationMessage['notification'];
-    var title = notification['title'];
-    var body = notification['body'];
 
-    await flutterLocalNotificationsPlugin.show(900, title, body,
-        NotificationDetails(android: androidNotificationDetails));
+    var data = notificationMessage['data'];
+    var action = data['click_action'];
+
+    if (action == 'FLUTTER_CONTACT_REGISTERED') {
+      var notification = notificationMessage['notification'];
+      String groupKey = 'onMessageKey';
+      String groupChannelId = 'onMessageChannelId';
+      String groupChannelName = 'onMessageChannelName';
+      String groupChannelDescription = 'onMessageChannelDescription';
+
+      AndroidNotificationDetails androidNotificationDetails = _createAndroidNotificationDetails(groupKey,
+          groupChannelId, groupChannelName, groupChannelDescription);
+
+      var title = notification['title'];
+      var body = notification['body'];
+
+      await flutterLocalNotificationsPlugin.show(900, title, body,
+          NotificationDetails(android: androidNotificationDetails));
+    }
   }
 
-  Future _onOpenNotification (Map<String, dynamic> unused) async {
+  Future _onOpenNotification(Map<String, dynamic> unused) async {
     NavigatorUtil.push(ROOT_CONTEXT, ChatListActivity());
   }
 
@@ -93,7 +99,7 @@ class NotificationService {
         onSelectNotification: (payload) => _onOpenLocalNotification(payload));
   }
 
-  AndroidNotificationDetails _createAndroidNotificationDetails(String groupKey,
+  static AndroidNotificationDetails _createAndroidNotificationDetails(String groupKey,
       String groupChannelId, String groupChannelName, String groupChannelDescription) {
 
     return AndroidNotificationDetails(

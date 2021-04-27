@@ -34,6 +34,7 @@ class ChatSettingsMenu extends StatelessWidget {
             userId: userId,
             contactName: peerContactName,
             contactBindingId: contactBindingId,
+            contactPhoneNumber: peer.fullPhoneNumber,
             favorite: false,
           ));
         } else if (choice == 'media') {
