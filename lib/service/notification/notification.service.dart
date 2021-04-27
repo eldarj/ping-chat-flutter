@@ -1,15 +1,15 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
-import 'package:flutterping/activity/policy/policy-info.activity.dart';
-import 'package:flutterping/model/client-dto.model.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/service/persistence/user.prefs.service.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/main.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class NotificationService {
   static final NotificationService _appData = new NotificationService._internal();
+
+  static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   factory NotificationService() {
     return _appData;
@@ -46,16 +46,62 @@ class NotificationService {
     return this;
   }
 
-  Future _onMessage (Map<String, dynamic> message) async {
-    //
+  NotificationService initializeLocalPlugin() {
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    var initSettings = InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ping_full_launcher_round'), iOS: null, macOS: null
+    );
+
+    _initializeLocalPlugin(initSettings);
+
+    return this;
   }
 
-  Future _onOpenNotification (Map<String, dynamic> message) async {
+  Future _onMessage (Map<String, dynamic> message) async {
+    String groupKey = 'onMessageKey';
+    String groupChannelId = 'onMessageChannelId';
+    String groupChannelName = 'onMessageChannelName';
+    String groupChannelDescription = 'onMessageChannelDescription';
+
+    AndroidNotificationDetails androidNotificationDetails = _createAndroidNotificationDetails(groupKey,
+        groupChannelId, groupChannelName, groupChannelDescription);
+
+    var notificationMessage = Map.from(message);
+    var notification = notificationMessage['notification'];
+    var title = notification['title'];
+    var body = notification['body'];
+
+    await flutterLocalNotificationsPlugin.show(900, title, body,
+        NotificationDetails(android: androidNotificationDetails));
+  }
+
+  Future _onOpenNotification (Map<String, dynamic> unused) async {
     NavigatorUtil.push(ROOT_CONTEXT, ChatListActivity());
   }
 
-  _registerUser(token) async {
+  Future _onOpenLocalNotification (String payload) async {
+    NavigatorUtil.push(ROOT_CONTEXT, ContactsActivity());
+  }
+
+  Future _registerUser(token) async {
     return HttpClientService.post('/api/users/firebase-token', body: token);
+  }
+
+  void _initializeLocalPlugin(settings) async {
+    await flutterLocalNotificationsPlugin.initialize(settings,
+        onSelectNotification: (payload) => _onOpenLocalNotification(payload));
+  }
+
+  AndroidNotificationDetails _createAndroidNotificationDetails(String groupKey,
+      String groupChannelId, String groupChannelName, String groupChannelDescription) {
+
+    return AndroidNotificationDetails(
+        groupChannelId, groupChannelName, groupChannelDescription,
+        importance: Importance.max,
+        priority: Priority.max,
+        enableLights: true,
+        groupKey: groupKey);
   }
 }
 
