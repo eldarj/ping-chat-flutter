@@ -273,13 +273,11 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                                   Container(
                                       decoration: BoxDecoration(
                                           color: Colors.green,
-                                          border: Border.all(color: Colors.white, width: 1.5),
-                                          borderRadius: BorderRadius.only(
-                                              topRight: Radius.circular(5),
-                                              bottomLeft: Radius.circular(5))
+                                          border: Border.all(color: Colors.white, width: 1),
+                                          borderRadius: BorderRadius.circular(5)
                                       ),
                                       margin: EdgeInsets.all(5),
-                                      width: 10, height: 10)
+                                      width: 9, height: 9)
                                 ])
                         ),
                         Expanded(

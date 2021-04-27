@@ -233,7 +233,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                           ])) : Container(),
                     ]),
               ),
-              Container(
+              widget.peer == null ? Container(
                 padding: EdgeInsets.all(10),
                 margin: EdgeInsets.only(bottom: 10),
                 decoration: BoxDecoration(
@@ -246,7 +246,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     child : Text('This contact isn\'t a registered Ping user.', style: TextStyle(
                         color: Colors.grey
                     ))),
-              )
+              ) : Container()
             ])
         );
       } else {
