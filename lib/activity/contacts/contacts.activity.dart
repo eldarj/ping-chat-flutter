@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
@@ -55,6 +58,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
 
   bool displaySyncLoader = false;
 
+  StreamSubscription<FGBGType> foregroundSubscription;
+
   initialize() async {
     var user = await UserService.getUser();
     userId = user.id;
@@ -67,21 +72,23 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
   }
 
   syncContactBook() async {
-    setState(() {
-      displaySyncLoader = true;
-    });
-
-    ContactService.syncContacts(countryDialCode).then(onSyncSuccess);
-
-    setState(() {
-      displaySyncLoader = false;
-    });
+    if (!ContactService.isSyncing) {
+      ContactService.syncContacts(countryDialCode).then(onSyncSuccess);
+      setState(() {
+        displaySyncLoader = true;
+      });
+    }
   }
 
   @override
   initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+
+    foregroundSubscription = FGBGEvents.stream.listen((event) {
+      if (event == FGBGType.foreground) {
+        syncContactBook();
+      };
+    });
 
     if (widget.displaySavedContactSnackbar) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -94,21 +101,24 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      syncContactBook();
+  void deactivate() {
+    if (foregroundSubscription != null) {
+      foregroundSubscription.cancel();
     }
+
+    super.deactivate();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  onSyncSuccess(List result) {
+    print('ON SYNC - SUCCESS count=' + result.length.toString());
+    totalContacts = totalContacts + result.length;
 
-  onSyncSuccess(dynamic result) {
     result.forEach((contact) {
       contacts.insert(0, ContactDto.fromJson(contact));
+    });
+
+    setState(() {
+      displaySyncLoader = false;
     });
   }
 

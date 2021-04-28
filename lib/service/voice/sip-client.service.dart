@@ -1,5 +1,3 @@
-
-
 import 'dart:async';
 
 import 'package:flutterping/service/voice/call-state.publisher.dart';
@@ -16,9 +14,10 @@ class SipClientService implements SipUaHelperListener {
   }
 
   SipClientService._internal() {
-    print('SipClientService - internally creating SIPUAHelper');
-    helper = SIPUAHelper();
-    helper.addSipUaHelperListener(this);
+    // print('SipClientService - internally creating SIPUAHelper');
+    // helper = SIPUAHelper();
+    // helper.loggingLevel(Log.Level.nothing);
+    // helper.addSipUaHelperListener(this);
   }
 
   // SipClientService

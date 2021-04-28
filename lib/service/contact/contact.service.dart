@@ -6,8 +6,26 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 
 class ContactService {
-  static Future syncContacts(String dialCode) async {
-    Iterable<Contact> contacts = await ContactsService.getContacts();
+  static bool isSyncing = false;
+
+  static Future<List> syncContacts(String dialCode) async {
+    List result = [];
+
+    if (!isSyncing) {
+      isSyncing = true;
+      result = await _sync(dialCode);
+      isSyncing = false;
+    }
+
+    return result;
+  }
+
+  static Future<List> _sync(String dialCode) async {
+    Iterable<Contact> contacts = await ContactsService.getContacts(
+        withThumbnails: false,
+        photoHighResolution: false,
+        orderByGivenName: false,
+        iOSLocalizedLabels: false);
 
     List<ContactDto> contactDtos = [];
 
@@ -36,7 +54,7 @@ class ContactService {
       http.Response response = await HttpClientService.post('/api/contacts/sync', body: contactDtos);
 
       if (response.statusCode != 200) {
-        throw new Exception();
+        return [];
       }
 
       return response.decode();

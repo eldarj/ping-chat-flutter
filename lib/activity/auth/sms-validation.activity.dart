@@ -146,8 +146,6 @@ class SmsValidationState extends State<SmsValidationActivity> {
       throw new Exception("Error, received 400 response.");
     }
 
-    ContactService.syncContacts(dialCodeArg);
-
     var responseBody = response.decode();
 
     return {
