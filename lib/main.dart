@@ -20,6 +20,8 @@ Size DEVICE_MEDIA_SIZE;
 // Root ctx
 BuildContext ROOT_CONTEXT;
 
+int CURRENT_OPEN_CONTACT_BINDING_ID = 0;
+
 // Audio player
 AudioPlayer _audioPlayer = AudioPlayer(mode: PlayerMode.LOW_LATENCY);
 AudioCache  _audioCache = AudioCache(fixedPlayer: _audioPlayer, prefix: 'static/sound/');
@@ -28,7 +30,7 @@ bool _playingMessageSound = false;
 playMessageSound() async {
   if (!_playingMessageSound) {
     _playingMessageSound = true;
-    await _audioCache.play('message-sound-2.mp3');
+    await _audioCache.play('message-sound-3.mp3');
     _playingMessageSound = false;
   }
 }

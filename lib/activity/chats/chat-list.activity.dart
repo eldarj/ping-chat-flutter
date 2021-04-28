@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
@@ -109,7 +110,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
 
     // Initialize SIP UA Client
-    sipClientService.register(user.fullPhoneNumber, '1234');
+    // sipClientService.register(user.fullPhoneNumber, '1234');
 
     sipClientService.addListener('123', (RegistrationState state) {
       setState(() {
@@ -146,6 +147,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         int volume = await Volume.getVol;
         if (volume > 0) {
           playMessageSound();
+        } else if (CURRENT_OPEN_CONTACT_BINDING_ID != message.contactBindingId) {
+          Vibrate.vibrate();
         }
       }
 
@@ -211,7 +214,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           orElse: () => null);
       if (chat != null) {
         setState(() {
-          chat.totalUnreadMessages = chat.totalUnreadMessages - 1;
+          // chat.totalUnreadMessages = chat.totalUnreadMessages - 1;
+          chat.totalUnreadMessages = 0;
         });
       }
     });

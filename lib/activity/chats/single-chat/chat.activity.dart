@@ -17,6 +17,7 @@ import 'package:flutterping/activity/chats/component/share-files/share-files.mod
 import 'package:flutterping/activity/chats/single-chat/partial/chat-input-row.component.dart';
 import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
+import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/message-download-progress.model.dart';
@@ -107,6 +108,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displayAddContactLoader = false;
 
   onInit() async {
+    CURRENT_OPEN_CONTACT_BINDING_ID = widget.contactBindingId;
+
     picturesPath = await new StorageIOService().getPicturesPath();
 
     var user = await UserService.getUser();
@@ -265,6 +268,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   @override
   void deactivate() {
     super.deactivate();
+
+    CURRENT_OPEN_CONTACT_BINDING_ID = 0;
 
     userPresenceSubscriptionFn();
 
