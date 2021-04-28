@@ -50,15 +50,16 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildImageCover(),
+                      Container(child: LogoComponent.horizontal),
                       Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ..._buildDescriptionTextWidgets(),
+                            ...buildDescriptionTextWidgets(),
                             Container(child: TextField(
-                              controller: firstNameController,
                               onChanged: refreshState,
+                              controller: firstNameController,
                               keyboardType: TextInputType.text,
+                              textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                   hintText: 'Firstname',
                                   labelText: 'Firstname',
@@ -66,9 +67,10 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
                                   contentPadding: EdgeInsets.all(15)),
                             )),
                             Container(margin: EdgeInsets.only(top: 15), child: TextField(
-                              controller: lastNameController,
                               onChanged: refreshState,
+                              controller: lastNameController,
                               keyboardType: TextInputType.text,
+                              textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                   hintText: 'Lastname',
                                   labelText: 'Lastname',
@@ -100,11 +102,7 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
     );
   }
 
-  Container _buildImageCover() {
-    return Container(child: LogoComponent.horizontal);
-  }
-
-  List<Widget> _buildDescriptionTextWidgets() {
+  List<Widget> buildDescriptionTextWidgets() {
     return [
       Container(
         margin: EdgeInsets.only(top: 15),
