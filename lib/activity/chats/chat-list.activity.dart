@@ -13,12 +13,12 @@ import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
+import 'package:flutterping/service/contact/contact.service.dart';
 import 'package:flutterping/service/messaging/unread-message.publisher.dart';
 import 'package:flutterping/service/notification/notification.service.dart';
 import 'package:flutterping/service/voice/call-state.publisher.dart';
 import 'package:flutterping/service/voice/sip-client.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
@@ -71,6 +71,23 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   String registerStateString = 'unknown';
 
   StreamSubscription<FGBGType> foregroundSubscription;
+
+  initialize() async {
+    ClientDto user = await UserService.getUser();
+    if (user != null) {
+      ContactService.syncContacts(user.countryCode.dialCode);
+
+      instantiateWsClientService();
+      initListenersAndGetData();
+      initPresenceFetcher();
+
+      setState(() {
+        displayApp = true;
+      });
+    } else {
+      NavigatorUtil.replace(context, PolicyActivity());
+    }
+  }
 
   initListenersAndGetData() async {
     ClientDto user = await UserService.getUser();
@@ -276,25 +293,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     await Volume.controlVolume(AudioManager.STREAM_SYSTEM);
   }
 
-  initPermissions() async {
-    await Permission.microphone.request();
-  }
-
-  initialize() async {
-    if (await UserService.isUserLoggedIn()) {
-      instantiateWsClientService();
-      initListenersAndGetData();
-      initPresenceFetcher();
-      initPermissions();
-
-      setState(() {
-        displayApp = true;
-      });
-    } else {
-      NavigatorUtil.replace(context, PolicyActivity());
-    }
-  }
-
   @override
   initState() {
     super.initState();
@@ -448,7 +446,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       ),
     );
   }
-
 
   Widget buildSingleConversationRow({ClientDto contact, String profile, String peerContactName, String myContactName,
     String messageContent, bool displayStatusIcon = true, bool seen = true, String messageSent, bool isOnline = false,

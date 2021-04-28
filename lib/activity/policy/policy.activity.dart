@@ -9,6 +9,7 @@ import 'package:flutterping/shared/component/logo.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PolicyActivity extends StatefulWidget {
   @override
@@ -76,8 +77,15 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
       displayLoader = true;
     });
 
+    await initPermissions();
     await Future.delayed(Duration(milliseconds: 500));
 
     NavigatorUtil.replace(context, LoginActivity());
+  }
+
+
+  initPermissions() async {
+    await Permission.microphone.request();
+    await Permission.contacts.request();
   }
 }

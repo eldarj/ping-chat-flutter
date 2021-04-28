@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:contacts_service/contacts_service.dart';
 import 'package:flutterping/activity/auth/signup-form.activity.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/jwt-token-dto.model.dart';
+import 'package:flutterping/service/contact/contact.service.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
@@ -143,7 +146,10 @@ class SmsValidationState extends State<SmsValidationActivity> {
       throw new Exception("Error, received 400 response.");
     }
 
+    ContactService.syncContacts(dialCodeArg);
+
     var responseBody = response.decode();
+
     return {
       'token': response.headers['authorization'],
       'user': ClientDto.fromJson(responseBody['user'])

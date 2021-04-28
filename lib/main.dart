@@ -14,10 +14,13 @@ void main() {
   initializeFlutterDownloader();
 }
 
+// Device size
 Size DEVICE_MEDIA_SIZE;
 
+// Root ctx
 BuildContext ROOT_CONTEXT;
 
+// Audio player
 AudioPlayer _audioPlayer = AudioPlayer(mode: PlayerMode.LOW_LATENCY);
 AudioCache  _audioCache = AudioCache(fixedPlayer: _audioPlayer, prefix: 'static/sound/');
 bool _playingMessageSound = false;
@@ -30,6 +33,7 @@ playMessageSound() async {
   }
 }
 
+// Main app
 class MyApp extends StatelessWidget {
   bool initialized = false;
 
@@ -61,11 +65,13 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Downloader
 initializeFlutterDownloader() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FlutterDownloader.initialize(debug: true);
 }
 
+// Calls
 initializeCallHandler() async {
   callStatePublisher.addListener('main', (CallEvent callEvent) {
     var call = callEvent.call;

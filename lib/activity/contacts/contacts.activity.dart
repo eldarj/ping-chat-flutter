@@ -7,6 +7,7 @@ import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
+import 'package:flutterping/service/contact/contact.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
@@ -15,6 +16,7 @@ import 'package:flutterping/shared/component/round-profile-image.component.dart'
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
@@ -35,12 +37,12 @@ class ContactsActivity extends StatefulWidget {
   State<StatefulWidget> createState() => new ContactsActivityState();
 }
 
-class ContactsActivityState extends BaseState<ContactsActivity> {
+class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBindingObserver {
   var displayLoader = true;
 
   int userId = 0;
-
   String username;
+  String countryDialCode;
 
   List<ContactDto> contacts = new List();
   int totalContacts = 0;
@@ -51,24 +53,63 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
 
   int selectedTabIndex = 0;
 
-  getContacts() async {
+  bool displaySyncLoader = false;
+
+  initialize() async {
     var user = await UserService.getUser();
     userId = user.id;
+    countryDialCode = user.countryCode.dialCode;
     username = user.firstName;
 
+    syncContactBook();
+
     doGetContacts().then(onGetContactsSuccess, onError: onGetContactsError);
+  }
+
+  syncContactBook() async {
+    setState(() {
+      displaySyncLoader = true;
+    });
+
+    ContactService.syncContacts(countryDialCode).then(onSyncSuccess);
+
+    setState(() {
+      displaySyncLoader = false;
+    });
   }
 
   @override
   initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     if (widget.displaySavedContactSnackbar) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        scaffold.showSnackBar(SnackBarsComponent
-            .success('Contact ${widget.savedContactName} (${widget.savedContactPhoneNumber}) successfully added!'));
+        scaffold.showSnackBar(SnackBarsComponent.success(
+            'Contact ${widget.savedContactName} (${widget.savedContactPhoneNumber}) successfully added!'));
       });
     }
-    getContacts();
+
+    initialize();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      syncContactBook();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  onSyncSuccess(dynamic result) {
+    result.forEach((contact) {
+      contacts.insert(0, ContactDto.fromJson(contact));
+    });
   }
 
   @override
@@ -91,8 +132,9 @@ class ContactsActivityState extends BaseState<ContactsActivity> {
                 titleText: 'Contacts',
                 actions: [
                   Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: IconButton(icon: Icon(Icons.person_add, color: CompanyColor.iconGrey),
+                    padding: const EdgeInsets.only(right: 0),
+                    child: TextButton(child: displaySyncLoader ? Spinner(size: 20)
+                        : Icon(Icons.person_add, color: CompanyColor.iconGrey),
                         onPressed: () {
                           NavigatorUtil.push(context, AddContactActivity());
                         }),

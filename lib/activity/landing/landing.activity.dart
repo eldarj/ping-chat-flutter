@@ -8,6 +8,7 @@ import 'package:flutterping/shared/loader/linear-progress-loader.component.dart'
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 
+// TODO: Remove unused
 class LandingActivity extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => LandingActivityState();
