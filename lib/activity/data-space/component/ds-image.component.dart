@@ -13,12 +13,13 @@ class DSImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext _context) {
-    bool fileExists = File(filePath).existsSync();
+    File file = File(filePath);
+    bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
     return GestureDetector(
       onTap: () {},
-      child: fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
-          : Text('TODO: fixme'),
+      child: isFileValid ? Image.file(File(filePath), fit: BoxFit.cover)
+          : Icon(Icons.broken_image_outlined, color: Colors.grey.shade400),
     );
   }
 }

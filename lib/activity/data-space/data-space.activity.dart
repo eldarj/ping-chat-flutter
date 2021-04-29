@@ -309,10 +309,12 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       );
     } else {
       String filePath = picturesPath + '/' + node.nodeName;
-      bool fileExists = File(filePath).existsSync();
 
-      if (!fileExists) {
-        _w = Text('TODO: Fixme');
+      File file = File(filePath);
+      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+      if (!isFileValid) {
+        _w = Icon(Icons.broken_image_outlined, color: Colors.grey.shade400);
       } else if (node.nodeType == 'IMAGE') {
         var imageSize = DEVICE_MEDIA_SIZE.width / gridHorizontalSize;
         _w = GestureDetector(
