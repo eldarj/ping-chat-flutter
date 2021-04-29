@@ -441,7 +441,9 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
     String url = '/api/data-space/${widget.userId}';
 
-    if (currentDirectoryNodeId != 0) {
+    if (currentDirectoryNodeName == 'Received') {
+      url += '/received';
+    } else if (currentDirectoryNodeId != 0) {
       url += '/' + currentDirectoryNodeId.toString();
     }
 
