@@ -16,8 +16,16 @@ class RoundProfileImageComponent extends StatefulWidget {
   final double borderRadius;
   final double margin;
 
-  const RoundProfileImageComponent({this.displayQuestionMarkImage = false, this.url, this.height = 55, this.width = 55,
-    this.backgroundColor, this.border, this.borderRadius = 30.0, this.margin = 10.0}) : super();
+  const RoundProfileImageComponent({
+    this.displayQuestionMarkImage = false,
+    this.url,
+    this.height = 55,
+    this.width = 55,
+    this.backgroundColor,
+    this.border,
+    this.borderRadius = 30.0,
+    this.margin = 10.0
+  }) : super();
 
   @override
   State<StatefulWidget> createState() => new RoundProfileImageComponentState();

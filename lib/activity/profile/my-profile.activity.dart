@@ -21,6 +21,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 class MyProfileActivity extends StatefulWidget {
+  final Function(String) onProfileImageUploaded;
+
+  const MyProfileActivity({Key key, this.onProfileImageUploaded}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => new MyProfileActivityState();
 }
@@ -41,7 +45,9 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   pushProfileImageUploadActivity() async {
     var savedProfileImagePath = await NavigatorUtil.push(context, ProfileImageUploadActivity());
+
     if (savedProfileImagePath != null) {
+      widget.onProfileImageUploaded.call(savedProfileImagePath);
       setState(() {
         clientDto.profileImagePath = savedProfileImagePath;
       });

@@ -104,7 +104,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                         buildSectionTitle("Me"),
                         buildDrawerItem(context, 'My profile',
                             buildIcon(iconPath: "static/graphic/icon/at.png", backgroundColor: Colors.red),
-                            activity: MyProfileActivity()),
+                            activity: MyProfileActivity(onProfileImageUploaded: onProfileImageUploaded)),
                         buildDrawerItem(context, 'Active status',
                           buildIcon(icon: user.isActive ? Icons.check : Icons.visibility_off,
                               backgroundColor: user.isActive ? Colors.green : Colors.grey),
@@ -219,5 +219,11 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
 
     Navigator.pop(context);
     scaffold.showSnackBar(SnackBarsComponent.info("Your status will be shown as 'offline'."));
+  }
+
+  void onProfileImageUploaded(profileImagePath) {
+    setState(() {
+      user.profileImagePath = profileImagePath;
+    });
   }
 }

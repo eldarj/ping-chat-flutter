@@ -58,6 +58,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   bool displayLoader = true;
 
   int userId;
+  String userProfileImagePath;
 
   List<MessageDto> chats = new List();
   int totalChatsLoaded = 0;
@@ -93,6 +94,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   initListenersAndGetData() async {
     ClientDto user = await UserService.getUser();
     userId = user.id;
+    userProfileImagePath = user.profileImagePath;
 
     doGetChatData(page: pageNumber).then(onGetChatDataSuccess, onError: onGetChatDataError);
 
@@ -374,7 +376,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                   opacity: isLoadingOnScroll ? 1 : 0,
                   child: LinearProgressLoader.build(context)
               ),
-              Text(registerStateString),
+              // buildStorySection(),
               chats != null && chats.length > 0 ? buildListView() : Container(
                 margin: EdgeInsets.all(25),
                 child: Text('You have no messages',
@@ -396,6 +398,38 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     }
 
     return widget;
+  }
+
+  Widget buildStorySection() {
+    return AnimatedContainer(
+      height: 95,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        border: Border.all(color: Colors.grey.shade200)
+      ),
+      duration: Duration(milliseconds: 100),
+      padding: EdgeInsets.only(top: 10, bottom: 10),
+      child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            Container(
+                width: 55,
+                margin: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: CompanyColor.blueLight, width: 5),
+                  borderRadius: BorderRadius.circular(100),
+                  color: CompanyColor.bluePrimary,
+                ),
+                child: Icon(Icons.add, color: Colors.white)
+            ),
+            RoundProfileImageComponent(),
+            RoundProfileImageComponent(),
+            RoundProfileImageComponent(),
+            RoundProfileImageComponent(),
+            RoundProfileImageComponent(),
+            RoundProfileImageComponent(),
+          ])
+    );
   }
 
   Widget buildListView() {
