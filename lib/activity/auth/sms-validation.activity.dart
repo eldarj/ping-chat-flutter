@@ -159,12 +159,13 @@ class SmsValidationState extends State<SmsValidationActivity> {
       displayLoader = false;
     });
 
-    dynamic user = response['user'];
-    await UserService.setUserAndToken(response['token'], user);
+    var token = response['token'];
+    var user = response['user'];
 
     if (user.firstName == null && user.lastName == null) {
-      NavigatorUtil.push(context, SignUpFormActivity(clientDto: user));
+      NavigatorUtil.push(context, SignUpFormActivity(clientDto: user, token: token));
     } else {
+      await UserService.setUserAndToken(token, user);
       NavigatorUtil.push(context, ChatListActivity());
     }
   }

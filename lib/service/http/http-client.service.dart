@@ -8,16 +8,18 @@ import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:http/http.dart';
 import 'package:tus_client/tus_client.dart';
 
-const String API_BASE_URL = 'http://192.168.1.25:8089';
+const String API_BASE_URL = 'http://192.168.0.13:8089';
 const String DATA_SPACE_ENDPOINT = '/api/data-space/upload';
 
 class HttpClientService {
-  static Future<http.Response> post(url, {body = const {}, headers = const {}, bool encode = true}) async {
-    var userToken = await UserService.getToken();
+  static Future<http.Response> post(url, {body = const {}, headers = const {}, bool encode = true, String token}) async {
+    if (token == null) {
+      token = await UserService.getToken();
+    }
 
     var response = await http.post(
         Uri.encodeFull(API_BASE_URL + url),
-        headers: {'content-type': 'application/json', 'authorization': 'Bearer $userToken',...headers},
+        headers: {'content-type': 'application/json', 'authorization': 'Bearer $token',...headers},
         body: encode ? json.encode(body) : body
     ).timeout(Duration(seconds: 10));
 
@@ -39,7 +41,7 @@ class HttpClientService {
     var userToken = await UserService.getToken();
 
     var response = await http.get(
-        Uri.http('192.168.1.25:8089', endpoint, queryMap),
+        Uri.http('192.168.0.13:8089', endpoint, queryMap),
         headers: {'content-type': 'application/json', 'authorization': 'Bearer $userToken'}
     ).timeout(Duration(seconds: 10));
 
@@ -81,7 +83,7 @@ class HttpClientService {
     var userToken = await UserService.getToken();
     var fileLength = await file.length();
 
-    final streamedRequest = new http.StreamedRequest('POST', Uri.http('192.168.1.25:8089', url))
+    final streamedRequest = new http.StreamedRequest('POST', Uri.http('192.168.0.13:8089', url))
       ..headers.addAll({
         'Authorization': 'Bearer $userToken',
       });

@@ -13,8 +13,9 @@ import 'package:http/http.dart' as http;
 
 class SignUpFormActivity extends StatefulWidget {
   ClientDto clientDto;
+  String token;
 
-  SignUpFormActivity({this.clientDto});
+  SignUpFormActivity({this.clientDto, this.token});
 
   @override
   State<StatefulWidget> createState() => new SignUpFormActivityState();
@@ -45,56 +46,58 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
           body: Builder(builder: (context) {
             scaffold = Scaffold.of(context);
             return Center(
-                child: Container(
-                  width: 300,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(child: LogoComponent.horizontal),
-                      Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ...buildDescriptionTextWidgets(),
-                            Container(child: TextField(
-                              onChanged: refreshState,
-                              controller: firstNameController,
-                              keyboardType: TextInputType.text,
-                              textCapitalization: TextCapitalization.words,
-                              decoration: InputDecoration(
-                                  hintText: 'Firstname',
-                                  labelText: 'Firstname',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.all(15)),
-                            )),
-                            Container(margin: EdgeInsets.only(top: 15), child: TextField(
-                              onChanged: refreshState,
-                              controller: lastNameController,
-                              keyboardType: TextInputType.text,
-                              textCapitalization: TextCapitalization.words,
-                              decoration: InputDecoration(
-                                  hintText: 'Lastname',
-                                  labelText: 'Lastname',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.all(15)),
-                            )),
-                            Container(
-                                margin: EdgeInsets.only(top: 5, left: 2),
-                                child: Text(validationMessage,
-                                    style: TextStyle(color: Colors.red))),
-                            Container(
-                              margin: EdgeInsets.only(top: 20),
-                              child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                                GradientButton(
-                                    child: displayLoader ? Container(height: 20, width: 20, child: Spinner())
-                                        : Text('Save'),
-                                    onPressed: areInputsValid() && !displayLoader ? () {
-                                      doUpdateFirstNameLastName(firstNameController.text, lastNameController.text)
-                                          .then(onUpdateInfoSuccess, onError: onUpdateInfoError);
-                                    } : null
-                                )
-                              ]),
-                            )
-                          ])              ],
+                child: SingleChildScrollView(
+                  child: Container(
+                    width: 300,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(child: LogoComponent.horizontal),
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ...buildDescriptionTextWidgets(),
+                              Container(child: TextField(
+                                onChanged: refreshState,
+                                controller: firstNameController,
+                                keyboardType: TextInputType.text,
+                                textCapitalization: TextCapitalization.words,
+                                decoration: InputDecoration(
+                                    hintText: 'Firstname',
+                                    labelText: 'Firstname',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(15)),
+                              )),
+                              Container(margin: EdgeInsets.only(top: 15), child: TextField(
+                                onChanged: refreshState,
+                                controller: lastNameController,
+                                keyboardType: TextInputType.text,
+                                textCapitalization: TextCapitalization.words,
+                                decoration: InputDecoration(
+                                    hintText: 'Lastname',
+                                    labelText: 'Lastname',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(15)),
+                              )),
+                              Container(
+                                  margin: EdgeInsets.only(top: 5, left: 2),
+                                  child: Text(validationMessage,
+                                      style: TextStyle(color: Colors.red))),
+                              Container(
+                                margin: EdgeInsets.only(top: 20),
+                                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                                  GradientButton(
+                                      child: displayLoader ? Container(height: 20, width: 20, child: Spinner())
+                                          : Text('Save'),
+                                      onPressed: areInputsValid() && !displayLoader ? () {
+                                        doUpdateFirstNameLastName(firstNameController.text, lastNameController.text)
+                                            .then(onUpdateInfoSuccess, onError: onUpdateInfoError);
+                                      } : null
+                                  )
+                                ]),
+                              )
+                            ])              ],
+                    ),
                   ),
                 ));
           })
@@ -133,7 +136,8 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
     });
 
     http.Response response = await HttpClientService.post('/api/users/${widget.clientDto.id}/name',
-        body: {'firstName': firstName, 'lastName': lastName});
+        body: {'firstName': firstName, 'lastName': lastName},
+        token: widget.token);
 
     if (response.statusCode != 200) {
       throw new Exception();
@@ -141,10 +145,12 @@ class SignUpFormActivityState extends State<SignUpFormActivity> {
   }
 
   void onUpdateInfoSuccess(_) async {
-    ClientDto user = await UserService.getUser();
+    ClientDto user = widget.clientDto;
+
     user.firstName = firstNameController.text;
     user.lastName = lastNameController.text;
-    await UserService.setUser(user);
+
+    await UserService.setUserAndToken(widget.token, user);
 
     setState(() {
       displayLoader = false;

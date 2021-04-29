@@ -33,7 +33,7 @@ class DialpadActivityState extends State<DialpadActivity> {
   }
 
   Widget _handleCall(BuildContext context, [bool voiceonly = false]) {
-    var dest = 'sip:' + widget.destination + '@192.168.1.25';
+    var dest = 'sip:' + widget.destination + '@192.168.0.13';
     if (dest == null || dest.isEmpty) {
       showDialog<Null>(
         context: context,
