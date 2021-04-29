@@ -31,8 +31,11 @@ class SearchContactsActivity extends StatefulWidget {
 
   final List<ContactDto> contacts;
 
+  final Function(int, bool) onFavouritesUpdated;
+
   const SearchContactsActivity({Key key,
     this.type = SearchContactsType.CHAT,
+    this.onFavouritesUpdated,
     this.contacts}) : super(key: key);
 
   @override
@@ -196,6 +199,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
         NavigatorUtil.push(context, SingleContactActivity(
           peer: contact.contactUser,
           userId: userId,
+          onFavouritesUpdated: (status) => onUpdateFavouritesCallback(contact, status),
           contactName: contact.contactName,
           contactBindingId: contact.contactBindingId,
           contactPhoneNumber: contact.contactPhoneNumber,
@@ -381,5 +385,15 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
     scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () async {
       doGetContacts().then(onGetContactsSuccess, onError: onGetContactsError);
     }));
+  }
+
+  onUpdateFavouritesCallback(ContactDto contact, bool status) {
+    setState(() {
+      contact.favorite = status;
+    });
+
+    if (widget.onFavouritesUpdated != null) {
+      widget.onFavouritesUpdated.call(contact.id, status);
+    }
   }
 }

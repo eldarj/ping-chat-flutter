@@ -13,6 +13,8 @@ class ContactDto {
 
   int contactBindingId;
 
+  bool displayLinearLoading = false;
+
   ContactDto({this.id, this.contactPhoneNumber, this.contactUser, this.contactName,
     this.favorite, this.contactUserExists, this.joinedTimestamp, this.contactBindingId});
 

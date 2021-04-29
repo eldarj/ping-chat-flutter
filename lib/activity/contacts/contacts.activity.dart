@@ -174,6 +174,12 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                 print('USER ID');
                 print(userId.toString());
                 NavigatorUtil.push(context, SearchContactsActivity(
+                    onFavouritesUpdated: (contactId, status) {
+                      var contact = contacts.firstWhere((element) => element.id == contactId, orElse: () => null);
+                      if (contact != null) {
+                        onUpdateFavouritesCallback(contact, status);
+                      }
+                    },
                     type: SearchContactsType.CONTACT,
                     contacts: contacts
                 ));
@@ -263,6 +269,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                 NavigatorUtil.push(context, SingleContactActivity(
                   peer: contact.contactUser,
                   userId: userId,
+                  onFavouritesUpdated: (status) => onUpdateFavouritesCallback(contact, status),
                   contactName: contact.contactName,
                   contactPhoneNumber: contact.contactPhoneNumber,
                   contactBindingId: contact.contactBindingId,
@@ -279,94 +286,107 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                   IconSlideAction(
                     color: Colors.grey.shade300,
                     iconWidget: Container(
+                        height: 35, width: 35,
                         padding: EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade400,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Icon(contact.favorite ? Icons.star : Icons.star_border, color: Colors.yellow)),
-                    onTap: () => doUpdateFavourites(contact, index).then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
+                    onTap: () => doUpdateFavourites(contact, index).then(onUpdateFavouritesSuccess,
+                        onError: (error) => onUpdateFavouritesError(contact, error)),
                   ),
                   IconSlideAction(
                     color: Colors.grey.shade300,
                     iconWidget: Container(
+                        height: 35, width: 35,
                         padding: EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade400,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Icon(Icons.delete, color: Colors.red)),
-                    onTap: () => print('Delete'),
+                    onTap: () => doDeleteContact(contact).then(onDeleteContactSuccess,
+                        onError: (error) => onDeleteContactError(contact, error)),
                   ),
                 ],
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: contact.favorite ? Colors.white : Colors.grey.shade50,
-                      border: Border(bottom: BorderSide(color: CompanyColor.backgroundGrey, width: 1))
-                  ),
-                  padding: EdgeInsets.all(10),
-                  child: Row(
-                      children: [
-                        Container(
-                            padding: EdgeInsets.only(left: 5, right: 10),
-                            child: Stack(
-                                alignment: AlignmentDirectional.topEnd,
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                          color: contact.favorite ? Colors.white : Colors.grey.shade50,
+                          border: Border(bottom: BorderSide(color: CompanyColor.backgroundGrey, width: 1))
+                      ),
+                      padding: EdgeInsets.all(10),
+                      child: Row(
+                          children: [
+                            Container(
+                                padding: EdgeInsets.only(left: 5, right: 10),
+                                child: Stack(
+                                    alignment: AlignmentDirectional.topEnd,
+                                    children: [
+                                      RoundProfileImageComponent(displayQuestionMarkImage: contact.contactUser == null,
+                                          url: contacts[index].contactUser?.profileImagePath,
+                                          margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
+                                          borderRadius: 50, height: 50, width: 50),
+                                      Container(
+                                          decoration: BoxDecoration(
+                                              color: Colors.green,
+                                              border: Border.all(color: Colors.white, width: 1),
+                                              borderRadius: BorderRadius.circular(5)
+                                          ),
+                                          margin: EdgeInsets.all(5),
+                                          width: 9, height: 9)
+                                    ])
+                            ),
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
-                                  RoundProfileImageComponent(displayQuestionMarkImage: contact.contactUser == null,
-                                      url: contacts[index].contactUser?.profileImagePath,
-                                      margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
-                                      borderRadius: 50, height: 50, width: 50),
-                                  Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.green,
-                                          border: Border.all(color: Colors.white, width: 1),
-                                          borderRadius: BorderRadius.circular(5)
-                                      ),
-                                      margin: EdgeInsets.all(5),
-                                      width: 9, height: 9)
-                                ])
-                        ),
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.topLeft,
-                                      child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Container(
-                                                margin: EdgeInsets.only(bottom: 5),
-                                                child: Text(contact.contactName,
-                                                    style: TextStyle(fontSize: 18,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.black87))
-                                            ),
-                                            contact.contactUser != null ? Visibility(
-                                                visible: contact.contactUser.displayMyFullName,
-                                                child: Text(
-                                                    (contact.contactUser.firstName ?? '')
-                                                        + ' '
-                                                        + (contact.contactUser.lastName ?? '')
-                                                )
-                                            ) : Container()
-                                          ]
-                                      ),
-                                    )
-                                  ],
-                                ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          alignment: Alignment.topLeft,
+                                          child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    margin: EdgeInsets.only(bottom: 5),
+                                                    child: Text(contact.contactName,
+                                                        style: TextStyle(fontSize: 18,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: Colors.black87))
+                                                ),
+                                                contact.contactUser != null ? Visibility(
+                                                    visible: contact.contactUser.displayMyFullName,
+                                                    child: Text(
+                                                        (contact.contactUser.firstName ?? '')
+                                                            + ' '
+                                                            + (contact.contactUser.lastName ?? '')
+                                                    )
+                                                ) : Container()
+                                              ]
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  Text(contact.contactPhoneNumber, style: TextStyle(color: Colors.grey))
+                                ],
                               ),
-                              Text(contact.contactPhoneNumber, style: TextStyle(color: Colors.grey))
-                            ],
-                          ),
-                        )
-                      ]
-                  ),
+                            )
+                          ]
+                      ),
+                    ),
+                    AnimatedContainer(
+                      duration: Duration(milliseconds: 500),
+                      height: contact.displayLinearLoading ? 1 : 0,
+                      child: LinearProgressLoader.build(context)
+                    )
+                  ],
                 ),
               ),
             );
@@ -377,6 +397,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
   }
 
   Future<ContactDto> doUpdateFavourites(ContactDto contactDto, int index) async {
+    setState(() {
+      contactDto.displayLinearLoading = true;
+    });
+
     String url = '/api/contacts/${contactDto.id}/favourite';
 
     http.Response response = await HttpClientService.post(url, body: !contactDto.favorite);
@@ -385,12 +409,14 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
       throw new Exception();
     }
 
+    await Future.delayed(Duration(milliseconds: 500));
     return contactDto;
   }
 
   onUpdateFavouritesSuccess(ContactDto contactDto) {
     setState(() {
       contactDto.favorite = !contactDto.favorite;
+      contactDto.displayLinearLoading = false;
     });
 
     scaffold.removeCurrentSnackBar();
@@ -401,11 +427,21 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
     }
   }
 
-  onUpdateFavouritesError(error) {
+  onUpdateFavouritesError(contactDto, error) {
+    setState(() {
+      contactDto.displayLinearLoading = false;
+    });
+
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(
         content: 'Something went wrong, please try again.'
     ));
+  }
+
+  onUpdateFavouritesCallback(ContactDto contact, bool status) {
+    setState(() {
+      contact.favorite = status;
+    });
   }
 
   void getNextPageOnScroll() async {
@@ -488,5 +524,36 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
 
       doGetContacts(clearRides: true).then(onGetContactsSuccess, onError: onGetContactsError);
     }));
+  }
+
+
+  Future<ContactDto> doDeleteContact(contact) async {
+    setState(() {
+      contact.displayLinearLoading = true;
+    });
+
+    await Future.delayed(Duration(seconds: 1));
+
+    return contact;
+  }
+
+  void onDeleteContactSuccess(ContactDto contact) {
+    setState(() {
+      contact.displayLinearLoading = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.success('${contact.contactName} deleted'));
+  }
+
+  void onDeleteContactError(contact, error) {
+    print(error);
+
+    setState(() {
+      contact.displayLinearLoading = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error());
   }
 }

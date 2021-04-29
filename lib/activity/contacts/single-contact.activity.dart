@@ -11,6 +11,7 @@ import 'package:flutterping/activity/data-space/contact-shared/contact-shared.ac
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
@@ -45,10 +46,13 @@ class SingleContactActivity extends StatefulWidget {
 
   final bool favorite;
 
+  final Function(bool) onFavouritesUpdated;
+
 
   const SingleContactActivity({ Key key,
-    this.myContactName, this.statusLabel,
-    this.peer, this.userId, this.contactName, this.favorite, this.contactBindingId, this.contactPhoneNumber }) : super(key: key);
+    this.myContactName, this.statusLabel, this.onFavouritesUpdated,
+    this.peer, this.userId, this.contactName, this.favorite,
+    this.contactBindingId, this.contactPhoneNumber }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new SingleContactActivityState();
@@ -58,6 +62,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   ScrollController scrollController = new ScrollController();
 
   List<DSNodeDto> nodes = new List();
+
+  ContactDto contact;
 
   Widget profileImageWidget;
 
@@ -69,12 +75,15 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
   bool favorite;
 
+  bool isFavouriteButtonLoaing = false;
+
   bool isFavorite() => favorite ?? widget.favorite;
 
   init() async {
     picturesPath = await new StorageIOService().getPicturesPath();
 
     if (widget.peer != null) {
+      doGetContactData();
       doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
     }
 
@@ -196,43 +205,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
               ),
               sharedMediaSection(),
               favouriteSection(),
-              Container(
-                padding: EdgeInsets.all(10),
-                margin: EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                    color: Theme.of(context).backgroundColor,
-                    boxShadow: [Shadows.bottomShadow()]
-                ),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextButton(onPressed: () {},
-                          child: Row(children: [
-                            Container(
-                                padding: EdgeInsets.all(7.5),
-                                margin: EdgeInsets.only(right: 10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.grey.shade50,
-                                ),
-                                child: Icon(Icons.delete, color: Colors.red, size: 17)),
-                            Text('Delete contact', style: TextStyle(color: CompanyColor.red))
-                          ])),
-                      widget.peer != null ? TextButton(onPressed: () {},
-                          child: Row(children: [
-                            Container(
-                                padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
-                                margin: EdgeInsets.only(right: 10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.grey.shade50,
-                                ),
-                                child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
-                            Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
-                          ])) : Container(),
-                    ]),
-              ),
+              // deleteSection(),
               widget.peer == null ? Container(
                 padding: EdgeInsets.all(10),
                 margin: EdgeInsets.only(bottom: 10),
@@ -265,8 +238,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return _w;
   }
 
-  Container favouriteSection() {
-    return widget.peer != null ? Container(
+  Widget deleteSection() {
+    return Container(
       padding: EdgeInsets.all(10),
       margin: EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -277,26 +250,76 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextButton(
-                onPressed: () => doUpdateFavourites()
-                    .then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
-                child: Row(
-                    children: [
-                      Container(
-                          padding: EdgeInsets.all(7.5),
-                          margin: EdgeInsets.only(right: 10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.grey.shade50,
-                          ),
-                          child: Icon(isFavorite() ? Icons.star_border : Icons.star,
-                              color: Colors.yellow.shade700, size: 17)),
-                      Text(isFavorite() ? 'Remove from favourites' : 'Add to favourites',
-                          style: TextStyle(color: Colors.grey.shade700))
-                    ]
-                )),
+            TextButton(onPressed: () {},
+                child: Row(children: [
+                  Container(
+                      padding: EdgeInsets.all(7.5),
+                      margin: EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.grey.shade50,
+                      ),
+                      child: Icon(Icons.delete, color: Colors.red, size: 17)),
+                  Text('Delete contact', style: TextStyle(color: CompanyColor.red))
+                ])),
+            widget.peer != null ? TextButton(onPressed: () {},
+                child: Row(children: [
+                  Container(
+                      padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
+                      margin: EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.grey.shade50,
+                      ),
+                      child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
+                  Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
+                ])) : Container(),
           ]),
-    ) : Container();
+    );
+  }
+
+  Widget favouriteSection() {
+    Widget w = Container();
+
+    if (widget.peer != null && contact != null) {
+      w = Container(
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+            color: Theme.of(context).backgroundColor,
+            boxShadow: [Shadows.bottomShadow()]
+        ),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextButton(
+                  onPressed: () => doUpdateFavourites()
+                      .then(onUpdateFavouritesSuccess, onError: onUpdateFavouritesError),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(children: [
+                          Container(
+                              padding: EdgeInsets.all(7.5),
+                              margin: EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: Icon(isFavorite() ? Icons.star_border : Icons.star,
+                                  color: Colors.yellow.shade700, size: 17)),
+                          Text(isFavorite() ? 'Remove from favourites' : 'Add to favourites',
+                              style: TextStyle(color: Colors.grey.shade700)),
+                        ]),
+                        isFavouriteButtonLoaing ? Spinner(size: 20) : Container()
+                      ]
+                  )),
+            ]),
+      );
+    }
+
+    return w;
   }
 
   Widget sharedMediaSection() {
@@ -480,6 +503,18 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
             : Text('TODO: fixme 4'));
   }
 
+  void doGetContactData() async {
+    String url = '/api/contacts/${widget.userId}/search/${widget.peer.id}';
+
+    http.Response response = await HttpClientService.get(url);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    contact = ContactDto.fromJson(response.decode());
+  }
+
   Future doGetSharedData() async {
     String url = '/api/data-space/shared'
         '?userId=' + widget.userId.toString() +
@@ -520,7 +555,11 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   Future<bool> doUpdateFavourites() async {
-    String url = '/api/contacts/${widget.peer.id}/favourite';
+    setState(() {
+      isFavouriteButtonLoaing = true;
+    });
+
+    String url = '/api/contacts/${contact.id}/favourite';
 
     http.Response response = await HttpClientService.post(url, body: !isFavorite());
 
@@ -528,12 +567,15 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       throw new Exception();
     }
 
+    await Future.delayed(Duration(seconds: 1));
+
     return !isFavorite();
   }
 
   onUpdateFavouritesSuccess(status) {
     setState(() {
       favorite = status;
+      isFavouriteButtonLoaing = false;
     });
 
     scaffold.removeCurrentSnackBar();
@@ -542,9 +584,17 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     } else {
       scaffold.showSnackBar(SnackBarsComponent.info('${widget.contactName} removed from favourites.'));
     }
+
+    if (widget.onFavouritesUpdated != null) {
+      widget.onFavouritesUpdated.call(status);
+    }
   }
 
   onUpdateFavouritesError(error) {
+    setState(() {
+      isFavouriteButtonLoaing = false;
+    });
+
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(
         content: 'Something went wrong, please try again.'
