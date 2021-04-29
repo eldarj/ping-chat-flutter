@@ -6,6 +6,7 @@ import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/util/other/file-type-resolver.util.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -48,13 +49,25 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
     });
   }
 
+  openCamera() async {
+    Navigator.of(getScaffoldContext()).pop();
+
+    final pickedFile = await ImagePicker().getImage(source: ImageSource.camera);
+    File _image = File(pickedFile.path);
+
+    uploadAndSendFile(_image);
+  }
+
   uploadAndSendFile(file) async {
     var fileName = basename(file.path);
     var fileType = FileTypeResolverUtil.resolve(extension(fileName));
     var fileSize = file.lengthSync();
     var fileUrl = Uri.parse(API_BASE_URL + '/files/uploads/' + fileName).toString();
 
-    file = await file.copy(widget.picturesPath + '/' + fileName);
+    var pathInPictures = widget.picturesPath + '/' + fileName;
+    if (file.path != pathInPictures) {
+      file = await file.copy(pathInPictures);
+    }
 
     var userToken = await UserService.getToken();
 
@@ -127,32 +140,48 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
         scaffold = Scaffold.of(context);
         return FloatingModal(
           child: Container(
+            padding: EdgeInsets.only(left: 25),
             color: Colors.white,
-            child: Column(children: [
-              Container(
-                  height: 60,
-                  child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: IconButton(
-                        icon: Icon(Icons.close),
-                        iconSize: 25,
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
+            child: Column(
+                children: [
+                Container(
+                    height: 60,
+                    child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: IconButton(
+                          icon: Icon(Icons.close),
+                          iconSize: 25,
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      )
+                    ])
+                ),
+                Row(children: [
+                  Container(
+                    padding: EdgeInsets.all(20),
+                    child: Row(children: [
+                      buildShareItem(text: 'Send files', icon: Icons.photo_library,
+                          color: Colors.deepPurpleAccent,
+                          onTap: openFilePicker
                       ),
-                    )
-                  ])
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 25),
-                child: Row(children: [
-                  buildShareItem(text: 'Send files', icon: Icons.photo_library, color: Colors.deepPurpleAccent, onTap: () {
-                    openFilePicker();
-                  }),
-                ]),
-              )
-            ]),
+                    ]),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(20),
+                    child: Row(children: [
+                      buildShareItem(text: 'Camera',
+                          icon: Icons.camera_alt,
+                          color: Colors.cyan,
+                          onTap: openCamera
+                      ),
+                    ]),
+                  )
+                ])
+              ]
+            ),
           ),
         );
       }),

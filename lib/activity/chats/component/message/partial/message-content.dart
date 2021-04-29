@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutterping/main.dart';
@@ -75,7 +76,15 @@ class MessageImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext _context) {
-    bool fileExists = File(filePath).existsSync();
+    File file = File(filePath);
+    bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+    if (!isFileValid) {
+      return Container(
+          constraints: BoxConstraints(
+              maxWidth: size, maxHeight: size, minHeight: 100, minWidth: 100),
+          child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400));
+    }
 
     Container image = Container(
         constraints: BoxConstraints(
@@ -85,14 +94,16 @@ class MessageImage extends StatelessWidget {
             height: 50, width: 50,
             alignment: Alignment.center,
             child: Spinner())
-            : fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
-            : Icon(Icons.broken_image_outlined, color: Colors.grey.shade400));
+            : Image.file(file, fit: BoxFit.cover));
 
     Widget colorFilteredImage;
     if (isUploading) {
       colorFilteredImage = ColorFiltered(
-        colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.srcOver),
-        child: image,
+          colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.srcOver),
+          child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: image
+          )
       );
     } else {
       colorFilteredImage = image;
