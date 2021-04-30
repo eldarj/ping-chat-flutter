@@ -47,7 +47,6 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
           return Container(
-            color: Colors.purple,
             child: Stack(
               alignment: Alignment.topLeft,
               children: [
@@ -60,17 +59,10 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                       ),
                       Container(
                           color: Colors.black87,
-                          height: 100,
+                          height: 160,
                           width: MediaQuery.of(context).size.width,
                           padding: EdgeInsets.all(20),
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(widget.sender, style: TextStyle(color: Colors.white,
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                            Text(DateTimeUtil.convertTimestampToTimeAgo(widget.timestamp),
-                                style: TextStyle(color: Colors.white, fontSize: 12)),
-                          ],
-                          )
-                      )
+                          child: buildDescriptionSection())
                     ],
                   ),
                 ),
@@ -123,6 +115,31 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
     );
   }
 
+  Widget buildDescriptionSection() {
+    Widget w = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          widget.message.messageType == 'MAP_LOCATION' ? Container(
+            margin: EdgeInsets.only(bottom: 5),
+            child: Text(widget.message.text, style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w400
+            ))
+          ) : Container(),
+          Text(widget.sender, style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold
+          )),
+          Text(DateTimeUtil.convertTimestampToTimeAgo(widget.timestamp), style: TextStyle(
+              color: Colors.white,
+              fontSize: 12
+          )),
+    ]);
+
+    return w;
+  }
   Future doDeleteMessage() async {
     try {
       widget.file.delete();

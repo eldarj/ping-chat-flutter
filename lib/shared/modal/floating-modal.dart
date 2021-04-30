@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class FloatingModal extends StatelessWidget {
@@ -27,7 +28,7 @@ class FloatingModal extends StatelessWidget {
 }
 
 // TODO: Reorganize this
-buildShareItem({color, icon, text, onTap}) {
+buildShareItem({color, icon, text, onTap, isLoading = false, spinnerColor}) {
   return Container(
     child: Column(
       children: [
@@ -35,17 +36,18 @@ buildShareItem({color, icon, text, onTap}) {
           onTap: onTap,
           child: Container(
               height: 75, width: 75,
-              padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(50),
                 boxShadow: [ BoxShadow(
-                  color: Colors.grey.shade300,
-                  blurRadius: 1.0, // soften the shadow
+                  color: Colors.grey.shade200,
+                  blurRadius: 2.0, // soften the shadow
                   spreadRadius: 5.0, //extend the shadow
                 )],
               ),
-              child: Icon(icon, color: Colors.white)),
+              child: Align(
+                  child: isLoading ? Spinner(size: 25, color: spinnerColor) : Icon(icon, color: Colors.white)
+              )),
         ),
         Container(
             padding: EdgeInsets.all(10),
