@@ -53,15 +53,6 @@ class MessageDeleted extends StatelessWidget {
 }
 
 class MessageImage extends StatelessWidget {
-  MessageImage(
-      this.filePath,
-      this.isDownloadingFile,
-      this.isUploading,
-      this.uploadProgress,
-      this.stopUploadFunc,
-      {Key key})
-      : super(key: key);
-
   final dynamic filePath;
 
   final dynamic isDownloadingFile;
@@ -73,6 +64,20 @@ class MessageImage extends StatelessWidget {
   final Function stopUploadFunc;
 
   final double size = DEVICE_MEDIA_SIZE.width / 1.25;
+
+  final String text;
+
+  MessageImage(
+      this.filePath,
+      this.isDownloadingFile,
+      this.isUploading,
+      this.uploadProgress,
+      this.stopUploadFunc,
+      {
+        Key key,
+        this.text,
+      }
+  ) : super(key: key);
 
   @override
   Widget build(BuildContext _context) {
@@ -114,7 +119,15 @@ class MessageImage extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(15),
-              child: colorFilteredImage,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                colorFilteredImage,
+                !isUploading && text != null ? Container(
+                    decoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                    ),
+                    padding: MESSAGE_PADDING,
+                    child: Text(text, style: TextStyle(fontSize: 16))) : Container()
+              ]),
             ),
             isUploading ? GestureDetector(
               onTap: stopUploadFunc,

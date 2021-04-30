@@ -179,7 +179,6 @@ class MessageComponentState extends State<MessageComponent> {
 
     if (widget.message.deleted) {
       print('MESSAGE DELETED');
-
       _messageWidget = MessageDeleted();
 
     } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
@@ -212,6 +211,14 @@ class MessageComponentState extends State<MessageComponent> {
       _messageWidget = MessageSticker(widget.message.text);
       messageDecoration = stickerBoxDecoration();
 
+    } else if (widget.message.messageType == 'MAP_LOCATION') {
+      String filePath = widget.isPeerMessage
+          ? widget.picturesPath + '/' + widget.message.fileName
+          : widget.message.filePath;
+
+      _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
+          widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text);
+      messageDecoration = imageDecoration(isPeerMessage: widget.isPeerMessage);
     } else {
       _messageWidget = MessageText(widget.message.text);
     }
@@ -227,6 +234,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     if (widget.message.deleted) {
       messageTapHandler = (_) {};
+
     } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
       String filePath = widget.isPeerMessage
           ? widget.picturesPath + '/' + widget.message.fileName
@@ -266,7 +274,22 @@ class MessageComponentState extends State<MessageComponent> {
                   file: File(filePath)));
         };
       }
+    } else if (widget.message.messageType == 'MAP_LOCATION') {
+      if (!widget.message.isUploading) {
+        String filePath = widget.isPeerMessage
+            ? widget.picturesPath + '/' + widget.message.fileName
+            : widget.message.filePath;
 
+        messageTapHandler = (_) async {
+          NavigatorUtil.push(context,
+              ImageViewerActivity(message: widget.message,
+                  messageId: widget.message.id,
+                  sender: widget.message.senderContactName,
+                  timestamp: widget.message.sentTimestamp,
+                  file: File(filePath))
+          );
+        };
+      }
     } else if (widget.message.messageType == 'STICKER') {
       messageTapHandler = (details) {
         onMessageTapDown(details, widget.message, widget.isPeerMessage, [

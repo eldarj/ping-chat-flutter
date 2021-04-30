@@ -623,6 +623,15 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       widget = Text(message.text??'fixme',
           overflow: TextOverflow.ellipsis, maxLines: 2,
           style: TextStyle(color: Colors.grey.shade500));
+    } else if (message.messageType == 'MAP_LOCATION') {
+      widget = Row(
+        children: [
+          Container(
+              margin: EdgeInsets.only(right: 5),
+              child: Icon(Icons.location_on_outlined, color: Colors.grey.shade500, size: 15)),
+          Text('Location', style: TextStyle(color: Colors.grey.shade500)),
+        ],
+      );
     }
 
     return widget;

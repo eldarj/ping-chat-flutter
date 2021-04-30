@@ -213,7 +213,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                     child: Container(
                       height: 35, width: 50,
                       child: !widget.displayStickers
-                          ? Image.asset('static/graphic/icon/sticker.png', color: CompanyColor.blueDark)
+                          ? Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark)
                           : Icon(Icons.keyboard_arrow_down, color: CompanyColor.blueDark),
                     ),
                   ),
