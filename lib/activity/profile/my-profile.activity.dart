@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/profile/profile-image-upload/profile-image-upload.activity.dart';
@@ -19,6 +20,7 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class MyProfileActivity extends StatefulWidget {
   final Function(String) onProfileImageUploaded;
@@ -124,20 +126,21 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                   ])
               ),
               Container(
+                margin: EdgeInsets.only(top: 10),
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
                 decoration: BoxDecoration(
                     color: Theme.of(context).backgroundColor,
                     boxShadow: [Shadows.topShadow()]
                 ),
-                padding: EdgeInsets.all(10),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
                           margin: EdgeInsets.only(left: 10, top: 10),
                           child: buildTwoColumns([
-                            buildSection('Broj telefona', text: clientDto.countryCode.dialCode + " " + clientDto.phoneNumber),
+                            buildSection('Phone number', text: clientDto.countryCode.dialCode + " " + clientDto.phoneNumber),
                           ], [
-                            buildSection('Račun kreiran', text: createdAtFormatted),
+                            buildSection('Joined', text: createdAtFormatted),
                           ])
                       ),
                       Container(
@@ -153,6 +156,43 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                                 child: Text(clientDto.countryCode.countryName)
                             )
                           ],
+                        ),
+                      ),
+                    ]
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 10),
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+                decoration: BoxDecoration(
+                    color: Theme.of(context).backgroundColor,
+                    boxShadow: [Shadows.topShadow()]
+                ),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(left: 25, right: 10),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text("QR Code", style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                          )),
+                          Text("Add to friends by scanning this code", style: TextStyle(
+                              color: Colors.grey.shade400
+                          )),
+                        ]),
+                      ),
+                      Center(
+                        child: Container(
+                          margin: EdgeInsets.only(top: 20, bottom: 10),
+                          width: 150, height: 150,
+                          child: QrImage(
+                            version: 1,
+                            foregroundColor: Colors.black87,
+                            gapless: true,
+                            data: clientDto.fullPhoneNumber,
+                            size: 200.0,
+                          ),
                         ),
                       ),
                     ]

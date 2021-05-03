@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
+import 'package:flutterping/activity/contacts/qr-scanner.activity.dart';
 import 'package:flutterping/activity/data-space/data-space.activity.dart';
 import 'package:flutterping/activity/policy/policy-info.activity.dart';
 import 'package:flutterping/activity/profile/my-profile.activity.dart';
@@ -141,17 +142,24 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                                     ListTile(leading: Icon(Icons.person_add),
                                         title: Text('New contact'),
                                         onTap: () {
-                                          NavigatorUtil.push(context, AddContactActivity());
+                                          NavigatorUtil.push(context, AddContactActivity(
+                                            user: user
+                                          ));
                                         }),
                                     ListTile(
-                                        leading: Image.asset("static/graphic/icon/qrcode.png", height: 25, color: Colors.black45),
+                                        leading: Icon(Icons.qr_code),
                                         title: Text('Scan QR'),
                                         onTap: () {
+                                          NavigatorUtil.push(context, QrScannerActivity(
+                                            user: user
+                                          ));
                                         }),
                                     ListTile(leading: Icon(Icons.contacts),
                                         title: Text('Sync phone contacts'),
                                         onTap: () {
-                                          NavigatorUtil.push(context, AddContactActivity());
+                                          NavigatorUtil.push(context, AddContactActivity(
+                                            user: user
+                                          ));
                                         }),
                                   ])
                               );

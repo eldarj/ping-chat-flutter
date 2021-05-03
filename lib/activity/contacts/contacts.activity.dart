@@ -9,6 +9,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
+import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/service/contact/contact.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -43,6 +44,7 @@ class ContactsActivity extends StatefulWidget {
 class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBindingObserver {
   var displayLoader = true;
 
+  ClientDto user;
   int userId = 0;
   String username;
   String countryDialCode;
@@ -62,6 +64,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
 
   initialize() async {
     var user = await UserService.getUser();
+    this.user = user;
     userId = user.id;
     countryDialCode = user.countryCode.dialCode;
     username = user.firstName;
@@ -92,8 +95,11 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
 
     if (widget.displaySavedContactSnackbar) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        scaffold.showSnackBar(SnackBarsComponent.success(
-            'Contact ${widget.savedContactName} (${widget.savedContactPhoneNumber}) successfully added!'));
+        scaffold.showSnackBar(SnackBarsComponent.success('Contact '
+            '${widget.savedContactName} (${widget.savedContactPhoneNumber}) '
+            'successfully added!',
+          duration: Duration(seconds: 4)
+        ));
       });
     }
 
@@ -146,7 +152,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                     child: TextButton(child: displaySyncLoader ? Spinner(size: 20)
                         : Icon(Icons.person_add, color: CompanyColor.iconGrey),
                         onPressed: () {
-                          NavigatorUtil.push(context, AddContactActivity());
+                          NavigatorUtil.push(context, AddContactActivity(user: user));
                         }),
                   ),
                 ],
@@ -213,7 +219,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                       Container(
                         margin: EdgeInsets.only(top: 25),
                         child: GradientButton(text: 'Add a contact', onPressed: () {
-                          NavigatorUtil.push(context, AddContactActivity());
+                          NavigatorUtil.push(context, AddContactActivity(user: this.user));
                         }),
                       )                    ],
                   ) : Text('You don\'t have any contacts in your favorites', style: TextStyle(color: Colors.grey)),

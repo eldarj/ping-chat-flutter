@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/activity/contacts/dialog/invite-contact.dialog.dart';
+import 'package:flutterping/activity/contacts/qr-scanner.activity.dart';
+import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/country-code-dto.model.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -20,7 +22,9 @@ import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 
 class AddContactActivity extends StatefulWidget {
-  const AddContactActivity();
+  final ClientDto user;
+
+  const AddContactActivity({Key key, this.user}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new AddContactActivityState();
@@ -59,7 +63,24 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext);
+    appBar = BaseAppBar.getBackAppBar(
+        getScaffoldContext,
+        actions: [
+          TextButton(
+              onPressed: () {
+                NavigatorUtil.replace(context, QrScannerActivity(user: widget.user));
+              },
+              child: Row(children: [
+                Icon(Icons.qr_code),
+                Container(
+                    padding: EdgeInsets.only(left: 10, right: 10),
+                    child: Text('Scan QR'))
+              ]),
+            style: TextButton.styleFrom(
+              primary: Colors.grey.shade700
+            ))
+        ]
+    );
     drawer = new NavigationDrawerComponent();
   }
 
@@ -161,12 +182,12 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
       scaffold.showSnackBar(SnackBarsComponent.error(content: 'Please fix the above errors', duration: Duration(seconds: 2)));
     } else {
       setState(() { displayLoader = true; });
-      doSendAuthRequest(dialCodesMap[selectedCallingCodeId], phoneNumberController.text, contactNameController.text)
-          .then(onSuccessAuthRequest, onError: onErrorAuthRequest);
+      doAddContact(dialCodesMap[selectedCallingCodeId], phoneNumberController.text, contactNameController.text)
+          .then(onAddContactSuccess, onError: onAddContactError);
     }
   }
 
-  Future<ContactDto> doSendAuthRequest(String dialCode, String phoneNumber, String contactName) async {
+  Future<ContactDto> doAddContact(String dialCode, String phoneNumber, String contactName) async {
     FocusScope.of(context).unfocus();
 
     http.Response response = await HttpClientService.post('/api/contacts', body: new ContactDto(
@@ -186,7 +207,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
     return ContactDto.fromJson(decode['contact']);
   }
 
-  onSuccessAuthRequest(ContactDto contactDto) async {
+  onAddContactSuccess(ContactDto contactDto) async {
     setState(() { displayLoader = false; });
 
     if (contactDto.contactUserExists) {
@@ -216,15 +237,15 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
     }
   }
 
-  onErrorAuthRequest(error) {
+  onAddContactError(error) {
     setState(() { displayLoader = false; });
 
     String message = error is CustomException ? error.toString() : null;
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(content: message, actionOnPressed: () {
       setState(() { displayLoader = true; });
-      doSendAuthRequest(dialCodesMap[selectedCallingCodeId], phoneNumberController.text, contactNameController.text)
-          .then(onSuccessAuthRequest, onError: onErrorAuthRequest);
+      doAddContact(dialCodesMap[selectedCallingCodeId], phoneNumberController.text, contactNameController.text)
+          .then(onAddContactSuccess, onError: onAddContactError);
     }));
   }
 

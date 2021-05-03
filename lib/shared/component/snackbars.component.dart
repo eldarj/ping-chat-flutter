@@ -12,9 +12,9 @@ class SnackBarsComponent {
             onPressed: actionOnPressed != null ? actionOnPressed : () {}));
   }
 
-  static SnackBar success(content) {
+  static SnackBar success(content, { duration = const Duration(seconds: 2)}) {
     return SnackBar(
-      duration: Duration(seconds: 2),
+      duration: duration,
       backgroundColor: CompanyColor.green,
       content: Text(content),
     );
