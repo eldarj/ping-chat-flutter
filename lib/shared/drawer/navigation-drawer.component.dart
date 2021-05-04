@@ -22,14 +22,6 @@ import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-class NavigationDrawerLeading {
-  static build(onPressed) {
-    return IconButton(
-        icon: Image.asset('static/graphic/icon/menu.png', color: Colors.black, height: 25, width: 25),
-        onPressed: onPressed);
-  }
-}
-
 class NavigationDrawerComponent extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => NavigationDrawerComponentState();
@@ -107,7 +99,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                         SizedBox(height: 15),
                         buildSectionTitle("Me"),
                         buildDrawerItem(context, 'My profile',
-                            buildIcon(iconPath: "static/graphic/icon/at.png", backgroundColor: Colors.red),
+                            buildIcon(icon: Icons.alternate_email, backgroundColor: Colors.red),
                             activity: MyProfileActivity(onProfileImageUploaded: onProfileImageUploaded)),
                         buildDrawerItem(context, 'Active status',
                           buildIcon(icon: user.isActive ? Icons.check : Icons.visibility_off,

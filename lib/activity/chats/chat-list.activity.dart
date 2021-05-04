@@ -615,7 +615,9 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     } else if (message.messageType == 'STICKER') {
       widget = Row(
         children: [
-          Image.asset('static/graphic/icon/sticker.png', color: Colors.grey.shade500, height: 25, width: 25),
+          Container(
+              margin: EdgeInsets.only(right: 5),
+              child: Icon(Icons.sentiment_very_satisfied, color: Colors.grey.shade500, size: 15)),
           Text('Sticker', style: TextStyle(color: Colors.grey.shade500)),
         ],
       );
