@@ -206,6 +206,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
           alignment: Alignment.bottomLeft,
           children: [
             Container(
+              height: 55,
               child: Row(children: [
                 Container(
                   child: GestureDetector(
@@ -218,19 +219,23 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                     ),
                   ),
                 ),
-                Container(constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
+                Container(
+                  height: 55,
+                  constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
                   child: TextField(
+                    textAlignVertical: TextAlignVertical.center,
                     textInputAction: TextInputAction.newline,
                     minLines: 1,
                     maxLines: 2,
                     onSubmitted: (value) {
-                      widget.inputTextController.text += "asd";
+                      widget.inputTextController.text += "asd"; //TODO: Remove
                     },
                     style: TextStyle(fontSize: 15.0),
                     controller: widget.inputTextController,
                     focusNode: widget.inputTextFocusNode,
-                    decoration: InputDecoration.collapsed(
-                      hintText: 'Say hello...',
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Type a message',
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
                   ),
