@@ -91,6 +91,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   int userId;
   int userSentNodeId;
 
+  ContactDto contact;
+
   List<MessageDto> messages = new List();
   int totalMessages = 0;
   int pageNumber = 1;
@@ -115,6 +117,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
     var user = await UserService.getUser();
     userId = user.id;
     userSentNodeId = user.sentNodeId;
+
+    doGetContactData();
 
     if (user.isActive) {
       PresenceEvent presenceEvent = new PresenceEvent();
@@ -300,6 +304,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                   contactBindingId: widget.contactBindingId,
                   contactPhoneNumber: widget.peer.fullPhoneNumber,
                   favorite: false,
+                  onBackgroundUpdated: onBackgroundUpdated,
                 ));
               },
               child: Container(
@@ -358,6 +363,13 @@ class ChatActivityState extends BaseState<ChatActivity> {
             child: Column(children: [
               Flexible(
                 child: Stack(alignment: Alignment.topCenter, children: [
+                  contact != null && contact.backgroundImagePath != null ? Positioned.fill(
+                      child: Opacity(
+                        opacity: 1,
+                        child: CachedNetworkImage(
+                            fit: BoxFit.cover,
+                            imageUrl: API_BASE_URL + '/files/chats/' + contact.backgroundImagePath),
+                      )) : Container(),
                   buildMessagesList(),
                   buildAddToContactSection(),
                   displayScrollLoader ? SizedOverflowBox(
@@ -726,6 +738,24 @@ class ChatActivityState extends BaseState<ChatActivity> {
       setState(() { displayLoader = true; });
       doAddContact().then(onAddContactSuccess, onError: onAddContactError);
     }));
+  }
+
+  void doGetContactData() async {
+    String url = '/api/contacts/${userId}/search/${widget.peer.id}';
+
+    http.Response response = await HttpClientService.get(url);
+
+    if(response.statusCode == 200) {
+      setState(() {
+        contact = ContactDto.fromJson(response.decode());
+      });
+    }
+  }
+
+  onBackgroundUpdated(String background) {
+    setState(() {
+      contact.backgroundImagePath = background;
+    });
   }
 }
 

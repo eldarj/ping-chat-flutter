@@ -15,7 +15,7 @@ class BaseAppBar {
         automaticallyImplyLeading: false,
         title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           leading,
-          titleWidget != null ? titleWidget : Text(titleText)
+          titleWidget != null ? Expanded(child: titleWidget) : Text(titleText)
         ]),
         actions: actions);
   }

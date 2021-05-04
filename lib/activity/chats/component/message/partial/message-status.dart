@@ -58,19 +58,39 @@ Widget messageStatus(sentTimestamp, sent, received, seen, {displayStatusIcon = t
     mainAxisAlignment: MainAxisAlignment.end,
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      displayStatusIcon ? Container(
-          margin: EdgeInsets.only(right: 2.5),
-          child: statusIconWidget
-      ) : Container(),
-      Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp),
-          style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+      Container(
+        margin: EdgeInsets.only(top: 2.5),
+        padding: EdgeInsets.only(left: 2.5, right: 2.5),
+        decoration: BoxDecoration(
+          color: Color.fromRGBO(255, 255, 255, 0.5),
+          borderRadius: BorderRadius.circular(2.5),
+        ),
+        child: Row(children: [
+          displayStatusIcon ? Container(
+              padding: EdgeInsets.only(right: 2.5),
+              child: statusIconWidget
+          ) : Container(),
+          Container(
+            child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp),
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+          ),
+        ]),
+      ),
     ],
   );
 }
 
 @swidget
 Widget messagePeerStatus(sentTimestamp) {
-  return Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp),
-      style: TextStyle(color: Colors.grey.shade400, fontSize: 12));
+  return Container(
+    margin: EdgeInsets.only(top: 2.5),
+    padding: EdgeInsets.only(left: 2.5, right: 2.5),
+    decoration: BoxDecoration(
+      color: Color.fromRGBO(255, 255, 255, 0.5),
+      borderRadius: BorderRadius.circular(2.5),
+    ),
+    child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp),
+        style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+  );
 }
 

@@ -15,6 +15,8 @@ class ContactDto {
 
   bool displayLinearLoading = false;
 
+  String backgroundImagePath;
+
   ContactDto({this.id, this.contactPhoneNumber, this.contactUser, this.contactName,
     this.favorite, this.contactUserExists, this.joinedTimestamp, this.contactBindingId});
 
@@ -26,6 +28,7 @@ class ContactDto {
           ? null
           : ClientDto.fromJson(parsedJson['contactUser'] as Map<String, dynamic>)
       ..contactName = parsedJson['contactName'] as String
+      ..backgroundImagePath = parsedJson['backgroundImagePath'] as String
       ..favorite = parsedJson['favorite'] as bool
       ..contactUserExists = parsedJson['contactUserExists'] as bool
       ..joinedTimestamp = parsedJson['joinedTimestamp'] as int
@@ -37,6 +40,7 @@ class ContactDto {
     'contactPhoneNumber': contactPhoneNumber,
     'contactUser': contactUser,
     'contactName': contactName,
+    'backgroundImagePath': backgroundImagePath,
     'favorite': favorite,
     'contactUserExists': contactUserExists,
     'joinedTimestamp': joinedTimestamp,
