@@ -3,13 +3,19 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutterping/main.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class FloatingModal extends StatelessWidget {
   final Widget child;
 
-  const FloatingModal({Key key, this.child}) : super(key: key);
+  double maxHeight;
+
+  FloatingModal({Key key, this.child, this.maxHeight}) : super(key: key) {
+    if (this.maxHeight == null) {
+      this.maxHeight = DEVICE_MEDIA_SIZE.height / 2;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +24,7 @@ class FloatingModal extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
       child: Container(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height / 2),
+        constraints: BoxConstraints(maxHeight: maxHeight),
         child: Container(
           child: child,
         ),

@@ -19,15 +19,18 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/action-button.component.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
+import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class SingleContactActivity extends StatefulWidget {
   final int userId;
@@ -55,10 +58,12 @@ class SingleContactActivity extends StatefulWidget {
     this.contactBindingId, this.contactPhoneNumber }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => new SingleContactActivityState();
+  State<StatefulWidget> createState() => new SingleContactActivityState(contactName: contactName);
 }
 
 class SingleContactActivityState extends BaseState<SingleContactActivity> {
+  String contactName;
+
   ScrollController scrollController = new ScrollController();
 
   List<DSNodeDto> nodes = new List();
@@ -77,7 +82,17 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
   bool isFavouriteButtonLoaing = false;
 
+
   bool isFavorite() => favorite ?? widget.favorite;
+
+  TextEditingController contactNameController;
+  bool displayContactNameButtonLoader = false;
+  bool isContactNameValid = true;
+  String contactNameValidationMessage = '';
+
+  SingleContactActivityState({ this.contactName }) {
+    this.contactNameController = TextEditingController(text: contactName);
+  }
 
   init() async {
     picturesPath = await new StorageIOService().getPicturesPath();
@@ -110,12 +125,13 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   dispose() {
     super.dispose();
     scrollController.dispose();
+    contactNameController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleText: widget.contactName),
+      appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleText: contactName),
       body: Builder(builder: (context) {
         scaffold = Scaffold.of(context);
         return Container(
@@ -205,6 +221,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
               ),
               sharedMediaSection(),
               favouriteSection(),
+              editSection(),
               // deleteSection(),
               widget.peer == null ? Container(
                 padding: EdgeInsets.all(10),
@@ -276,6 +293,130 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                 ])) : Container(),
           ]),
     );
+  }
+
+  Widget editSection() {
+    Widget w = Container();
+
+    if (contact != null) {
+      w = Container(
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+            color: Theme.of(context).backgroundColor,
+            boxShadow: [Shadows.bottomShadow()]
+        ),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextButton(
+                  onPressed: () {
+                    showCustomModalBottomSheet(context: context,
+                        containerWidget: (_, animation, child) => FloatingModal(
+                            child: child,
+                            maxHeight: DEVICE_MEDIA_SIZE.height - 100,
+                        ),
+                        builder: (context) {
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return Container(
+                                  padding: EdgeInsets.symmetric(vertical: 15),
+                                  child: Column(children: [
+                                    Container(
+                                      margin: EdgeInsets.only(left: 20, right: 10),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(margin: EdgeInsets.only(right: 10),
+                                                  width: 45, height: 45,
+                                                  decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(50.0),
+                                                      color: Colors.grey.shade400
+                                                  ),
+                                                  child: Icon(Icons.edit, color: Colors.grey.shade300, size: 20)),
+                                              Container(child: Text('Change contact name', style: TextStyle(color: Colors.grey.shade700))),
+                                            ],
+                                          ),
+                                          CloseButton(onPressed: () async {
+                                            Navigator.of(context).pop();
+                                            await Future.delayed(Duration(seconds: 1));
+                                            this.isContactNameValid = true;
+                                            this.contactNameValidationMessage = '';
+                                            this.contactNameController.text = contact.contactName;
+                                            this.displayContactNameButtonLoader = false;
+                                          })
+                                        ],
+                                      ),
+                                    ),
+                                    Divider(height: 25, thickness: 1),
+                                    Container(
+                                      margin: EdgeInsets.only(left: 20, right: 20),
+                                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                        TextField(
+                                          controller: contactNameController,
+                                          onChanged: (value) {
+                                            var valid = value.length >= 3;
+                                            setState(() {
+                                              this.isContactNameValid = valid;
+                                              this.contactNameValidationMessage = valid ? '' : 'Name has to contain at least 3 characters';
+                                            });
+                                          },
+                                          keyboardType: TextInputType.text,
+                                          decoration: InputDecoration(
+                                              hintText: 'Name',
+                                              labelText: 'Name',
+                                              border: OutlineInputBorder(),
+                                              contentPadding: EdgeInsets.all(15)),
+                                        ),
+                                        Container(
+                                            margin: EdgeInsets.only(top: 5, left: 2),
+                                            child: Text(contactNameValidationMessage,
+                                                style: TextStyle(color: CompanyColor.red))
+                                        ),
+                                        Container(
+                                          child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                                            GradientButton(
+                                              child: displayContactNameButtonLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Save'),
+                                              onPressed: isContactNameValid && !displayContactNameButtonLoader ?
+                                              () => doUpdateContactName(setState).then(onUpdateContactNameSuccess, onError: onUpdateContactNameError) : null,
+                                            )
+                                          ]),
+                                        )
+                                      ]),
+                                    )
+                                  ])
+                              );
+                            }
+                          );
+                        });
+                  },
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(children: [
+                          Container(
+                              padding: EdgeInsets.all(7.5),
+                              margin: EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: Icon(Icons.edit,
+                                  color: Colors.blue, size: 17)),
+                          Text('Change contact name',
+                              style: TextStyle(color: Colors.grey.shade700)),
+                        ]),
+                        isFavouriteButtonLoaing ? Spinner(size: 20) : Container()
+                      ]
+                  )),
+            ]),
+      );
+    }
+
+    return w;
   }
 
   Widget favouriteSection() {
@@ -599,5 +740,50 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     scaffold.showSnackBar(SnackBarsComponent.error(
         content: 'Something went wrong, please try again.'
     ));
+  }
+
+  Future<String> doUpdateContactName(StateSetter setState) async {
+    setState(() {
+      displayContactNameButtonLoader = true;
+    });
+
+    String url = '/api/contacts/${contact.id}/name';
+
+    http.Response response = await HttpClientService.post(url, body: contactNameController.text);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    await Future.delayed(Duration(seconds: 1));
+
+    return contactNameController.text;
+  }
+
+  void onUpdateContactNameSuccess(String name) async {
+    scaffold.showSnackBar(SnackBarsComponent.success('Updated name', duration: Duration(seconds: 4)));
+
+    setState(() {
+      contactName = name;
+      contact.contactName = name;
+    });
+
+    this.isContactNameValid = true;
+    this.contactNameValidationMessage = '';
+    this.contactNameController.text = contact.contactName;
+    this.displayContactNameButtonLoader = false;
+
+    Navigator.of(context).pop();
+  }
+
+  void onUpdateContactNameError(error) async {
+    scaffold.showSnackBar(SnackBarsComponent.success('not so much', duration: Duration(seconds: 4)));
+
+    this.isContactNameValid = true;
+    this.contactNameValidationMessage = '';
+    this.contactNameController.text = contact.contactName;
+    this.displayContactNameButtonLoader = false;
+
+    Navigator.of(context).pop();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
+import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/contacts.activity.dart';
 import 'package:flutterping/activity/contacts/qr-scanner.activity.dart';
@@ -15,9 +16,11 @@ import 'package:flutterping/shared/component/round-profile-image.component.dart'
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/drawer/partial/logout.dialog.dart';
+import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class NavigationDrawerLeading {
   static build(onPressed) {
@@ -136,14 +139,16 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                           buildIcon(icon: Icons.group_add, backgroundColor: Colors.deepPurpleAccent.shade200),
                           labelDescription: 'Add new or sync phone contacts',
                           onTapFunction: () {
-                            showModalBottomSheet(context: context, builder: (BuildContext context) {
-                              return Container(
-                                  child: Wrap(children: [
+                            showCustomModalBottomSheet(context: context,
+                                expand: false,
+                                containerWidget: (_, animation, child) => FloatingModal(child: child),
+                                builder: (BuildContext context) {
+                                  return Wrap(children: [
                                     ListTile(leading: Icon(Icons.person_add),
                                         title: Text('New contact'),
                                         onTap: () {
                                           NavigatorUtil.push(context, AddContactActivity(
-                                            user: user
+                                              user: user
                                           ));
                                         }),
                                     ListTile(
@@ -151,19 +156,18 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                                         title: Text('Scan QR'),
                                         onTap: () {
                                           NavigatorUtil.push(context, QrScannerActivity(
-                                            user: user
+                                              user: user
                                           ));
                                         }),
                                     ListTile(leading: Icon(Icons.contacts),
                                         title: Text('Sync phone contacts'),
                                         onTap: () {
                                           NavigatorUtil.push(context, AddContactActivity(
-                                            user: user
+                                              user: user
                                           ));
                                         }),
-                                  ])
-                              );
-                            });
+                                  ]);
+                                });
                           },
                         ),
                         buildSectionTitle("Data Space"),
