@@ -344,6 +344,11 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
               }
             });
           },
+          onLongPress: () {
+            if (!isRecording) {
+              startRecording(context);
+            }
+          },
           child: Container(
             margin: EdgeInsets.only(left: isRecording ? 2.5 : 0),
             child: Icon(isRecording ? Icons.send : Icons.mic,
