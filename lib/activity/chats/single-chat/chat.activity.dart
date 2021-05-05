@@ -24,6 +24,7 @@ import 'package:flutterping/model/message-download-progress.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
+import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/image-download.publisher.dart';
@@ -73,7 +74,7 @@ class ChatActivity extends StatefulWidget {
       : messageSendingService = new MessageSendingService(peer, peerContactName, myContactName, contactBindingId), super(key: key);
 
   @override
-  State<StatefulWidget> createState() => ChatActivityState();
+  State<StatefulWidget> createState() => ChatActivityState(contactName: peerContactName);
 }
 
 class ChatActivityState extends BaseState<ChatActivity> {
@@ -91,6 +92,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   int userId;
   int userSentNodeId;
 
+  String contactName;
   ContactDto contact;
 
   List<MessageDto> messages = new List();
@@ -105,9 +107,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   String picturesPath;
 
-  // ContactDto contact;
   bool isContactAdded = true;
   bool displayAddContactLoader = false;
+
+
+  ChatActivityState({ this.contactName });
 
   onInit() async {
     CURRENT_OPEN_CONTACT_BINDING_ID = widget.contactBindingId;
@@ -221,6 +225,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
         }
       });
     });
+
+    contactPublisher.onNameUpdate(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      setState(() {
+        this.contactName = contactEvent.value;
+        this.contact.contactName = contactEvent.value;
+      });
+    });
+
+    contactPublisher.onBackgroundUpdate(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      setState(() {
+        contact.backgroundImagePath = contactEvent.value;
+      });
+    });
   }
 
   @override
@@ -285,6 +302,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
 
     dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
+    contactPublisher.removeListener(STREAMS_LISTENER_ID);
 
     IsolateNameServer.removePortNameMapping(CHAT_ACTIVITY_DOWNLOADER_PORT_ID);
   }
@@ -296,15 +314,14 @@ class ChatActivityState extends BaseState<ChatActivity> {
             titleWidget: InkWell(
               onTap: () {
                 NavigatorUtil.push(context, SingleContactActivity(
-                  myContactName: widget.myContactName,
+                  myContactName: contactName,
                   statusLabel: widget.statusLabel,
                   peer: widget.peer,
                   userId: userId,
-                  contactName: widget.peerContactName,
+                  contactName: contactName,
                   contactBindingId: widget.contactBindingId,
                   contactPhoneNumber: widget.peer.fullPhoneNumber,
                   favorite: false,
-                  onBackgroundUpdated: onBackgroundUpdated,
                 ));
               },
               child: Container(
@@ -316,7 +333,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                     Container(
                       margin: EdgeInsets.only(left: 10),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(widget.peerContactName, style: TextStyle(fontWeight: FontWeight.normal)),
+                        Text(contactName, style: TextStyle(fontWeight: FontWeight.normal)),
                         Text(widget.statusLabel, style: TextStyle(fontSize: 12, color: Colors.grey))
                       ]),
                     ),
@@ -332,7 +349,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                     onTap: () {
                       NavigatorUtil.replace(context, new CallScreenWidget(
                         target: widget.peer.fullPhoneNumber,
-                        contactName: widget.peerContactName,
+                        contactName: contactName,
                         fullPhoneNumber: widget.peer.fullPhoneNumber,
                         profileImageWidget: widget.peer?.profileImagePath != null ? CachedNetworkImage(
                           imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
@@ -351,7 +368,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                   statusLabel: widget.statusLabel,
                   peer: widget.peer,
                   picturesPath: picturesPath,
-                  peerContactName: widget.peerContactName,
+                  peerContactName: contactName,
                   contactBindingId: widget.contactBindingId)
             ]
         ),
@@ -701,7 +718,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     http.Response response = await HttpClientService.post('/api/contacts', body: new ContactDto(
       contactPhoneNumber: widget.peer.fullPhoneNumber,
-      contactName: widget.peerContactName,
+      contactName: contactName,
     ));
 
     if (response.statusCode != 200) {
@@ -713,7 +730,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       throw new Exception();
     }
 
-    return widget.peerContactName;
+    return contactName;
   }
 
   onAddContactSuccess(String contactName) async {
@@ -750,12 +767,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
         contact = ContactDto.fromJson(response.decode());
       });
     }
-  }
-
-  onBackgroundUpdated(String background) {
-    setState(() {
-      contact.backgroundImagePath = background;
-    });
   }
 }
 

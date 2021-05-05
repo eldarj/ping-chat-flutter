@@ -7,6 +7,7 @@ import 'package:flutterping/activity/profile/profile-image-upload/profile-image-
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/service/profile/profile.publisher.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
@@ -23,10 +24,6 @@ import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class MyProfileActivity extends StatefulWidget {
-  final Function(String) onProfileImageUploaded;
-
-  const MyProfileActivity({Key key, this.onProfileImageUploaded}) : super(key: key);
-
   @override
   State<StatefulWidget> createState() => new MyProfileActivityState();
 }
@@ -49,7 +46,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
     var savedProfileImagePath = await NavigatorUtil.push(context, ProfileImageUploadActivity());
 
     if (savedProfileImagePath != null) {
-      widget.onProfileImageUploaded.call(savedProfileImagePath);
+      profilePublisher.emitProfileImageUpdate(savedProfileImagePath);
       setState(() {
         clientDto.profileImagePath = savedProfileImagePath;
       });

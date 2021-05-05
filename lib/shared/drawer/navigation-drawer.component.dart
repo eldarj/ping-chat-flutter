@@ -11,6 +11,7 @@ import 'package:flutterping/activity/profile/my-profile.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/service/profile/profile.publisher.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
@@ -28,22 +29,35 @@ class NavigationDrawerComponent extends StatefulWidget {
 }
 
 class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent> {
+  static const String STREAMS_LISTENER_ID = "NavigationDrawerListener";
+
   ClientDto user;
 
   bool displayLoader = true;
 
-  initializeUserDetails() async {
+  init() async {
     user = await UserService.getUser();
     setState(() {
       displayLoader = false;
     });
 
+    profilePublisher.onProfileImageUpdate(STREAMS_LISTENER_ID, (String profileImage) {
+      setState(() {
+        user.profileImagePath = profileImage;
+      });
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    initializeUserDetails();
+    init();
+  }
+
+  @override
+  void dispose() {
+    profilePublisher.removeListener(STREAMS_LISTENER_ID);
+    super.dispose();
   }
 
   @override
@@ -100,7 +114,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                         buildSectionTitle("Me"),
                         buildDrawerItem(context, 'My profile',
                             buildIcon(icon: Icons.alternate_email, backgroundColor: Colors.red),
-                            activity: MyProfileActivity(onProfileImageUploaded: onProfileImageUploaded)),
+                            activity: MyProfileActivity()),
                         buildDrawerItem(context, 'Active status',
                           buildIcon(icon: user.isActive ? Icons.check : Icons.visibility_off,
                               backgroundColor: user.isActive ? Colors.green : Colors.grey),
@@ -223,11 +237,5 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
 
     Navigator.pop(context);
     scaffold.showSnackBar(SnackBarsComponent.info("Your status will be shown as 'offline'."));
-  }
-
-  void onProfileImageUploaded(profileImagePath) {
-    setState(() {
-      user.profileImagePath = profileImagePath;
-    });
   }
 }

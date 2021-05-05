@@ -11,7 +11,9 @@ import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
+import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/contact/contact.service.dart';
+import 'package:flutterping/service/profile/profile.publisher.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
 import 'package:flutterping/shared/component/error.component.dart';
@@ -42,6 +44,8 @@ class ContactsActivity extends StatefulWidget {
 }
 
 class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBindingObserver {
+  static const String STREAMS_LISTENER_ID = "ContactsActivityListener";
+
   var displayLoader = true;
 
   ClientDto user;
@@ -72,6 +76,30 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
     syncContactBook();
 
     doGetContacts().then(onGetContactsSuccess, onError: onGetContactsError);
+
+    contactPublisher.onNameUpdate(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      var contact = contacts.firstWhere((element) => element.contactBindingId == contactEvent.contactBindingId, orElse: () => null);
+      if (contact != null) {
+        setState(() {
+          contact.contactName = contactEvent.value;
+        });
+      }
+    });
+
+    contactPublisher.onFavouritesUpdate(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      var contact = contacts.firstWhere((element) => element.contactBindingId == contactEvent.contactBindingId, orElse: () => null);
+      if (contact != null) {
+        setState(() {
+          contact.favorite = contactEvent.value;
+        });
+      }
+    });
+
+    profilePublisher.onProfileImageUpdate(STREAMS_LISTENER_ID, (String profileImage) {
+      setState(() {
+        user.profileImagePath = profileImage;
+      });
+    });
   }
 
   syncContactBook() async {
@@ -111,6 +139,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
     if (foregroundSubscription != null) {
       foregroundSubscription.cancel();
     }
+
+    contactPublisher.removeListener(STREAMS_LISTENER_ID);
+
+    profilePublisher.removeListener(STREAMS_LISTENER_ID);
 
     super.deactivate();
   }
@@ -180,12 +212,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                 print('USER ID');
                 print(userId.toString());
                 NavigatorUtil.push(context, SearchContactsActivity(
-                    onFavouritesUpdated: (contactId, status) {
-                      var contact = contacts.firstWhere((element) => element.id == contactId, orElse: () => null);
-                      if (contact != null) {
-                        onUpdateFavouritesCallback(contact, status);
-                      }
-                    },
                     type: SearchContactsType.CONTACT,
                     contacts: contacts
                 ));
@@ -275,7 +301,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                 NavigatorUtil.push(context, SingleContactActivity(
                   peer: contact.contactUser,
                   userId: userId,
-                  onFavouritesUpdated: (status) => onUpdateFavouritesCallback(contact, status),
                   contactName: contact.contactName,
                   contactPhoneNumber: contact.contactPhoneNumber,
                   contactBindingId: contact.contactBindingId,
@@ -442,12 +467,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
     scaffold.showSnackBar(SnackBarsComponent.error(
         content: 'Something went wrong, please try again.'
     ));
-  }
-
-  onUpdateFavouritesCallback(ContactDto contact, bool status) {
-    setState(() {
-      contact.favorite = status;
-    });
   }
 
   void getNextPageOnScroll() async {

@@ -14,9 +14,11 @@ import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
+import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/contact/contact.service.dart';
 import 'package:flutterping/service/messaging/unread-message.publisher.dart';
 import 'package:flutterping/service/notification/notification.service.dart';
+import 'package:flutterping/service/profile/profile.publisher.dart';
 import 'package:flutterping/service/voice/call-state.publisher.dart';
 import 'package:flutterping/service/voice/sip-client.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
@@ -241,6 +243,25 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         }
       });
     });
+
+    contactPublisher.onNameUpdate(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      var chat = chats.firstWhere((element) => element.contactBindingId == contactEvent.contactBindingId, orElse: () => null);
+      if (chat != null) {
+        setState(() {
+          if (chat.receiver.id == contactEvent.contactUserId) {
+            chat.receiverContactName = contactEvent.value;
+          } else {
+            chat.senderContactName = contactEvent.value;
+          }
+        });
+      }
+    });
+
+    profilePublisher.onProfileImageUpdate(STREAMS_LISTENER_ID, (String profileImage) {
+      setState(() {
+        user.profileImagePath = profileImage;
+      });
+    });
   }
 
   initPresenceFetcher() async {
@@ -331,6 +352,14 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
     if (unreadMessagePublisher != null) {
       unreadMessagePublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
+    if (contactPublisher != null) {
+      contactPublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
+    if (profilePublisher != null) {
+      profilePublisher.removeListener(STREAMS_LISTENER_ID);
     }
 
     if (sipClientService != null) {

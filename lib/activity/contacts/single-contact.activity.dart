@@ -13,6 +13,7 @@ import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
+import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -49,13 +50,8 @@ class SingleContactActivity extends StatefulWidget {
 
   final bool favorite;
 
-  final Function(bool) onFavouritesUpdated;
-
-  final Function(String) onBackgroundUpdated;
-
   const SingleContactActivity({ Key key,
-    this.myContactName, this.statusLabel, this.onFavouritesUpdated,
-    this.onBackgroundUpdated,
+    this.myContactName, this.statusLabel,
     this.peer, this.userId, this.contactName, this.favorite,
     this.contactBindingId, this.contactPhoneNumber }) : super(key: key);
 
@@ -852,9 +848,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return !isFavorite();
   }
 
-  onUpdateFavouritesSuccess(status) {
+  onUpdateFavouritesSuccess(favouriteStatus) {
     setState(() {
-      favorite = status;
+      favorite = favouriteStatus;
       isFavouriteButtonLoaing = false;
     });
 
@@ -865,9 +861,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       scaffold.showSnackBar(SnackBarsComponent.info('${widget.contactName} removed from favourites.'));
     }
 
-    if (widget.onFavouritesUpdated != null) {
-      widget.onFavouritesUpdated.call(status);
-    }
+    contactPublisher.emitFavouritesUpdate(contact.contactBindingId, favouriteStatus);
   }
 
   onUpdateFavouritesError(error) {
@@ -914,6 +908,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     this.displayContactNameButtonLoader = false;
 
     Navigator.of(context).pop();
+    contactPublisher.emitNameUpdate(contact.contactBindingId, contact.contactUser.id, name);
   }
 
   void onUpdateContactNameError(error) async {
@@ -956,9 +951,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     backgroundLoaderIndex = null;
     Navigator.of(context).pop();
 
-    if (widget.onBackgroundUpdated != null) {
-      widget.onBackgroundUpdated.call(background);
-    }
+    contactPublisher.emitBackgroundUpdate(contact.contactBindingId, background);
   }
 
   void onUpdateBackgroundError(error) async {
@@ -985,9 +978,11 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   void onGetBackgroundsSuccess(List backgrounds) {
     this.backgrounds = backgrounds;
 
-    backgroundsModalSetState(() {
-      displayBackgroundsLoader = false;
-    });
+    if (backgroundsModalSetState != null) {
+      backgroundsModalSetState(() {
+        displayBackgroundsLoader = false;
+      });
+    }
   }
 
   void onGetBackgroundsError(error) {

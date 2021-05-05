@@ -8,6 +8,7 @@ import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/contacts/single-contact.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
+import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -31,11 +32,8 @@ class SearchContactsActivity extends StatefulWidget {
 
   final List<ContactDto> contacts;
 
-  final Function(int, bool) onFavouritesUpdated;
-
   const SearchContactsActivity({Key key,
     this.type = SearchContactsType.CHAT,
-    this.onFavouritesUpdated,
     this.contacts}) : super(key: key);
 
   @override
@@ -43,6 +41,8 @@ class SearchContactsActivity extends StatefulWidget {
 }
 
 class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
+  static const String STREAMS_LISTENER_ID = "SearchContactsActivityListener";
+
   Timer fetchTimer;
   bool displayLoader = false;
 
@@ -94,6 +94,24 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
     this.username = user.firstName;
 
     doGetContacts().then(onGetContactsSuccess, onError: onGetContactsError);
+
+    contactPublisher.onFavouritesUpdate(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      var contact = contacts.firstWhere((element) => element.contactBindingId == contactEvent.contactBindingId, orElse: () => null);
+      if (contact != null) {
+        setState(() {
+          contact.favorite = contactEvent.value;
+        });
+      }
+    });
+
+    contactPublisher.onNameUpdate(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      var contact = contacts.firstWhere((element) => element.contactBindingId == contactEvent.contactBindingId, orElse: () => null);
+      if (contact != null) {
+        setState(() {
+          contact.contactName = contactEvent.value;
+        });
+      }
+    });
   }
 
   initFetcher() {
@@ -199,7 +217,6 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
         NavigatorUtil.push(context, SingleContactActivity(
           peer: contact.contactUser,
           userId: userId,
-          onFavouritesUpdated: (status) => onUpdateFavouritesCallback(contact, status),
           contactName: contact.contactName,
           contactBindingId: contact.contactBindingId,
           contactPhoneNumber: contact.contactPhoneNumber,
@@ -385,15 +402,5 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
     scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () async {
       doGetContacts().then(onGetContactsSuccess, onError: onGetContactsError);
     }));
-  }
-
-  onUpdateFavouritesCallback(ContactDto contact, bool status) {
-    setState(() {
-      contact.favorite = status;
-    });
-
-    if (widget.onFavouritesUpdated != null) {
-      widget.onFavouritesUpdated.call(contact.id, status);
-    }
   }
 }
