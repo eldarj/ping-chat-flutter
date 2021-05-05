@@ -1025,7 +1025,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       displayDeleteContactLoader = true;
     });
 
-    String url = '/api/contacts/${contact.id}/delete';
+    String url = '/api/contacts/${contact.id}/delete'
+        '?contactBindingId=${contact.contactBindingId}'
+        '&userId=${widget.userId}';
 
     http.Response response = await HttpClientService.delete(url);
 

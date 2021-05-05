@@ -17,7 +17,9 @@ class ContactDto {
 
   String backgroundImagePath;
 
-  ContactDto({this.id, this.contactPhoneNumber, this.contactUser, this.contactName,
+  bool deleted;
+
+  ContactDto({this.id, this.contactPhoneNumber, this.contactUser, this.contactName, this.deleted,
     this.favorite, this.contactUserExists, this.joinedTimestamp, this.contactBindingId});
 
   factory ContactDto.fromJson(Map<String, dynamic> parsedJson) {
@@ -30,6 +32,7 @@ class ContactDto {
       ..contactName = parsedJson['contactName'] as String
       ..backgroundImagePath = parsedJson['backgroundImagePath'] as String
       ..favorite = parsedJson['favorite'] as bool
+      ..deleted = parsedJson['deleted'] as bool
       ..contactUserExists = parsedJson['contactUserExists'] as bool
       ..joinedTimestamp = parsedJson['joinedTimestamp'] as int
       ..contactBindingId = parsedJson['contactBindingId'] as int;
@@ -42,6 +45,7 @@ class ContactDto {
     'contactName': contactName,
     'backgroundImagePath': backgroundImagePath,
     'favorite': favorite,
+    'deleted': deleted,
     'contactUserExists': contactUserExists,
     'joinedTimestamp': joinedTimestamp,
     'contactBindingId': contactBindingId,

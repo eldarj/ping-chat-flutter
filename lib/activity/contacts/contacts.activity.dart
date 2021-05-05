@@ -557,7 +557,9 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
       contact.displayLinearLoading = true;
     });
 
-    String url = '/api/contacts/${contact.id}/delete';
+    String url = '/api/contacts/${contact.id}/delete'
+        '?contactBindingId=${contact.contactBindingId}'
+        '&userId=${userId}';
 
     http.Response response = await HttpClientService.delete(url);
 

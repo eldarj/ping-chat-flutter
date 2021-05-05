@@ -110,7 +110,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool isContactAdded = true;
   bool displayAddContactLoader = false;
 
-
   ChatActivityState({ this.contactName });
 
   onInit() async {
@@ -443,13 +442,15 @@ class ChatActivityState extends BaseState<ChatActivity> {
                   Text('This user isn\'t in your contacts', style: TextStyle(
                       color: Colors.white
                   )),
-                  FlatButton(
+                  TextButton(
                       onPressed: () {
                         doAddContact().then(onAddContactSuccess, onError: onAddContactError);
                       },
                       child: displayAddContactLoader ? Spinner(size: 20) : Text('Add', style: TextStyle(
                           color: Colors.grey.shade700)),
-                      color: Colors.grey.shade50)
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.grey.shade50,
+                      ))
                 ],
               )),
         ],
