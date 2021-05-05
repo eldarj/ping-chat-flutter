@@ -557,12 +557,23 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
       contact.displayLinearLoading = true;
     });
 
+    String url = '/api/contacts/${contact.id}/delete';
+
+    http.Response response = await HttpClientService.delete(url);
+
     await Future.delayed(Duration(seconds: 1));
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
 
     return contact;
   }
 
   void onDeleteContactSuccess(ContactDto contact) {
+    contacts.removeWhere((element) => element.contactBindingId == contact.contactBindingId);
+    totalContacts--;
+
     setState(() {
       contact.displayLinearLoading = false;
     });

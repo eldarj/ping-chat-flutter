@@ -94,6 +94,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   bool displayBackgroundsButton = true;
   int backgroundLoaderIndex;
 
+  bool displayDeleteContactLoader = false;
+
   SingleContactActivityState({ this.contactName }) {
     this.contactNameController = TextEditingController(text: contactName);
   }
@@ -230,7 +232,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
               buildSharedMediaSection(),
               buildDetailsSection(),
               buildFavouritesSection(),
-              // buildDeleteSection(),
+              buildDeleteSection(),
               widget.peer == null ? Container(
                 padding: EdgeInsets.all(10),
                 margin: EdgeInsets.only(bottom: 10),
@@ -262,46 +264,6 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     }
 
     return _w;
-  }
-
-  Widget buildDeleteSection() {
-    return Container(
-      padding: EdgeInsets.all(10),
-      margin: EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-          color: Theme.of(context).backgroundColor,
-          boxShadow: [Shadows.bottomShadow()]
-      ),
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextButton(onPressed: () {},
-                child: Row(children: [
-                  Container(
-                      padding: EdgeInsets.all(7.5),
-                      margin: EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.grey.shade50,
-                      ),
-                      child: Icon(Icons.delete, color: Colors.red, size: 17)),
-                  Text('Delete contact', style: TextStyle(color: CompanyColor.red))
-                ])),
-            widget.peer != null ? TextButton(onPressed: () {},
-                child: Row(children: [
-                  Container(
-                      padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
-                      margin: EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.grey.shade50,
-                      ),
-                      child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
-                  Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
-                ])) : Container(),
-          ]),
-    );
   }
 
   Widget buildDetailsSection() {
@@ -554,6 +516,60 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
               ]),
             ]
         ));
+  }
+
+  Widget buildDeleteSection() {
+    Widget w = Container();
+
+    if (widget.peer != null && contact != null) {
+      w = Container(
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+            color: Theme.of(context).backgroundColor,
+            boxShadow: [Shadows.bottomShadow()]
+        ),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextButton(
+                  onPressed: () {
+                    doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                  },
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(children: [
+                          Container(
+                              padding: EdgeInsets.all(7.5),
+                              margin: EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: Icon(Icons.delete, color: Colors.red, size: 17)),
+                          Text('Delete contact', style: TextStyle(color: CompanyColor.red)),
+                        ]),
+                        displayDeleteContactLoader ? Spinner(size: 20) : Container()
+                      ])),
+              widget.peer != null ? TextButton(onPressed: () {},
+                  child: Row(children: [
+                    Container(
+                        padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
+                        margin: EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.grey.shade50,
+                        ),
+                        child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
+                    Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
+                  ])) : Container(),
+            ]),
+      );
+    }
+
+    return w;
   }
 
   Widget buildFavouritesSection() {
@@ -1001,5 +1017,42 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     setState(() {
       displayBackgroundsButton = false;
     });
+  }
+
+  // Delete contact
+  Future<String> doDeleteContact() async {
+    setState(() {
+      displayDeleteContactLoader = true;
+    });
+
+    String url = '/api/contacts/${contact.id}/delete';
+
+    http.Response response = await HttpClientService.delete(url);
+
+    await Future.delayed(Duration(seconds: 1));
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return contact.contactName;
+  }
+
+  void onDeleteSuccess(String contactName) {
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.success('$contactName deleted'));
+  }
+
+  void onDeleteError(error) {
+    print(error);
+
+    setState(() {
+      displayDeleteContactLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(
+      content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
+    ));
   }
 }
