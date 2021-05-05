@@ -17,7 +17,7 @@ class DataSpaceDeletePublisher {
 
   addListener(String key, Function callback) {
     if (subs.containsKey(key)) {
-      subs[key].cancel();
+      subs[key]?.cancel();
       subs.remove(key);
       subs[key] = subject.listen(callback);
     } else {

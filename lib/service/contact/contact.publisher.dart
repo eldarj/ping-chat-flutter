@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:rxdart/rxdart.dart';
 
 enum EventType {
-  FAVOURITES, CONTACT_NAME, BACKGROUND_IMAGE
+  FAVOURITES, CONTACT_NAME, BACKGROUND_IMAGE, CONTACT_DELETE, MESSAGES_DELETE
 }
 
 class ContactEvent {
@@ -11,7 +11,7 @@ class ContactEvent {
   int contactUserId;
   dynamic value;
 
-  ContactEvent(this.contactBindingId, this.value, { this.contactUserId });
+  ContactEvent(this.contactBindingId, { this.value, this.contactUserId });
 }
 
 class ContactPublisher {
@@ -21,11 +21,15 @@ class ContactPublisher {
     EventType.FAVOURITES: {},
     EventType.CONTACT_NAME: {},
     EventType.BACKGROUND_IMAGE: {},
+    EventType.CONTACT_DELETE: {},
+    EventType.MESSAGES_DELETE: {},
   };
 
   PublishSubject<ContactEvent> _contactNameSubject = PublishSubject<ContactEvent>();
   PublishSubject<ContactEvent> _backgroundSubject = PublishSubject<ContactEvent>();
   PublishSubject<ContactEvent> _favouriteSubject = PublishSubject<ContactEvent>();
+  PublishSubject<ContactEvent> _deleteContactSubject = PublishSubject<ContactEvent>();
+  PublishSubject<ContactEvent> _deleteMessagesSubject = PublishSubject<ContactEvent>();
 
   factory ContactPublisher() {
     return _instance;
@@ -40,7 +44,7 @@ class ContactPublisher {
   }
 
   emitFavouritesUpdate(int contactBindingId, bool status) {
-    _favouriteSubject.add(ContactEvent(contactBindingId, status));
+    _favouriteSubject.add(ContactEvent(contactBindingId, value: status));
   }
 
   // Contact name update
@@ -50,7 +54,7 @@ class ContactPublisher {
   }
 
   emitNameUpdate(int contactBindingId, int contactUserId, String name) {
-    _contactNameSubject.add(ContactEvent(contactBindingId, name, contactUserId: contactUserId));
+    _contactNameSubject.add(ContactEvent(contactBindingId, value: name, contactUserId: contactUserId));
   }
 
   // Background update
@@ -60,7 +64,27 @@ class ContactPublisher {
   }
 
   emitBackgroundUpdate(int contactBindingId, String backgroundImagePath) {
-    _backgroundSubject.add(ContactEvent(contactBindingId, backgroundImagePath));
+    _backgroundSubject.add(ContactEvent(contactBindingId, value: backgroundImagePath));
+  }
+
+  // Contact delete
+  onContactDelete(String key, Function callback) {
+    var subs = _subs[EventType.CONTACT_DELETE];
+    _addListener(subs, _deleteContactSubject, key, callback);
+  }
+
+  emitContactDelete(int contactBindingId) {
+    _deleteContactSubject.add(ContactEvent(contactBindingId));
+  }
+
+  // All messages delete
+  onAllMessagesDelete(String key, Function callback) {
+    var subs = _subs[EventType.MESSAGES_DELETE];
+    _addListener(subs, _deleteMessagesSubject, key, callback);
+  }
+
+  emitAllMessagesDelete(int contactBindingId) {
+    _deleteMessagesSubject.add(ContactEvent(contactBindingId));
   }
 
   removeListener(String key) {
@@ -73,7 +97,7 @@ class ContactPublisher {
 
   _addListener(Map<String, StreamSubscription> subs, PublishSubject<ContactEvent> subject, String key, Function callback) {
     if (subs.containsKey(key)) {
-      subs[key].cancel();
+      subs[key]?.cancel();
       subs.remove(key);
       subs[key] = subject.listen(callback);
     } else {

@@ -115,6 +115,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
   initState() {
     super.initState();
 
+
     foregroundSubscription = FGBGEvents.stream.listen((event) {
       if (event == FGBGType.foreground) {
         syncContactBook();

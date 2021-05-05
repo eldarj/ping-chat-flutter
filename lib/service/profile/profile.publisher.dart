@@ -18,7 +18,7 @@ class ProfilePublisher {
 
   onProfileImageUpdate(String key, Function callback) {
     if (_subs.containsKey(key)) {
-      _subs[key].cancel();
+      _subs[key]?.cancel();
       _subs.remove(key);
       _subs[key] = _profileImageSubject.listen(callback);
     } else {

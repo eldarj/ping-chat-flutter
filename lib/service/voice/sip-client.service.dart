@@ -62,7 +62,7 @@ class SipClientService implements SipUaHelperListener {
 
   addListener(String key, Function callback) {
     if (registrationStateSubs.containsKey(key)) {
-      registrationStateSubs[key].cancel();
+      registrationStateSubs[key]?.cancel();
       registrationStateSubs.remove(key);
       registrationStateSubs[key] = registrationStateSubject.listen(callback);
     } else {

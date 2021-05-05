@@ -287,23 +287,30 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   @override
   void deactivate() {
-    super.deactivate();
-
     CURRENT_OPEN_CONTACT_BINDING_ID = 0;
 
     userPresenceSubscriptionFn();
 
-    wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
-    wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
+    if (wsClientService != null) {
+      wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
+    }
 
-    dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
-    contactPublisher.removeListener(STREAMS_LISTENER_ID);
+    if (dataSpaceDeletePublisher != null) {
+      dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
+    if (contactPublisher != null) {
+      contactPublisher.removeListener(STREAMS_LISTENER_ID);
+    }
 
     IsolateNameServer.removePortNameMapping(CHAT_ACTIVITY_DOWNLOADER_PORT_ID);
+
+    super.deactivate();
   }
 
   @override

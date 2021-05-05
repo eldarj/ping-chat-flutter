@@ -145,9 +145,14 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
   @override
   dispose() {
+    if (scrollController != null) {
+      scrollController.dispose();
+    }
+
+    if (contactNameController != null) {
+      contactNameController.dispose();
+    }
     super.dispose();
-    scrollController.dispose();
-    contactNameController.dispose();
   }
 
   @override
@@ -1071,13 +1076,20 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return contact.contactName;
   }
 
-  void onDeleteSuccess(String contactName) {
+  void onDeleteSuccess(String contactName) async {
     setState(() {
       displayDeleteContactLoader = false;
     });
 
+    contactPublisher.emitContactDelete(contact.contactBindingId);
+
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.success('$contactName deleted'));
+    scaffold.showSnackBar(SnackBarsComponent.info('Contact $contactName deleted'));
+
+    await Future.delayed(Duration(seconds: 1));
+
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
   }
 
   void onDeleteError(error) {
@@ -1100,7 +1112,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     });
 
     String url = '/api/messages'
-        '?contactBindingId=${contact.contactBindingId}'
+        '?contactBindingId=${widget.contactBindingId}'
         '&userId=${widget.userId}';
 
     http.Response response = await HttpClientService.delete(url);
@@ -1114,13 +1126,21 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return;
   }
 
-  void onDeleteMessagesSuccess(_) {
+  void onDeleteMessagesSuccess(_) async {
     setState(() {
       displayDeleteMessagesLoader = false;
     });
 
+    contactPublisher.emitAllMessagesDelete(widget.contactBindingId);
+
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.success('All messages deleted'));
+    scaffold.showSnackBar(SnackBarsComponent.info('All messages deleted'));
+
+
+    await Future.delayed(Duration(seconds: 1));
+
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
   }
 
   void onDeleteMessagesError(error) {

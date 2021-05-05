@@ -257,6 +257,18 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       }
     });
 
+    contactPublisher.onContactDelete(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      setState(() {
+        chats.removeWhere((element) => element.contactBindingId == contactEvent.contactBindingId);
+      });
+    });
+
+    contactPublisher.onAllMessagesDelete(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      setState(() {
+        chats.removeWhere((element) => element.contactBindingId == contactEvent.contactBindingId);
+      });
+    });
+
     profilePublisher.onProfileImageUpdate(STREAMS_LISTENER_ID, (String profileImage) {
       setState(() {
         user.profileImagePath = profileImage;
@@ -328,8 +340,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   @override
   deactivate() {
-    super.deactivate();
-
     if (foregroundSubscription != null) {
       foregroundSubscription.cancel();
     }
@@ -369,6 +379,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     if (callStatePublisher != null) {
       callStatePublisher.removeListener('123');
     }
+
+    super.deactivate();
   }
 
   @override
