@@ -3,7 +3,6 @@ import 'package:flutterping/shared/var/global.var.dart';
 
 BoxDecoration imageDecoration({isPeerMessage = true}) => BoxDecoration(
   color: isPeerMessage ? Color.fromRGBO(239, 239, 239, 1) : CompanyColor.myMessageBackground,
-  border: Border.all(color: Colors.grey.shade300),
   borderRadius: BorderRadius.circular(15),
 );
 
