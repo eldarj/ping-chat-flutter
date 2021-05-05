@@ -31,7 +31,7 @@ Widget messageStatusRow(
 
 @swidget
 Widget messageStatus(sentTimestamp, sent, received, seen, {displayStatusIcon = true, displayPlaceholderCheckMark = false}) {
-  final double iconSize = 13;
+  final double iconSize = 11;
   Widget statusIconWidget;
 
   if (displayStatusIcon) {
@@ -60,10 +60,10 @@ Widget messageStatus(sentTimestamp, sent, received, seen, {displayStatusIcon = t
     children: [
       Container(
         margin: EdgeInsets.only(top: 2.5),
-        padding: EdgeInsets.only(left: 2.5, right: 2.5),
+        padding: EdgeInsets.only(left: 2.5, right: 2.5, top: 1.5),
         decoration: BoxDecoration(
-          color: Color.fromRGBO(255, 255, 255, 0.5),
-          borderRadius: BorderRadius.circular(2.5),
+          color: Color.fromRGBO(255, 255, 255, 0.8),
+          borderRadius: BorderRadius.circular(5),
         ),
         child: Row(children: [
           displayStatusIcon ? Container(
@@ -72,7 +72,7 @@ Widget messageStatus(sentTimestamp, sent, received, seen, {displayStatusIcon = t
           ) : Container(),
           Container(
             child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp),
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
           ),
         ]),
       ),
@@ -84,13 +84,13 @@ Widget messageStatus(sentTimestamp, sent, received, seen, {displayStatusIcon = t
 Widget messagePeerStatus(sentTimestamp) {
   return Container(
     margin: EdgeInsets.only(top: 2.5),
-    padding: EdgeInsets.only(left: 2.5, right: 2.5),
+    padding: EdgeInsets.only(left: 2.5, right: 2.5, top: 1.5),
     decoration: BoxDecoration(
-      color: Color.fromRGBO(255, 255, 255, 0.5),
-      borderRadius: BorderRadius.circular(2.5),
+      color: Color.fromRGBO(255, 255, 255, 0.8),
+      borderRadius: BorderRadius.circular(5),
     ),
     child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp),
-        style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+        style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
   );
 }
 
