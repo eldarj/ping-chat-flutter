@@ -12,6 +12,8 @@ const String API_BASE_URL = 'http://192.168.0.13:8089';
 const String DATA_SPACE_ENDPOINT = '/api/data-space/upload';
 
 class HttpClientService {
+  static Map<String, Response> cache = {};
+
   static Future<http.Response> post(url, {body = const {}, headers = const {}, bool encode = true, String token}) async {
     if (token == null) {
       token = await UserService.getToken();
@@ -26,13 +28,21 @@ class HttpClientService {
     return response;
   }
 
-  static Future<http.Response> get(url) async {
+  static Future<http.Response> get(url, { cacheKey }) async {
+    if (cacheKey != null && cache.containsKey(cacheKey)) {
+      return cache[cacheKey];
+    }
+
     var userToken = await UserService.getToken();
 
     var response = await http.get(
         Uri.encodeFull(API_BASE_URL + url),
         headers: {'content-type': 'application/json', 'authorization': 'Bearer $userToken'}
     ).timeout(Duration(seconds: 10));
+
+    if (cacheKey != null) {
+      cache[cacheKey] = response;
+    }
 
     return response;
   }

@@ -8,7 +8,7 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
-import 'package:flutterping/activity/contacts/single-contact.activity.dart';
+import 'package:flutterping/activity/contacts/single/single-contact.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/service/contact/contact.publisher.dart';

@@ -118,7 +118,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       }
     });
 
-    doGetBackgrounds().then(onGetBackgroundsSuccess, onError: onGetBackgroundsError);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      doGetBackgrounds().then(onGetBackgroundsSuccess, onError: onGetBackgroundsError);
+    });
   }
 
   @override
@@ -226,8 +228,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                   ])
               ),
               buildSharedMediaSection(),
-              buildFavouritesSection(),
               buildDetailsSection(),
+              buildFavouritesSection(),
               // buildDeleteSection(),
               widget.peer == null ? Container(
                 padding: EdgeInsets.all(10),
@@ -242,7 +244,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     child : Text('This contact isn\'t a registered Ping user.', style: TextStyle(
                         color: Colors.grey
                     ))),
-              ) : Container()
+              ) : Container(),
+              Container(height: 50),
             ])
         );
       } else {
@@ -333,98 +336,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                 child: child,
                 maxHeight: DEVICE_MEDIA_SIZE.height - 100,
               ),
-              builder: (context) {
-                return StatefulBuilder(
-                    builder: (context, setState) {
-                      backgroundsModalSetState = setState;
-                      return Container(
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                          child: Column(children: [
-                            Container(
-                              margin: EdgeInsets.only(left: 20, right: 10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(margin: EdgeInsets.only(right: 10),
-                                          width: 45, height: 45,
-                                          decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(50.0),
-                                              color: Colors.grey.shade400
-                                          ),
-                                          child: Icon(Icons.image_outlined, color: Colors.grey.shade300, size: 20)),
-                                      Container(child: Text('Chat background', style: TextStyle(color: Colors.grey.shade700))),
-                                    ],
-                                  ),
-                                  CloseButton(onPressed: () async {
-                                    Navigator.of(context).pop();
-                                    backgroundLoaderIndex = null;
-                                  })
-                                ],
-                              ),
-                            ),
-                            Divider(height: 25, thickness: 1),
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.only(bottom: 20),
-                                margin: EdgeInsets.only(left: 20, right: 20),
-                                child: displayBackgroundsLoader ? Center(child: Spinner()) : Align(
-                                  child: Opacity(
-                                    opacity: backgroundLoaderIndex != null ? 0.5 : 1,
-                                    child: GridView.builder(
-                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: 2),
-                                      itemCount: backgrounds.length,
-                                      itemBuilder: (context, index) {
-                                        var background = API_BASE_URL + '/files/chats/' + backgrounds[index];
-                                        var backgroundWidth = DEVICE_MEDIA_SIZE.width / 2 - 50;
-                                        return Align(
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              GestureDetector(
-                                                onTap: () {
-                                                  doUpdateBackgroundImage(setState, index).then(onUpdateBackgroundSuccess, onError: onUpdateBackgroundError);
-                                                },
-                                                child: Container(
-                                                  padding: EdgeInsets.all(5),
-                                                  height: backgroundWidth * 3,
-                                                  width: backgroundWidth,
-                                                  decoration: BoxDecoration(
-                                                    color: contact.backgroundImagePath == backgrounds[index]
-                                                        ? CompanyColor.bluePrimary
-                                                        : Colors.white,
-                                                    border: Border.all(color: contact.backgroundImagePath == backgrounds[index]
-                                                        ? CompanyColor.bluePrimary
-                                                        : Colors.grey.shade100),
-                                                    borderRadius: BorderRadius.circular(5),
-                                                    boxShadow: [BoxShadow(color: Colors.grey.shade50,
-                                                      offset: Offset.fromDirection(1, 0.7),
-                                                      blurRadius: 5, spreadRadius: 5,
-                                                    )]
-                                                  ),
-                                                  child: CachedNetworkImage(
-                                                    fit: BoxFit.cover,
-                                                    imageUrl: background,
-                                                  )
-                                                ),
-                                              ),
-                                              backgroundLoaderIndex == index ? Spinner(size: 45) : Container(),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                          ])
-                      );
-                    }
-                );
-              });
+              builder: buildBackgroundModal
+          );
         },
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -442,9 +355,101 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                 Text('Chat background',
                     style: TextStyle(color: Colors.grey.shade700)),
               ]),
-              isFavouriteButtonLoaing ? Spinner(size: 20) : Container()
             ]
         ));
+  }
+
+  Widget buildBackgroundModal(BuildContext context)  {
+    return StatefulBuilder(
+        builder: (context, setState) {
+          backgroundsModalSetState = setState;
+          return Container(
+              padding: EdgeInsets.symmetric(vertical: 15),
+              child: Column(children: [
+                Container(
+                  margin: EdgeInsets.only(left: 20, right: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(margin: EdgeInsets.only(right: 10),
+                              width: 45, height: 45,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(50.0),
+                                  color: Colors.grey.shade400
+                              ),
+                              child: Icon(Icons.image_outlined, color: Colors.grey.shade300, size: 20)),
+                          Container(child: Text('Chat background', style: TextStyle(color: Colors.grey.shade700))),
+                        ],
+                      ),
+                      CloseButton(onPressed: () async {
+                        Navigator.of(context).pop();
+                        backgroundLoaderIndex = null;
+                      })
+                    ],
+                  ),
+                ),
+                Divider(height: 25, thickness: 1),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(bottom: 20),
+                    margin: EdgeInsets.only(left: 20, right: 20),
+                    child: displayBackgroundsLoader ? Center(child: Spinner()) : Align(
+                      child: Opacity(
+                        opacity: backgroundLoaderIndex != null ? 0.5 : 1,
+                        child: GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: 2),
+                          itemCount: backgrounds.length,
+                          itemBuilder: (context, index) {
+                            var background = API_BASE_URL + '/files/chats/' + backgrounds[index];
+                            var backgroundWidth = DEVICE_MEDIA_SIZE.width / 2 - 50;
+                            return Align(
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      doUpdateBackgroundImage(setState, index).then(onUpdateBackgroundSuccess, onError: onUpdateBackgroundError);
+                                    },
+                                    child: Container(
+                                        padding: EdgeInsets.all(5),
+                                        height: backgroundWidth * 3,
+                                        width: backgroundWidth,
+                                        decoration: BoxDecoration(
+                                            color: contact.backgroundImagePath == backgrounds[index]
+                                                ? CompanyColor.bluePrimary
+                                                : Colors.white,
+                                            border: Border.all(color: contact.backgroundImagePath == backgrounds[index]
+                                                ? CompanyColor.bluePrimary
+                                                : Colors.grey.shade100),
+                                            borderRadius: BorderRadius.circular(5),
+                                            boxShadow: [BoxShadow(color: Colors.grey.shade50,
+                                              offset: Offset.fromDirection(1, 0.7),
+                                              blurRadius: 5, spreadRadius: 5,
+                                            )]
+                                        ),
+                                        child: CachedNetworkImage(
+                                          fit: BoxFit.cover,
+                                          imageUrl: background,
+                                        )
+                                    ),
+                                  ),
+                                  backgroundLoaderIndex == index ? Spinner(size: 45) : Container(),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              ])
+          );
+        }
+    );
   }
 
   buildChangeContactNameButton() {
@@ -547,7 +552,6 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                 Text('Change contact name',
                     style: TextStyle(color: Colors.grey.shade700)),
               ]),
-              isFavouriteButtonLoaing ? Spinner(size: 20) : Container()
             ]
         ));
   }
@@ -961,12 +965,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     Navigator.of(context).pop();
   }
 
-
   // GET BACKGROUNDS
   Future<List> doGetBackgrounds() async {
-    http.Response response = await HttpClientService.get('/api/chat/backgrounds');
-
-    await Future.delayed(Duration(seconds: 3));
+    http.Response response = await HttpClientService.get('/api/chat/backgrounds', cacheKey: "backgroundsImages");
 
     if(response.statusCode != 200) {
       throw new Exception();
@@ -978,6 +979,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   void onGetBackgroundsSuccess(List backgrounds) {
     this.backgrounds = backgrounds;
 
+    displayBackgroundsLoader = false;
     if (backgroundsModalSetState != null) {
       backgroundsModalSetState(() {
         displayBackgroundsLoader = false;

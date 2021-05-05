@@ -254,7 +254,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
   }
 
   Future<List<DropdownMenuItem<String>>> doGetCountryCodes() async {
-    http.Response response = await HttpClientService.get('/api/country-codes');
+    http.Response response = await HttpClientService.get('/api/country-codes', cacheKey: "countryCodes");
     Map<String, dynamic> responseBody = json.decode(response.body);
 
     return responseBody.entries.map<DropdownMenuItem<String>>((entry) {

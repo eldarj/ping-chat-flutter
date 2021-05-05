@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterping/activity/contacts/single-contact.activity.dart';
+import 'package:flutterping/activity/contacts/single/single-contact.activity.dart';
 import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';

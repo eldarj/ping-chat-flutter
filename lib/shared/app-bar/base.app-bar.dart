@@ -26,15 +26,12 @@ class BaseAppBar {
 
   static getBackAppBar(Function getContext, {
     titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed }) {
-    return getBase(getContext, leading: Container(
-      width: 45,
-      height: 50,
-      child: FlatButton(
-        padding: EdgeInsets.all(0),
-        onPressed: () => onBackPressed(getContext),
-        child: Icon(Icons.arrow_back),
-      ),
-    ), titleText: titleText, titleWidget: titleWidget, actions: actions, centerTitle: centerTitle);
+    return getBase(getContext,
+        leading: BackButton(onPressed: () async {
+          await Future.delayed(Duration(milliseconds: 250));
+          onBackPressed(getContext);
+        }),
+        titleText: titleText, titleWidget: titleWidget, actions: actions, centerTitle: centerTitle);
   }
 
   static getProfileAppBar(ScaffoldState scaffold, {

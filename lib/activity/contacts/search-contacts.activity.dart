@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/calls/callscreen.activity.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
-import 'package:flutterping/activity/contacts/single-contact.activity.dart';
+import 'package:flutterping/activity/contacts/single/single-contact.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/service/contact/contact.publisher.dart';

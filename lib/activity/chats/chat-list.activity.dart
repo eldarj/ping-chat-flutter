@@ -518,8 +518,9 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     String messageContent, bool displayStatusIcon = true, bool seen = true, String messageSent, bool isOnline = false,
     String statusLabel = '', int contactBindingId = 0, MessageDto message
   }) {
-    return GestureDetector(
-      onTap: () {
+    return InkWell(
+      onTap: () async {
+        await Future.delayed(Duration(milliseconds: 250));
         NavigatorUtil.push(context, ChatActivity(
             myContactName: myContactName, peer: contact, peerContactName: peerContactName,
             statusLabel: statusLabel, contactBindingId: contactBindingId));
