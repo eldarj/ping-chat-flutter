@@ -52,10 +52,13 @@ class SingleContactActivity extends StatefulWidget {
 
   final bool isContactAdded;
 
+  final bool wasChatActivityPrevious;
+
   const SingleContactActivity({ Key key,
     this.myContactName, this.statusLabel,
     this.peer, this.userId, this.contactName, this.favorite,
-    this.contactBindingId, this.contactPhoneNumber, this.isContactAdded }) : super(key: key);
+    this.contactBindingId, this.contactPhoneNumber,
+    this.isContactAdded, this.wasChatActivityPrevious = false }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new SingleContactActivityState(
@@ -189,9 +192,13 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       icon: Icons.chat,
                       fillColor: CompanyColor.bluePrimary,
                       onPressed: () async {
-                        NavigatorUtil.push(context, ChatActivity(
-                            myContactName: widget.myContactName, peer: widget.peer, peerContactName: widget.contactName,
-                            statusLabel: widget.statusLabel, contactBindingId: widget.contactBindingId));
+                        if (widget.wasChatActivityPrevious) {
+                          Navigator.of(context).pop();
+                        } else {
+                          NavigatorUtil.push(context, ChatActivity(
+                              myContactName: widget.myContactName, peer: widget.peer, peerContactName: widget.contactName,
+                              statusLabel: widget.statusLabel, contactBindingId: widget.contactBindingId));
+                        }
                       },
                     ),
                     ActionButton(
@@ -514,57 +521,51 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   Widget buildDeleteSection() {
-    Widget w = Container();
-
-    if (widget.peer != null && contact != null) {
-      w = Container(
-        padding: EdgeInsets.all(10),
-        margin: EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-            color: Theme.of(context).backgroundColor,
-            boxShadow: [Shadows.bottomShadow()]
-        ),
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextButton(
-                  onPressed: () {
-                    doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
-                  },
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(children: [
-                          Container(
-                              padding: EdgeInsets.all(7.5),
-                              margin: EdgeInsets.only(right: 10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.grey.shade50,
-                              ),
-                              child: Icon(Icons.delete, color: Colors.red, size: 17)),
-                          Text('Delete contact', style: TextStyle(color: CompanyColor.red)),
-                        ]),
-                        displayDeleteContactLoader ? Spinner(size: 20) : Container()
-                      ])),
-              widget.peer != null ? TextButton(onPressed: () {},
-                  child: Row(children: [
-                    Container(
-                        padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
-                        margin: EdgeInsets.only(right: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.grey.shade50,
-                        ),
-                        child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
-                    Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
-                  ])) : Container(),
-            ]),
-      );
-    }
-
-    return w;
+    return Container(
+      padding: EdgeInsets.all(10),
+      margin: EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+          color: Theme.of(context).backgroundColor,
+          boxShadow: [Shadows.bottomShadow()]
+      ),
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            widget.peer != null && contact != null ? TextButton(
+                onPressed: () {
+                  doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                },
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(children: [
+                        Container(
+                            padding: EdgeInsets.all(7.5),
+                            margin: EdgeInsets.only(right: 10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.grey.shade50,
+                            ),
+                            child: Icon(Icons.delete, color: Colors.red, size: 17)),
+                        Text('Delete contact', style: TextStyle(color: CompanyColor.red)),
+                      ]),
+                      displayDeleteContactLoader ? Spinner(size: 20) : Container()
+                    ])) : Container(),
+            TextButton(onPressed: () {},
+                child: Row(children: [
+                  Container(
+                      padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
+                      margin: EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.grey.shade50,
+                      ),
+                      child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
+                  Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
+                ])),
+          ]),
+    );
   }
 
   Widget buildFavouritesSection() {

@@ -323,6 +323,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                   contactPhoneNumber: widget.peer.fullPhoneNumber,
                   favorite: false,
                   isContactAdded: isContactAdded,
+                  wasChatActivityPrevious: true,
                 ));
               },
               child: Container(
