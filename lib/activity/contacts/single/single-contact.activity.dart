@@ -23,6 +23,7 @@ import 'package:flutterping/shared/component/error.component.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
@@ -540,7 +541,15 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
           children: [
             widget.peer != null && contact != null ? TextButton(
                 onPressed: () {
-                  doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                  var dialog = GenericAlertDialog(
+                      title: 'Delete contact',
+                      message: 'Contact ${contactName} will be deleted along with any messages',
+                      onPostivePressed: () {
+                        doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                      },
+                      positiveBtnText: 'Delete',
+                      negativeBtnText: 'Cancel');
+                  showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
                 },
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -560,7 +569,15 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     ])) : Container(),
             TextButton(
                 onPressed: () {
-                  doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                  var dialog = GenericAlertDialog(
+                      title: 'Delete messages',
+                      message: 'All messages will be deleted',
+                      onPostivePressed: () {
+                        doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                      },
+                      positiveBtnText: 'Delete',
+                      negativeBtnText: 'Cancel');
+                  showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
