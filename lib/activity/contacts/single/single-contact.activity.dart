@@ -103,6 +103,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   int backgroundLoaderIndex;
 
   bool displayDeleteContactLoader = false;
+  bool displayDeleteMessagesLoader = false;
 
   bool isContactAdded = true;
   bool displayAddContactLoader = false;
@@ -552,18 +553,27 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       ]),
                       displayDeleteContactLoader ? Spinner(size: 20) : Container()
                     ])) : Container(),
-            TextButton(onPressed: () {},
-                child: Row(children: [
-                  Container(
-                      padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
-                      margin: EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.grey.shade50,
-                      ),
-                      child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
-                  Text('Delete all messages', style: TextStyle(color: CompanyColor.red))
-                ])),
+            TextButton(
+                onPressed: () {
+                  doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(children: [
+                      Container(
+                          padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
+                          margin: EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.grey.shade50,
+                          ),
+                          child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
+                      Text('Delete all messages', style: TextStyle(color: CompanyColor.red)),
+                    ]),
+                    displayDeleteMessagesLoader ? Spinner(size: 20) : Container()
+                  ],
+                )),
           ]),
     );
   }
@@ -1062,6 +1072,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   void onDeleteSuccess(String contactName) {
+    setState(() {
+      displayDeleteContactLoader = false;
+    });
+
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.success('$contactName deleted'));
   }
@@ -1076,6 +1090,49 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(
       content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
+    ));
+  }
+
+  // Delete messages
+  Future doDeleteMessages() async {
+    setState(() {
+      displayDeleteMessagesLoader = true;
+    });
+
+    String url = '/api/messages'
+        '?contactBindingId=${contact.contactBindingId}'
+        '&userId=${widget.userId}';
+
+    http.Response response = await HttpClientService.delete(url);
+
+    await Future.delayed(Duration(seconds: 1));
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return;
+  }
+
+  void onDeleteMessagesSuccess(_) {
+    setState(() {
+      displayDeleteMessagesLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.success('All messages deleted'));
+  }
+
+  void onDeleteMessagesError(error) {
+    print(error);
+
+    setState(() {
+      displayDeleteMessagesLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(
+        content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
     ));
   }
 }
