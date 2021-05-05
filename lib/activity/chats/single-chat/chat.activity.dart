@@ -435,7 +435,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
           Container(
               padding: EdgeInsets.only(top: 5, bottom: 5, left: 15, right: 15),
               alignment: Alignment.center,
-              color: new Color.fromRGBO(170, 170, 170, 0.9),
+              color: new Color.fromRGBO(170, 170, 170, 0.7),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -497,6 +497,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
         widget = Center(
           child: Container(
             margin: EdgeInsets.all(25),
+            padding: EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: Color.fromRGBO(255, 255, 255, 0.8),
+              borderRadius: BorderRadius.circular(5),
+            ),
             child: Text('Here begins history. Say hello!', style: TextStyle(color: Colors.grey)),
           ),
         );
