@@ -322,6 +322,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                   contactBindingId: widget.contactBindingId,
                   contactPhoneNumber: widget.peer.fullPhoneNumber,
                   favorite: false,
+                  isContactAdded: isContactAdded,
                 ));
               },
               child: Container(
@@ -769,7 +770,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     http.Response response = await HttpClientService.get(url);
 
-    if(response.statusCode == 200) {
+    if(response.statusCode == 200 && response.bodyBytes != null && response.bodyBytes.length > 0) {
       setState(() {
         contact = ContactDto.fromJson(response.decode());
       });

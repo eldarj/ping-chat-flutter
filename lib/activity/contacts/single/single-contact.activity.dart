@@ -50,13 +50,18 @@ class SingleContactActivity extends StatefulWidget {
 
   final bool favorite;
 
+  final bool isContactAdded;
+
   const SingleContactActivity({ Key key,
     this.myContactName, this.statusLabel,
     this.peer, this.userId, this.contactName, this.favorite,
-    this.contactBindingId, this.contactPhoneNumber }) : super(key: key);
+    this.contactBindingId, this.contactPhoneNumber, this.isContactAdded }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => new SingleContactActivityState(contactName: contactName);
+  State<StatefulWidget> createState() => new SingleContactActivityState(
+      contactName: contactName,
+      isContactAdded: isContactAdded
+  );
 }
 
 class SingleContactActivityState extends BaseState<SingleContactActivity> {
@@ -96,7 +101,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
   bool displayDeleteContactLoader = false;
 
-  SingleContactActivityState({ this.contactName }) {
+  bool isContactAdded = true;
+  bool displayAddContactLoader = false;
+
+  SingleContactActivityState({ this.contactName, this.isContactAdded }) {
     this.contactNameController = TextEditingController(text: contactName);
   }
 
@@ -233,20 +241,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
               buildDetailsSection(),
               buildFavouritesSection(),
               buildDeleteSection(),
-              widget.peer == null ? Container(
-                padding: EdgeInsets.all(10),
-                margin: EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                    color: Theme.of(context).backgroundColor,
-                    boxShadow: [Shadows.bottomShadow()]
-                ),
-                child: Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(left: 5, right: 5),
-                    child : Text('This contact isn\'t a registered Ping user.', style: TextStyle(
-                        color: Colors.grey
-                    ))),
-              ) : Container(),
+              buildNotRegisteredUserSection(),
               Container(height: 50),
             ])
         );
@@ -616,6 +611,29 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return w;
   }
 
+  Widget buildNotRegisteredUserSection() {
+    Widget w = Container();
+
+    if (widget.peer == null) {
+      w = Container(
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+            color: Theme.of(context).backgroundColor,
+            boxShadow: [Shadows.bottomShadow()]
+        ),
+        child: Container(
+            padding: EdgeInsets.all(10),
+            margin: EdgeInsets.only(left: 5, right: 5),
+            child : Text('This contact isn\'t a registered Ping user.', style: TextStyle(
+                color: Colors.grey
+            ))),
+      );
+    }
+
+    return w;
+  }
+
   Widget buildSharedMediaSection() {
     return widget.peer != null ? Container(
         padding: EdgeInsets.all(10),
@@ -812,9 +830,11 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       throw new Exception();
     }
 
-    setState(() {
-      contact = ContactDto.fromJson(response.decode());
-    });
+    if (response.bodyBytes != null && response.bodyBytes.length > 0) {
+      setState(() {
+        contact = ContactDto.fromJson(response.decode());
+      });
+    }
   }
 
   Future doGetSharedData() async {
