@@ -617,7 +617,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                   peerContactName: widget.contactName,
                   contactBindingId: widget.contactBindingId));
             },
-            child: Text('See more', style: TextStyle(color: CompanyColor.bluePrimary)),
+            child: displaySharedDataSpaceLoader
+                ? Spinner(size: 20) : nodes != null && nodes.length > 0
+                ? Text('See more', style: TextStyle(color: CompanyColor.bluePrimary))
+                : Container(),
           )),
           buildDataSpaceListView(),
         ])) : Container();
@@ -680,7 +683,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
   Widget buildSectionHeader(title, { icon, linkWidget }) {
     return Container(
-        padding: EdgeInsets.only(top: 10, left: 10, bottom: 10),
+        padding: EdgeInsets.only(top: 10, left: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -733,10 +736,11 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
           }),
         );
       } else {
-        _w = Container(child: Text("You don't have any shared media", style: TextStyle(color: Colors.grey)));
+        _w = Container(height: 15,
+            child: Text("You don't have any shared media", style: TextStyle(color: Colors.grey)));
       }
     } else {
-      _w = Container(margin: EdgeInsets.only(left: 5), child: Spinner(size: 25));
+      _w = Container(height: 15);
     }
 
     return Container(
@@ -792,7 +796,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       throw new Exception();
     }
 
-    contact = ContactDto.fromJson(response.decode());
+    setState(() {
+      contact = ContactDto.fromJson(response.decode());
+    });
   }
 
   Future doGetSharedData() async {
@@ -802,6 +808,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
         '&nodesCount=10';
 
     http.Response response = await HttpClientService.get(url);
+
+    await Future.delayed(Duration(seconds: 1));
 
     if(response.statusCode != 200) {
       throw new Exception();
