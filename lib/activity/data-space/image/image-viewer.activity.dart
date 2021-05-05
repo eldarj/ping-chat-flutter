@@ -119,7 +119,7 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
     Widget w = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          widget.message.messageType == 'MAP_LOCATION' ? Container(
+          widget.message != null && widget.message.messageType == 'MAP_LOCATION' ? Container(
             margin: EdgeInsets.only(bottom: 5),
             child: Text(widget.message.text, style: TextStyle(
                 color: Colors.white,
