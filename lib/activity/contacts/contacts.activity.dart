@@ -95,6 +95,13 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
       }
     });
 
+    contactPublisher.onContactDelete(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
+      setState(() {
+        contacts.removeWhere((element) => element.contactBindingId == contactEvent.contactBindingId);
+        totalContacts--;
+      });
+    });
+
     profilePublisher.onProfileImageUpdate(STREAMS_LISTENER_ID, (String profileImage) {
       setState(() {
         user.profileImagePath = profileImage;
@@ -552,7 +559,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
     }));
   }
 
-
   Future<ContactDto> doDeleteContact(contact) async {
     setState(() {
       contact.displayLinearLoading = true;
@@ -574,15 +580,14 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
   }
 
   void onDeleteContactSuccess(ContactDto contact) {
-    contacts.removeWhere((element) => element.contactBindingId == contact.contactBindingId);
-    totalContacts--;
-
     setState(() {
       contact.displayLinearLoading = false;
     });
 
+    contactPublisher.emitContactDelete(contact.contactBindingId);
+
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.success('${contact.contactName} deleted'));
+    scaffold.showSnackBar(SnackBarsComponent.info('Contact ${contact.contactName} deleted'));
   }
 
   void onDeleteContactError(contact, error) {

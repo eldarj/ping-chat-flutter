@@ -110,6 +110,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool isContactAdded = true;
   bool displayAddContactLoader = false;
 
+  bool displayDeleteLoader = false;
+
   ChatActivityState({ this.contactName });
 
   onInit() async {
@@ -371,14 +373,21 @@ class ChatActivityState extends BaseState<ChatActivity> {
                     },
                   )
               ),
-              ChatSettingsMenu(
+              displayDeleteLoader ? Container(width: 48, child: Align(child: Spinner(size: 20))) : ChatSettingsMenu(
                   userId: userId,
                   myContactName: widget.myContactName,
                   statusLabel: widget.statusLabel,
                   peer: widget.peer,
                   picturesPath: picturesPath,
                   peerContactName: contactName,
-                  contactBindingId: widget.contactBindingId)
+                  contactBindingId: widget.contactBindingId,
+                  onDeleteContact: () {
+                    doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                  },
+                  onDeleteMessages: () {
+                    doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                  },
+              )
             ]
         ),
         drawer: NavigationDrawerComponent(),
@@ -783,6 +792,105 @@ class ChatActivityState extends BaseState<ChatActivity> {
         contact = ContactDto.fromJson(response.decode());
       });
     }
+  }
+
+  // Delete contact
+  Future<String> doDeleteContact() async {
+    setState(() {
+      displayDeleteLoader = true;
+    });
+
+    String url = '/api/contacts/${contact.id}/delete'
+        '?contactBindingId=${contact.contactBindingId}'
+        '&userId=${userId}';
+
+    http.Response response = await HttpClientService.delete(url);
+
+    await Future.delayed(Duration(seconds: 1));
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return contact.contactName;
+  }
+
+  void onDeleteSuccess(String contactName) async {
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    contactPublisher.emitContactDelete(contact.contactBindingId);
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.info('Contact $contactName deleted'));
+
+    await Future.delayed(Duration(seconds: 1));
+
+    Navigator.of(context).pop();
+  }
+
+  void onDeleteError(error) {
+    print(error);
+
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(
+        content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
+    ));
+  }
+
+  // Delete messages
+  Future doDeleteMessages() async {
+    setState(() {
+      displayDeleteLoader = true;
+    });
+
+    String url = '/api/messages'
+        '?contactBindingId=${widget.contactBindingId}'
+        '&userId=${userId}';
+
+    http.Response response = await HttpClientService.delete(url);
+
+    await Future.delayed(Duration(seconds: 1));
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return;
+  }
+
+  void onDeleteMessagesSuccess(_) async {
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    contactPublisher.emitAllMessagesDelete(widget.contactBindingId);
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.info('All messages deleted'));
+
+
+    await Future.delayed(Duration(seconds: 1));
+
+    Navigator.of(context).pop();
+  }
+
+  void onDeleteMessagesError(error) {
+    print(error);
+
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(
+        content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
+    ));
   }
 }
 

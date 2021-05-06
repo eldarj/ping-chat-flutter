@@ -260,12 +260,14 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     contactPublisher.onContactDelete(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
       setState(() {
         chats.removeWhere((element) => element.contactBindingId == contactEvent.contactBindingId);
+        totalChatsLoaded--;
       });
     });
 
     contactPublisher.onAllMessagesDelete(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
       setState(() {
         chats.removeWhere((element) => element.contactBindingId == contactEvent.contactBindingId);
+        totalChatsLoaded--;
       });
     });
 

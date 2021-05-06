@@ -33,10 +33,13 @@ class GenericAlertDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(circularBorderRadius)),
       actions: <Widget>[
-        negativeBtnText != null
-            ? FlatButton(
+        negativeBtnText != null ? TextButton(
           child: Text(negativeBtnText),
-          textColor: CompanyColor.grey,
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            primary: CompanyColor.grey,
+            backgroundColor: Colors.white,
+          ),
           onPressed: () {
             Navigator.of(context).pop();
             if (onNegativePressed != null) {
@@ -45,16 +48,22 @@ class GenericAlertDialog extends StatelessWidget {
           },
         )
             : null,
-        positiveBtnText != null
-            ? FlatButton(
-          child: Text(positiveBtnText),
-          textColor: CompanyColor.blueDark,
-          onPressed: () {
-            Navigator.of(context).pop();
-            if (onPostivePressed != null) {
-              onPostivePressed();
-            }
-          },
+        positiveBtnText != null ? Container(
+          margin: EdgeInsets.symmetric(horizontal: 5),
+          child: TextButton(
+            child: Text(positiveBtnText),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              primary: Colors.white,
+              backgroundColor: CompanyColor.red,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              if (onPostivePressed != null) {
+                onPostivePressed();
+              }
+            },
+          ),
         )
             : null,
       ],

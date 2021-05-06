@@ -20,7 +20,12 @@ class ChatSettingsMenu extends StatelessWidget {
 
   final int userId;
 
-  const ChatSettingsMenu({Key key, this.peer, this.peerContactName, this.contactBindingId, this.picturesPath, this.myContactName, this.statusLabel, this.userId}) : super(key: key);
+  final Function onDeleteContact;
+  final Function onDeleteMessages;
+
+  const ChatSettingsMenu({Key key, this.peer, this.peerContactName, this.contactBindingId, this.picturesPath, this.myContactName, this.statusLabel, this.userId,
+    this.onDeleteContact, this.onDeleteMessages
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +48,10 @@ class ChatSettingsMenu extends StatelessWidget {
               picturesPath: picturesPath,
               peerContactName: peerContactName,
               contactBindingId: contactBindingId));
+        } else if (choice == 'delete_contact') {
+          this.onDeleteContact.call();
+        } else if (choice == 'delete_messages') {
+          this.onDeleteMessages.call();
         }
       },
       itemBuilder: (BuildContext context) {
@@ -55,8 +64,7 @@ class ChatSettingsMenu extends StatelessWidget {
                     margin:EdgeInsets.only(right: 20, left: 5),
                     child: Icon(Icons.person)),
                 Text('Profile')
-              ])
-          ),
+              ])),
           PopupMenuItem<String>(
               value: 'media',
               child: Row(children: [
@@ -65,8 +73,26 @@ class ChatSettingsMenu extends StatelessWidget {
                     margin:EdgeInsets.only(right: 20, left: 5),
                     child: Icon(Icons.image_outlined)),
                 Text('Shared media')
-              ])
-          )
+              ])),
+          PopupMenuDivider(),
+          PopupMenuItem<String>(
+              value: 'delete_contact',
+              child: Row(children: [
+                Container(
+                    width: 30,
+                    margin:EdgeInsets.only(right: 20, left: 5),
+                    child: Icon(Icons.delete_outline)),
+                Text('Delete contact')
+              ])),
+          PopupMenuItem<String>(
+              value: 'delete_messages',
+              child: Row(children: [
+                Container(
+                    width: 30,
+                    margin:EdgeInsets.only(right: 20, left: 5),
+                    child: Icon(Icons.announcement_outlined)),
+                Text('Delete all messages')
+              ])),
         ];
       },
     );

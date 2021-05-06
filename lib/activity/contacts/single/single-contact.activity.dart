@@ -109,6 +109,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   bool isContactAdded = true;
   bool displayAddContactLoader = false;
 
+  bool displayDetails = false;
+
   SingleContactActivityState({ this.contactName, this.isContactAdded }) {
     this.contactNameController = TextEditingController(text: contactName);
   }
@@ -528,76 +530,82 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   Widget buildDeleteSection() {
-    return Container(
-      padding: EdgeInsets.all(10),
-      margin: EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-          color: Theme.of(context).backgroundColor,
-          boxShadow: [Shadows.bottomShadow()]
-      ),
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            widget.peer != null && contact != null ? TextButton(
-                onPressed: () {
-                  var dialog = GenericAlertDialog(
-                      title: 'Delete contact',
-                      message: 'Contact ${contactName} will be deleted along with any messages',
-                      onPostivePressed: () {
-                        doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
-                      },
-                      positiveBtnText: 'Delete',
-                      negativeBtnText: 'Cancel');
-                  showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
-                },
-                child: Row(
+    Widget w = Container();
+
+    if (displayDetails) {
+      w = Container(
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+            color: Theme.of(context).backgroundColor,
+            boxShadow: [Shadows.bottomShadow()]
+        ),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              widget.peer != null && contact != null ? TextButton(
+                  onPressed: () {
+                    var dialog = GenericAlertDialog(
+                        title: 'Delete contact',
+                        message: 'Contact will be deleted along with any messages',
+                        onPostivePressed: () {
+                          doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                        },
+                        positiveBtnText: 'Delete',
+                        negativeBtnText: 'Cancel');
+                    showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
+                  },
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(children: [
+                          Container(
+                              padding: EdgeInsets.all(7.5),
+                              margin: EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: Icon(Icons.delete, color: Colors.red, size: 17)),
+                          Text('Delete contact', style: TextStyle(color: CompanyColor.red)),
+                        ]),
+                        displayDeleteContactLoader ? Spinner(size: 20) : Container()
+                      ])) : Container(),
+              TextButton(
+                  onPressed: () {
+                    var dialog = GenericAlertDialog(
+                        title: 'Delete messages',
+                        message: 'All messages will be deleted',
+                        onPostivePressed: () {
+                          doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                        },
+                        positiveBtnText: 'Delete',
+                        negativeBtnText: 'Cancel');
+                    showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
+                  },
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(children: [
                         Container(
-                            padding: EdgeInsets.all(7.5),
+                            padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
                             margin: EdgeInsets.only(right: 10),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
                               color: Colors.grey.shade50,
                             ),
-                            child: Icon(Icons.delete, color: Colors.red, size: 17)),
-                        Text('Delete contact', style: TextStyle(color: CompanyColor.red)),
+                            child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
+                        Text('Delete all messages', style: TextStyle(color: CompanyColor.red)),
                       ]),
-                      displayDeleteContactLoader ? Spinner(size: 20) : Container()
-                    ])) : Container(),
-            TextButton(
-                onPressed: () {
-                  var dialog = GenericAlertDialog(
-                      title: 'Delete messages',
-                      message: 'All messages will be deleted',
-                      onPostivePressed: () {
-                        doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
-                      },
-                      positiveBtnText: 'Delete',
-                      negativeBtnText: 'Cancel');
-                  showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(children: [
-                      Container(
-                          padding: EdgeInsets.only(right: 6.5, left: 8.5, top: 7.5, bottom: 7.5),
-                          margin: EdgeInsets.only(right: 10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.grey.shade50,
-                          ),
-                          child: Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 17)),
-                      Text('Delete all messages', style: TextStyle(color: CompanyColor.red)),
-                    ]),
-                    displayDeleteMessagesLoader ? Spinner(size: 20) : Container()
-                  ],
-                )),
-          ]),
-    );
+                      displayDeleteMessagesLoader ? Spinner(size: 20) : Container()
+                    ],
+                  )),
+            ]),
+      );
+    }
+
+    return w;
   }
 
   Widget buildFavouritesSection() {
@@ -868,6 +876,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
         contact = ContactDto.fromJson(response.decode());
       });
     }
+
+    setState(() {
+      displayDetails = true;
+    });
   }
 
   Future doGetSharedData() async {
@@ -1105,7 +1117,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
     await Future.delayed(Duration(seconds: 1));
 
-    Navigator.of(context).pop();
+    if (widget.wasChatActivityPrevious) {
+      Navigator.of(context).pop();
+    }
     Navigator.of(context).pop();
   }
 
@@ -1153,11 +1167,12 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.info('All messages deleted'));
 
-
     await Future.delayed(Duration(seconds: 1));
 
-    Navigator.of(context).pop();
-    Navigator.of(context).pop();
+    if (widget.wasChatActivityPrevious) {
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    }
   }
 
   void onDeleteMessagesError(error) {
