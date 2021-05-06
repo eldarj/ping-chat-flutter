@@ -315,7 +315,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
       if (!isFileValid) {
         _w = Icon(Icons.broken_image_outlined, color: Colors.grey.shade400);
-      } else if (node.nodeType == 'IMAGE') {
+      } else if (node.nodeType == 'IMAGE' || node.nodeType == 'MAP_LOCATION') {
         var imageSize = DEVICE_MEDIA_SIZE.width / gridHorizontalSize;
         _w = GestureDetector(
           onTap: () async {
@@ -358,7 +358,6 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   Widget buildDeleteDirectoryButton() {
     Widget _w = Container();
 
-    print(currentDirectoryNodeName);
     if (currentDirectoryNodeId != 0 && !['Sent', 'Received'].contains(currentDirectoryNodeName)) {
       _w = Container(
         width: 60,
@@ -385,17 +384,23 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   }
 
   Widget buildCreateDirectoryButton() {
-    return GestureDetector(
-        onTap: () {
-          NavigatorUtil.push(getScaffoldContext(), CreateDirectoryActivity(
-            userId: widget.userId,
-            parentNodeId: currentDirectoryNodeId,
-            parentNodeName: currentDirectoryNodeName,
-          ));
-        },
-        child: Container(
-            width: 50,
-            child: Icon(Icons.create_new_folder_outlined, color: Colors.grey.shade600)));
+    Widget w = Container();
+
+    if (!['Sent', 'Received'].contains(currentDirectoryNodeName)) {
+      w = GestureDetector(
+          onTap: () {
+            NavigatorUtil.push(getScaffoldContext(), CreateDirectoryActivity(
+              userId: widget.userId,
+              parentNodeId: currentDirectoryNodeId,
+              parentNodeName: currentDirectoryNodeName,
+            ));
+          },
+          child: Container(
+              width: 50,
+              child: Icon(Icons.create_new_folder_outlined, color: Colors.grey.shade600)));
+    }
+
+    return w;
   }
 
   buildFloatingActionButton() {

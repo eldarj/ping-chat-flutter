@@ -574,8 +574,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   onOpenShareBottomSheet() async {
     FocusScope.of(context).requestFocus(new FocusNode());
-    await Future.delayed(Duration(milliseconds: 250));
-    await showCustomModalBottomSheet(
+
+    showCustomModalBottomSheet(
         context: context,
         builder: (context) => ShareFilesModal(
             userId: userId,

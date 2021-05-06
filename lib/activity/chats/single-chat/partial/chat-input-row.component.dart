@@ -208,16 +208,15 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
             Container(
               height: 55,
               child: Row(children: [
-                Container(
-                  child: GestureDetector(
-                    onTap: widget.onOpenStickerBar,
-                    child: Container(
-                      height: 35, width: 50,
-                      child: !widget.displayStickers
-                          ? Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark)
-                          : Icon(Icons.keyboard_arrow_down, color: CompanyColor.blueDark),
-                    ),
-                  ),
+                Material(
+                  color: Colors.white,
+                  child: IconButton(
+                    icon: !widget.displayStickers
+                        ? Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark)
+                        : Icon(Icons.keyboard_arrow_down, color: CompanyColor.blueDark),
+                    onPressed: widget.onOpenStickerBar,
+                    color: CompanyColor.blueDark,
+                  )
                 ),
                 Container(
                   height: 55,
@@ -240,10 +239,13 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                     ),
                   ),
                 ),
-                Container(
+                Material(
+                  color: Colors.white,
                   child: IconButton(
                     icon: Icon(Icons.attachment),
-                    onPressed: widget.onOpenShareBottomSheet,
+                    onPressed: () async {
+                      widget.onOpenShareBottomSheet.call();
+                    },
                     color: CompanyColor.blueDark,
                   ),
                 ),
