@@ -16,7 +16,6 @@ import 'package:path/path.dart' show basename;
 import 'package:photo_view/photo_view.dart';
 import 'package:share/share.dart';
 
-// TODO: Change to stateless
 class ImageViewerActivity extends StatefulWidget {
   final int messageId;
 
@@ -92,17 +91,6 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                               showDialog(
                                   context: context,
                                   builder: (BuildContext context) => dialog);
-
-                              // DropdownBanner.showBanner(
-                              //   icon: Icon(Icons.close),
-                              //   text: 'Ukoliko je kontakt aktivirao direktno '
-                              //       'spremanje na uređaj, datoteku neće biti moguće izbrisati sa istog.',
-                              //   actions: [
-                              //     FlatButton(onPressed: () {
-                              //       doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
-                              //     }, child: Text('Izbriši'), color: Colors.grey.shade200,)
-                              //   ],
-                              // );
                             }),
                       ],
                     )),
