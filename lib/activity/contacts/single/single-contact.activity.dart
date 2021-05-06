@@ -205,6 +205,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                           Navigator.of(context).pop();
                         } else {
                           NavigatorUtil.push(context, ChatActivity(
+                              wasContactActivityPrevious: true,
                               myContactName: widget.myContactName, peer: widget.peer, peerContactName: widget.contactName,
                               statusLabel: widget.statusLabel, contactBindingId: widget.contactBindingId));
                         }

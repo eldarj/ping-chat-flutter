@@ -67,11 +67,14 @@ class ChatActivity extends StatefulWidget {
 
   final MessageSendingService messageSendingService;
 
+  final bool wasContactActivityPrevious;
+
   String statusLabel;
 
   ChatActivity({Key key, this.myContactName, this.peer,
-    this.peerContactName, this.statusLabel, this.contactBindingId})
-      : messageSendingService = new MessageSendingService(peer, peerContactName, myContactName, contactBindingId), super(key: key);
+    this.peerContactName, this.statusLabel, this.contactBindingId,
+    this.wasContactActivityPrevious = false,
+  }): messageSendingService = new MessageSendingService(peer, peerContactName, myContactName, contactBindingId), super(key: key);
 
   @override
   State<StatefulWidget> createState() => ChatActivityState(contactName: peerContactName);
@@ -322,18 +325,22 @@ class ChatActivityState extends BaseState<ChatActivity> {
             titleWidget: InkWell(
               onTap: () async {
                 await Future.delayed(Duration(milliseconds: 250));
-                NavigatorUtil.push(context, SingleContactActivity(
-                  myContactName: contactName,
-                  statusLabel: widget.statusLabel,
-                  peer: widget.peer,
-                  userId: userId,
-                  contactName: contactName,
-                  contactBindingId: widget.contactBindingId,
-                  contactPhoneNumber: widget.peer.fullPhoneNumber,
-                  favorite: false,
-                  isContactAdded: isContactAdded,
-                  wasChatActivityPrevious: true,
-                ));
+                if (widget.wasContactActivityPrevious) {
+                  Navigator.of(context).pop();
+                } else {
+                  NavigatorUtil.push(context, SingleContactActivity(
+                    myContactName: contactName,
+                    statusLabel: widget.statusLabel,
+                    peer: widget.peer,
+                    userId: userId,
+                    contactName: contactName,
+                    contactBindingId: widget.contactBindingId,
+                    contactPhoneNumber: widget.peer.fullPhoneNumber,
+                    favorite: false,
+                    isContactAdded: isContactAdded,
+                    wasChatActivityPrevious: true,
+                  ));
+                }
               },
               child: Container(
                 padding: EdgeInsets.only(left: 5, right: 25),
