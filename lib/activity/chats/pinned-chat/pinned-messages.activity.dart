@@ -30,6 +30,7 @@ import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/image-download.publisher.dart';
+import 'package:flutterping/service/messaging/message-pin.publisher.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -72,6 +73,8 @@ class PinnedMessagesActivity extends StatefulWidget {
 }
 
 class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
+  static const String STREAMS_LISTENER_ID = "PinnedMessagesActivityListener";
+
   bool displayLoader = true;
 
   ClientDto user;
@@ -85,6 +88,14 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
     user = await UserService.getUser();
 
     doGetPinnedMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
+
+    messagePinPublisher.onPinUpdate(STREAMS_LISTENER_ID, (PinEvent pinEvent) {
+      if (!pinEvent.pinned) {
+        setState(() {
+          messages.removeWhere((element) => element.id == pinEvent.messageId);
+        });
+      }
+    });
   }
 
   @override
@@ -95,6 +106,10 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
 
   @override
   void deactivate() {
+    if (messagePinPublisher != null) {
+      messagePinPublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
     super.deactivate();
   }
 
@@ -108,16 +123,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
             color: Colors.white,
             child: Column(children: [
               Flexible(
-                child: Stack(alignment: Alignment.topCenter, children: [
-                  widget.contact != null && widget.contact.backgroundImagePath != null ? Positioned.fill(
-                      child: Opacity(
-                        opacity: 1,
-                        child: CachedNetworkImage(
-                            fit: BoxFit.cover,
-                            imageUrl: API_BASE_URL + '/files/chats/' + widget.contact.backgroundImagePath),
-                      )) : Container(),
-                  buildMessagesList(),
-                ]),
+                child: buildMessagesList(),
               ),
             ]),
           );

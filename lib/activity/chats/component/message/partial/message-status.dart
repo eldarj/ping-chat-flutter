@@ -13,7 +13,8 @@ Widget messageStatusRow(
     sent,
     received,
     seen,
-    pinned
+    pinned,
+    edited
     ) {
   return displayTimestamp ? SizedOverflowBox(
       size: Size(50, 0),
@@ -23,15 +24,15 @@ Widget messageStatusRow(
       child: Container(
         child: Container(
           child: isPeerMessage
-              ? MessagePeerStatus(sentTimestamp, pinned)
-              : MessageStatus(sentTimestamp, sent, received, seen, pinned, displayPlaceholderCheckMark: displayPlaceholderCheckMark),
+              ? MessagePeerStatus(sentTimestamp, pinned, edited)
+              : MessageStatus(sentTimestamp, sent, received, seen, pinned, edited, displayPlaceholderCheckMark: displayPlaceholderCheckMark),
         ),
         margin: EdgeInsets.only(left: 2.5, right: 2.5, top: 15),
       )) : Container();
 }
 
 @swidget
-Widget messageStatus(sentTimestamp, sent, received, seen, pinned, {
+Widget messageStatus(sentTimestamp, sent, received, seen, pinned, edited, {
   displayStatusIcon = true, displayPlaceholderCheckMark = false
 }) {
   final double iconSize = 11;
@@ -78,9 +79,11 @@ Widget messageStatus(sentTimestamp, sent, received, seen, pinned, {
             child: Row(
               children: [
                 Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp) + ' ',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
-                Text(pinned ? 'Pinned' : '', style: TextStyle(
-                    fontSize: 10, color: Colors.grey.shade600, decoration: TextDecoration.underline)),
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
+                Text(pinned != null && pinned ? 'Pinned' : '', style: TextStyle(
+                    fontSize: 10, color: Colors.grey.shade500)),
+                Text(edited != null && edited ? 'Edited' : '', style: TextStyle(
+                    fontSize: 10, color: Colors.grey.shade500)),
               ],
             ),
           ),
@@ -91,7 +94,7 @@ Widget messageStatus(sentTimestamp, sent, received, seen, pinned, {
 }
 
 @swidget
-Widget messagePeerStatus(sentTimestamp, pinned) {
+Widget messagePeerStatus(sentTimestamp, pinned, edited) {
   return Flex(
     direction: Axis.horizontal,
     children: [
@@ -105,9 +108,11 @@ Widget messagePeerStatus(sentTimestamp, pinned) {
         child: Row(
           children: [
             Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp) + ' ',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
-            Text(pinned ? 'Pinned' : '',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 10, decoration: TextDecoration.underline))
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
+            Text(pinned != null && pinned ? 'Pinned' : '',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
+            Text(edited != null && edited ? 'Edited' : '',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 10))
           ],
         ),
       )

@@ -1,22 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
+import 'package:flutterping/main.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
-import 'package:flutterping/main.dart';
-import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/util/extension/duration.extension.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:tus_client/tus_client.dart';
-import 'package:flutterping/util/extension/duration.extension.dart';
 
 class SingleChatInputRow extends StatefulWidget {
   final int userId;
@@ -39,9 +39,18 @@ class SingleChatInputRow extends StatefulWidget {
 
   final Function doSendMessage;
 
+  final bool isEditing;
+
+  final Function onCancelEdit;
+
+  final Function onSubmitEdit;
+
   const SingleChatInputRow({Key key, this.messageSendingService, this.onProgress, this.onOpenStickerBar,
-    this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController,
-    this.inputTextFocusNode, this.doSendMessage, this.userId, this.peerId, this.userSentNodeId, this.picturesPath, this.myContactName}) : super(key: key);
+    this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController, this.isEditing,
+    this.inputTextFocusNode, this.doSendMessage, this.userId, this.peerId, this.userSentNodeId,
+    this.picturesPath, this.myContactName,
+    this.onCancelEdit, this.onSubmitEdit,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => SingleChatInputRowState();
@@ -196,84 +205,98 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [Shadows.topShadow()],
-        ),
-        width: DEVICE_MEDIA_SIZE.width, height: 55,
-        child: Stack(
-          alignment: Alignment.bottomLeft,
-          children: [
-            Container(
-              height: 55,
-              child: Row(children: [
-                Material(
-                  color: Colors.white,
-                  child: IconButton(
-                    icon: !widget.displayStickers
-                        ? Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark)
-                        : Icon(Icons.keyboard_arrow_down, color: CompanyColor.blueDark),
-                    onPressed: widget.onOpenStickerBar,
-                    color: CompanyColor.blueDark,
-                  )
-                ),
-                Container(
-                  height: 55,
-                  constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
-                  child: TextField(
-                    textAlignVertical: TextAlignVertical.center,
-                    textInputAction: TextInputAction.newline,
-                    minLines: 1,
-                    maxLines: 2,
-                    onSubmitted: (value) {
-                      widget.inputTextController.text += "asd"; //TODO: Remove
-                    },
-                    style: TextStyle(fontSize: 15.0),
-                    controller: widget.inputTextController,
-                    focusNode: widget.inputTextFocusNode,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Type a message',
-                      hintStyle: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ),
-                Material(
-                  color: Colors.white,
-                  child: IconButton(
-                    icon: Icon(Icons.attachment),
-                    onPressed: () async {
-                      widget.onOpenShareBottomSheet.call();
-                    },
-                    color: CompanyColor.blueDark,
-                  ),
-                ),
-              ]),
+    return Column(
+      children: [
+        widget.isEditing ? Container(
+            alignment: Alignment.centerLeft,
+            padding: EdgeInsets.only(top: 5, bottom: 5, left: 12.5),
+            margin: EdgeInsets.only(bottom: 1),
+            decoration: BoxDecoration(
+              border: Border(
+                  top: BorderSide(color: CompanyColor.blueDark),
+                  bottom: BorderSide(color: CompanyColor.blueDark))
             ),
-            widget.displaySendButton ? Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            child: Text('EDIT', style: TextStyle(
+                color: CompanyColor.blueDark,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.4
+            ))
+        ) : Container(),
+        Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [Shadows.topShadow()],
+            ),
+            width: DEVICE_MEDIA_SIZE.width, height: 55,
+            child: Stack(
+              alignment: Alignment.bottomLeft,
               children: [
                 Container(
-                    margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
-                    height: 45, width: 45,
-                    decoration: BoxDecoration(
-                      color: CompanyColor.blueDark,
-                      borderRadius: BorderRadius.circular(50),
+                  height: 55,
+                  child: Row(children: [
+                    Material(
+                      color: Colors.white,
+                      child: !widget.isEditing
+                          ? buildStickerButton()
+                          : buildCancelEditButton()
                     ),
-                    child: Container(
-                      margin: EdgeInsets.only(left: 2.5),
-                      child: IconButton(
-                        icon: Icon(Icons.send),
-                        iconSize: 26,
-                        onPressed: widget.doSendMessage,
-                        color: Colors.white,
+                    Container(
+                      height: 55,
+                      constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
+                      child: TextField(
+                        textAlignVertical: TextAlignVertical.center,
+                        textInputAction: TextInputAction.newline,
+                        minLines: 1,
+                        maxLines: 2,
+                        onSubmitted: (value) {
+                          widget.inputTextController.text += "asd"; //TODO: Remove
+                        },
+                        style: TextStyle(fontSize: 15.0),
+                        controller: widget.inputTextController,
+                        focusNode: widget.inputTextFocusNode,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Type a message',
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
                       ),
-                    )            ),
+                    ),
+                    buildAttachmentButton(),
+                  ]),
+                ),
+                widget.isEditing
+                    ? buildEditButton() : widget.displaySendButton
+                    ? buildSendButton()
+                    : buildRecordingRow()
               ],
-            ) : buildRecordingRow()
-          ],
-        ));
+            )),
+      ],
+    );
+  }
+
+  buildEditButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+            margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
+            height: 45, width: 45,
+            decoration: BoxDecoration(
+              color: CompanyColor.blueDark,
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: Container(
+              child: IconButton(
+                icon: Icon(Icons.check),
+                iconSize: 26,
+                onPressed: widget.onSubmitEdit,
+                color: Colors.white,
+              ),
+            )
+        ),
+      ],
+    );
   }
 
   buildRecordingRow() {
@@ -313,13 +336,13 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
               ),
             ),
           ),
-          buildSendButton()
+          buildSendRecordingButton()
         ],
       ),
     );
   }
 
-  buildSendButton() {
+  buildSendRecordingButton() {
     return AnimatedContainer(
         duration: Duration(milliseconds: 250),
         curve: Curves.fastOutSlowIn,
@@ -358,5 +381,63 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                 color: isRecording ? CompanyColor.blueDark : Colors.white),
           ),
         ));
+  }
+
+  buildStickerButton() {
+    return IconButton(
+      icon: !widget.displayStickers
+          ? Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark)
+          : Icon(Icons.keyboard_arrow_down, color: CompanyColor.blueDark),
+      onPressed: widget.onOpenStickerBar,
+      color: CompanyColor.blueDark,
+    );
+  }
+
+  buildCancelEditButton() {
+    return IconButton(
+        icon: Icon(Icons.close),
+        color: CompanyColor.blueDark,
+        onPressed: () {
+          widget.onCancelEdit.call();
+        }
+    );
+  }
+
+  buildAttachmentButton() {
+    return !widget.isEditing ? Material(
+      color: Colors.white,
+      child: IconButton(
+        icon: Icon(Icons.attachment),
+        onPressed: () async {
+          widget.onOpenShareBottomSheet.call();
+        },
+        color: CompanyColor.blueDark,
+      ),
+    ) : Container();
+  }
+
+  buildSendButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+            margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
+            height: 45, width: 45,
+            decoration: BoxDecoration(
+              color: CompanyColor.blueDark,
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: Container(
+              margin: EdgeInsets.only(left: 2.5),
+              child: IconButton(
+                icon: Icon(Icons.send),
+                iconSize: 26,
+                onPressed: widget.doSendMessage,
+                color: Colors.white,
+              ),
+            )
+        ),
+      ],
+    );
   }
 }

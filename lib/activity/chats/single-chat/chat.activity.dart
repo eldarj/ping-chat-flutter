@@ -28,6 +28,8 @@ import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/image-download.publisher.dart';
+import 'package:flutterping/service/messaging/message-edit.publisher.dart';
+import 'package:flutterping/service/messaging/message-pin.publisher.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
@@ -114,6 +116,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displayAddContactLoader = false;
 
   bool displayDeleteLoader = false;
+
+  bool isEditing = false;
+  int editingMessageId = 0;
 
   ChatActivityState({ this.contactName });
 
@@ -242,6 +247,23 @@ class ChatActivityState extends BaseState<ChatActivity> {
         contact.backgroundImagePath = contactEvent.value;
       });
     });
+
+    messagePinPublisher.onPinUpdate(STREAMS_LISTENER_ID, (PinEvent pinEvent) {
+      var message = messages.firstWhere((element) => element.id == pinEvent.messageId, orElse: () => null);
+      if (message != null) {
+        setState(() {
+          message.pinned = pinEvent.pinned;
+        });
+      }
+    });
+
+    messageEditPublisher.onEditEvent(STREAMS_LISTENER_ID, (EditEvent editEvent) {
+      setState(() {
+        isEditing = true;
+        editingMessageId = editEvent.messageId;
+        textController.text = editEvent.text;
+      });
+    });
   }
 
   @override
@@ -311,6 +333,14 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     if (contactPublisher != null) {
       contactPublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
+    if (messagePinPublisher != null) {
+      messagePinPublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
+    if (messageEditPublisher != null) {
+      messageEditPublisher.removeListener(STREAMS_LISTENER_ID);
     }
 
     IsolateNameServer.removePortNameMapping(CHAT_ACTIVITY_DOWNLOADER_PORT_ID);
@@ -438,11 +468,34 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 inputTextFocusNode: textFocusNode, displayStickers: displayStickers, displaySendButton: displaySendButton,
                 doSendMessage: doSendMessage, onOpenShareBottomSheet: onOpenShareBottomSheet, onOpenStickerBar: onOpenStickerBar,
                 messageSendingService: widget.messageSendingService,
+                onCancelEdit: () {
+                  setState(() {
+                    isEditing = false;
+                    editingMessageId = 0;
+                    textController.text = '';
+                  });
+                },
+                onSubmitEdit: () {
+                  doSendEditMessage(editingMessageId, textController.text);
+
+                  MessageDto message = messages.firstWhere((element) => element.id == editingMessageId, orElse: () => null);
+                  if (message != null) {
+                    message.text = textController.text;
+                    message.edited = true;
+                  }
+
+                  setState(() {
+                    isEditing = false;
+                    editingMessageId = 0;
+                    textController.text = '';
+                  });
+                },
                 onProgress: (message, progress) {
                   setState(() {
                     message.uploadProgress = progress / 100;
                   });
                 },
+                isEditing: isEditing
               ),
               displayStickers ? StickerBar(sendFunc: doSendEmoji) : Container(),
             ]),
@@ -900,6 +953,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
     scaffold.showSnackBar(SnackBarsComponent.error(
         content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
     ));
+  }
+
+  doSendEditMessage(int messageId, String text) async {
+    String url = '/api/messages/$messageId';
+    await HttpClientService.post(url, body: text);
   }
 }
 

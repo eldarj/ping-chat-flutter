@@ -9,9 +9,11 @@ import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart
 const MESSAGE_PADDING = EdgeInsets.only(top: 7.5, bottom: 7.5, left: 10, right: 10);
 
 class MessageText extends StatelessWidget {
-  const MessageText(this.text, {Key key}) : super(key: key);
+  const MessageText(this.text, {Key key, this.edited = false}) : super(key: key);
 
   final String text;
+
+  final bool edited;
 
   @override
   Widget build(BuildContext _context) {

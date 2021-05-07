@@ -12,6 +12,8 @@ import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/service/messaging/message-edit.publisher.dart';
+import 'package:flutterping/service/messaging/message-pin.publisher.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
@@ -85,7 +87,7 @@ class MessageComponentState extends State<MessageComponent> {
     return GestureDetector(
       onTapUp: resolveMessageTapHandler(),
       onLongPressStart: (details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage, messageOptionsPopup());
+        onMessageTapDown(details, widget.message, widget.isPeerMessage);
       },
       child: Container(
         margin: widget.margin,
@@ -101,7 +103,7 @@ class MessageComponentState extends State<MessageComponent> {
                   ),
                   padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
                   margin: EdgeInsets.only(bottom: 5),
-                  child: Texgt('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
+                  child: Text('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
                     color: CompanyColor.blueDark,
                     fontWeight: FontWeight.w300
                   ))
@@ -114,7 +116,8 @@ class MessageComponentState extends State<MessageComponent> {
                     widget.message.sent,
                     widget.message.received,
                     widget.message.seen,
-                    widget.message.pinned),
+                    widget.message.pinned,
+                    widget.message.edited),
               ]),
         ),
       ),
@@ -193,7 +196,7 @@ class MessageComponentState extends State<MessageComponent> {
   buildMessageContent() {
     Widget _messageWidget;
 
-    var displayPinnedBorder = widget.message.pinned && !widget.pinnedStyle;
+    var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
     BoxDecoration messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration(displayPinnedBorder) : myTextBoxDecoration(displayPinnedBorder);
 
     if (widget.message.deleted) {
@@ -224,7 +227,7 @@ class MessageComponentState extends State<MessageComponent> {
 
       _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc);
-      messageDecoration = imageDecoration();
+      messageDecoration = imageDecoration(widget.message.pinned);
 
     } else if (widget.message.messageType == 'STICKER') {
       _messageWidget = MessageSticker(widget.message.text);
@@ -237,9 +240,9 @@ class MessageComponentState extends State<MessageComponent> {
 
       _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text);
-      messageDecoration = imageDecoration(isPeerMessage: widget.isPeerMessage);
+      messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: widget.isPeerMessage);
     } else {
-      _messageWidget = MessageText(widget.message.text);
+      _messageWidget = MessageText(widget.message.text, edited: widget.message.edited);
     }
 
     return Container(
@@ -248,6 +251,7 @@ class MessageComponentState extends State<MessageComponent> {
         child: _messageWidget);
   }
 
+  // Message tap handler
   resolveMessageTapHandler() {
     Function messageTapHandler = (_) {};
 
@@ -309,106 +313,9 @@ class MessageComponentState extends State<MessageComponent> {
           );
         };
       }
-    } else if (widget.message.messageType == 'STICKER') {
-      messageTapHandler = (_) {
-        // onMessageTapDown(details, widget.message, widget.isPeerMessage, messageOptionsPopup());
-      };
-
-    } else {
-      messageTapHandler = (_) {
-        // onMessageTapDown(details, widget.message, widget.isPeerMessage, messageOptionsPopup());
-      };
     }
 
     return messageTapHandler;
-  }
-
-  // Popups
-  void onMessageTapDown(details, MessageDto message, bool isPeerMessage, items) async {
-    FocusScope.of(context).requestFocus(new FocusNode());
-
-    showModalBottomSheet(context: context, builder: (BuildContext context) {
-      return StatefulBuilder(
-          builder: (context, setState) {
-            messageActionsSetState = setState;
-            return Container(
-                child: Wrap(children: [
-                  ListTile(
-                      dense: true,
-                      leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
-                      title: Text('Reply'),
-                      onTap: () {}),
-                  ListTile(
-                      dense: true,
-                      leading: Icon(Icons.copy, size: 20, color: Colors.grey.shade600),
-                      title: Text('Copy'),
-                      onTap: () {
-                        FlutterClipboard.copy(message.text).then(( value ) {
-                          Navigator.of(context).pop();
-                          scaffold.showSnackBar(SnackBarsComponent.info('Copied to clipboard'));
-                        });
-                      }),
-                  ListTile(
-                      dense: true,
-                      leading: Icon(Icons.edit, size: 20, color: Colors.grey.shade600),
-                      title: Text('Edit'),
-                      onTap: () {
-                        doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
-                      }),
-                  ListTile(
-                      dense: true,
-                      leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
-                      title: Text(message.pinned ? 'Unpin' : 'Pin'),
-                      onTap: () {
-                        doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
-                      }),
-                  ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
-                      title: Text('Delete'),
-                      onTap: () {}),
-                ])
-            );
-          });
-    });
-
-    // double left = details.globalPosition.dx;
-    // double right = DEVICE_MEDIA_SIZE.width - details.globalPosition.dx;
-    // double top = details.globalPosition.dy;
-    // double bottom = DEVICE_MEDIA_SIZE.height - details.globalPosition.dy;
-    //
-    //
-    // print(details.globalPosition.dx);
-    // print(DEVICE_MEDIA_SIZE.width);
-    // print(details.globalPosition.dy);
-    // print(DEVICE_MEDIA_SIZE.height);
-    // print('----');
-    // print(left);
-    // print(right);
-    // print(top);
-    // print(bottom);
-    //
-    // showMenu(
-    //   context: context,
-    //   position: RelativeRect.fromLTRB(left - 75, top - 75, right, bottom),
-    //   elevation: 2.0,
-    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-    //   items: items,
-    // ).then((value) {
-    //   if (value == 'EDIT') {
-    //
-    //   } else if (value == 'DELETE') {
-    //     doDeleteMessage(message).then(onDeleteMessageSuccess, onError: onDeleteMessageError);
-    //   }
-    // });
-  }
-
-  messageOptionsPopup() {
-    return [
-      PopupMenuItem(value: 'DELETE', child: Row(children: [
-        Container(margin: EdgeInsets.only(right: 10),
-            child: Icon(Icons.delete_outline, size: 20, color: Colors.grey)),
-        Text('Delete', style: TextStyle(color: Colors.grey))
-      ]))
-    ];
   }
 
   // Delete message
@@ -448,6 +355,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     String url = '/api/messages/${message.id}/pin';
 
+    message.pinned = message.pinned != null && message.pinned;
     http.Response response = await HttpClientService.post(url, body: !message.pinned);
 
     if(response.statusCode != 200) {
@@ -467,6 +375,8 @@ class MessageComponentState extends State<MessageComponent> {
       message.pinned = pinned;
     });
 
+    messagePinPublisher.emitPinUpdate(message.id, pinned);
+
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.success(pinned ? 'Message pinned'
         : 'Message unpinned'));
@@ -479,5 +389,184 @@ class MessageComponentState extends State<MessageComponent> {
 
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error(content: 'Something went wrong'));
+  }
+
+  // Message tap actions widgets
+  void onMessageTapDown(details, MessageDto message, bool isPeerMessage) async {
+    FocusScope.of(context).requestFocus(new FocusNode());
+
+    Widget actionsWidget;
+
+    switch (message.messageType) {
+      case 'RECORDING':
+        actionsWidget = buildMediaMessageActions(message);
+        break;
+      case 'MEDIA':
+        actionsWidget = buildMediaMessageActions(message);
+        break;
+      case 'FILE':
+        actionsWidget = buildMediaMessageActions(message);
+        break;
+      case 'IMAGE':
+        actionsWidget = buildImageMessageActions(message);
+        break;
+      case 'MAP_LOCATION':
+        actionsWidget = buildMapMessageActions(message);
+        break;
+      case 'STICKER':
+        actionsWidget = buildStickerMessageActions(message);
+        break;
+      default:
+        actionsWidget = buildTextMessageActions(message);
+    }
+
+    showModalBottomSheet(context: context, builder: (BuildContext context) {
+      return actionsWidget;
+    });
+  }
+
+  Widget buildTextMessageActions(message) {
+    return StatefulBuilder(builder: (context, setState) {
+      messageActionsSetState = setState;
+      return Wrap(children: [
+        ListTile(
+            dense: true,
+            leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
+            title: Text('Reply'),
+            onTap: () {}),
+        ListTile(
+            dense: true,
+            leading: Icon(Icons.copy, size: 20, color: Colors.grey.shade600),
+            title: Text('Copy'),
+            onTap: () {
+              FlutterClipboard.copy(message.text).then(( value ) {
+                Navigator.of(context).pop();
+                scaffold.showSnackBar(SnackBarsComponent.info('Copied to clipboard'));
+              });
+            }),
+        ListTile(
+            dense: true,
+            leading: Icon(Icons.edit, size: 20, color: Colors.grey.shade600),
+            title: Text('Edit'),
+            onTap: () {
+              Navigator.of(context).pop();
+              messageEditPublisher.emitEditEvent(message.id, message.text);
+            }),
+        ListTile(
+            dense: true,
+            leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
+            title: Text(message.pinned != null && message.pinned ? 'Unpin' : 'Pin'),
+            onTap: () {
+              doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
+            }),
+        ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
+            title: Text('Delete'),
+            onTap: () {}),
+      ]);
+    });
+  }
+
+  Widget buildStickerMessageActions(message) {
+    return StatefulBuilder(builder: (context, setState) {
+      messageActionsSetState = setState;
+      return Wrap(children: [
+        ListTile(
+            dense: true,
+            leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
+            title: Text('Reply'),
+            onTap: () {}),
+        ListTile(
+            dense: true,
+            leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
+            title: Text(message.pinned ? 'Unpin' : 'Pin'),
+            onTap: () {
+              doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
+            }),
+        ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
+            title: Text('Delete'),
+            onTap: () {}),
+      ]);
+    });
+  }
+
+  Widget buildImageMessageActions(message) {
+    return StatefulBuilder(builder: (context, setState) {
+      messageActionsSetState = setState;
+      return Wrap(children: [
+        ListTile(
+            dense: true,
+            leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
+            title: Text('Reply'),
+            onTap: () {}),
+        ListTile(
+            dense: true,
+            leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
+            title: Text(message.pinned ? 'Unpin' : 'Pin'),
+            onTap: () {
+              doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
+            }),
+        ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
+            title: Text('Delete'),
+            onTap: () {}),
+      ]);
+    });
+  }
+
+  Widget buildMapMessageActions(message) {
+    return StatefulBuilder(
+        builder: (context, setState) {
+          messageActionsSetState = setState;
+          return Wrap(children: [
+            ListTile(
+                dense: true,
+                leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
+                title: Text('Reply'),
+                onTap: () {}),
+            ListTile(
+                dense: true,
+                leading: Icon(Icons.copy, size: 20, color: Colors.grey.shade600),
+                title: Text('Copy'),
+                onTap: () {
+                  FlutterClipboard.copy(message.text).then(( value ) {
+                    Navigator.of(context).pop();
+                    scaffold.showSnackBar(SnackBarsComponent.info('Copied to clipboard'));
+                  });
+                }),
+            ListTile(
+                dense: true,
+                leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
+                title: Text(message.pinned != null && message.pinned ? 'Unpin' : 'Pin'),
+                onTap: () {
+                  doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
+                }),
+            ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
+                title: Text('Delete'),
+                onTap: () {}),
+          ]);
+        });
+  }
+
+  Widget buildMediaMessageActions(message) {
+    return StatefulBuilder(
+        builder: (context, setState) {
+          messageActionsSetState = setState;
+          return Wrap(children: [
+            ListTile(
+                dense: true,
+                leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
+                title: Text('Reply'),
+                onTap: () {}),
+            ListTile(
+                dense: true,
+                leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
+                title: Text(message.pinned != null && message.pinned ? 'Unpin' : 'Pin'),
+                onTap: () {
+                  doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
+                }),
+            ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
+                title: Text('Delete'),
+                onTap: () {}),
+          ]);
+        });
   }
 }
