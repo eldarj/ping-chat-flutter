@@ -593,7 +593,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          MessageStatus(message.sentTimestamp, message.sent, message.received, message.seen,
+                          MessageStatus(message.sentTimestamp, message.sent, message.received, message.seen, message.pinned,
                               displayStatusIcon: displayStatusIcon),
                           message.totalUnreadMessages > 0 ? Container(
                               height: 15, width: 15, alignment: Alignment.center,

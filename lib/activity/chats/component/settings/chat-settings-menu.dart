@@ -1,12 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/chats/pinned-chat/pinned-messages.activity.dart';
 import 'package:flutterping/activity/contacts/single/single-contact.activity.dart';
 import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class ChatSettingsMenu extends StatelessWidget {
   final ClientDto peer;
+
+  final ContactDto contact;
 
   final String peerContactName;
 
@@ -24,7 +28,7 @@ class ChatSettingsMenu extends StatelessWidget {
   final Function onDeleteMessages;
 
   const ChatSettingsMenu({Key key, this.peer, this.peerContactName, this.contactBindingId, this.picturesPath, this.myContactName, this.statusLabel, this.userId,
-    this.onDeleteContact, this.onDeleteMessages
+    this.onDeleteContact, this.onDeleteMessages, this.contact
   }) : super(key: key);
 
   @override
@@ -42,16 +46,24 @@ class ChatSettingsMenu extends StatelessWidget {
             contactPhoneNumber: peer.fullPhoneNumber,
             favorite: false,
           ));
+
         } else if (choice == 'media') {
           NavigatorUtil.push(context, ContactSharedActivity(
               peer: peer,
               picturesPath: picturesPath,
               peerContactName: peerContactName,
               contactBindingId: contactBindingId));
+
         } else if (choice == 'delete_contact') {
           this.onDeleteContact.call();
+
         } else if (choice == 'delete_messages') {
           this.onDeleteMessages.call();
+
+        } else if (choice == 'pinned_messages') {
+          NavigatorUtil.push(context, PinnedMessagesActivity(
+            peer: peer, contact: contact,
+          ));
         }
       },
       itemBuilder: (BuildContext context) {
@@ -73,6 +85,16 @@ class ChatSettingsMenu extends StatelessWidget {
                     margin:EdgeInsets.only(right: 20, left: 5),
                     child: Icon(Icons.image_outlined)),
                 Text('Shared media')
+              ])),
+          PopupMenuDivider(),
+          PopupMenuItem<String>(
+              value: 'pinned_messages',
+              child: Row(children: [
+                Container(
+                    width: 30,
+                    margin:EdgeInsets.only(right: 20, left: 5),
+                    child: Icon(Icons.push_pin_outlined)),
+                Text('Pinned messages')
               ])),
           PopupMenuDivider(),
           PopupMenuItem<String>(

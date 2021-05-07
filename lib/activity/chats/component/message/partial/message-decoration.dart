@@ -6,9 +6,9 @@ BoxDecoration imageDecoration({isPeerMessage = true}) => BoxDecoration(
   borderRadius: BorderRadius.circular(15),
 );
 
-BoxDecoration peerTextBoxDecoration() => BoxDecoration(
+BoxDecoration peerTextBoxDecoration(pinned) => BoxDecoration(
   color: Color.fromRGBO(239, 239, 239, 1),
-  border: Border.all(color: Color.fromRGBO(230, 230, 230, 1), width: 1),
+  border: Border.all(color: pinned ? CompanyColor.blueAccent : Color.fromRGBO(230, 230, 230, 1), width: 1.5),
   borderRadius: BorderRadius.only(
       bottomLeft: Radius.circular(10),
       topRight: Radius.circular(10),
@@ -19,9 +19,9 @@ BoxDecoration peerTextBoxDecoration() => BoxDecoration(
   )],
 );
 
-BoxDecoration myTextBoxDecoration() => BoxDecoration(
+BoxDecoration myTextBoxDecoration(pinned) => BoxDecoration(
   color: CompanyColor.myMessageBackground,
-  border: Border.all(color: Color.fromRGBO(220, 245, 205, 1), width: 1),
+  border: Border.all(color: pinned ? CompanyColor.blueAccent : Color.fromRGBO(220, 245, 205, 1), width: 1.5),
   borderRadius: BorderRadius.only( //63731484
       topLeft: Radius.circular(10),
       bottomLeft: Radius.circular(10),

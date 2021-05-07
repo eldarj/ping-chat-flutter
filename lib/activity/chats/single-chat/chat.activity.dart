@@ -388,6 +388,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                   picturesPath: picturesPath,
                   peerContactName: contactName,
                   contactBindingId: widget.contactBindingId,
+                  contact: contact,
                   onDeleteContact: () {
                     doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
                   },
@@ -551,6 +552,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     previousMessageDate = thisMessageDate;
 
     String widgetKey = message.text != null ? message.text : message.fileName;
+
     return MessageComponent(
       key: new Key(widgetKey),
       margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,

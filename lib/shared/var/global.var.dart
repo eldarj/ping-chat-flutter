@@ -21,7 +21,7 @@ class CompanyColor {
 
   static Color iconGrey = Colors.grey.shade700;
 
-  static Color backgroundGrey = Colors.grey.shade200;
+  static Color backgroundGrey = Colors.grey.shade100;
 
   // Component colors
   static Color myMessageBackground = Color.fromRGBO(235, 255, 220, 1);

@@ -15,6 +15,7 @@ class MessageStatusRow extends StatelessWidget {
       this.sent,
       this.received,
       this.seen,
+      this.pinned,
       {Key key})
       : super(key: key);
 
@@ -32,6 +33,8 @@ class MessageStatusRow extends StatelessWidget {
 
   final dynamic seen;
 
+  final bool pinned;
+
   @override
   Widget build(BuildContext _context) => messageStatusRow(
       isPeerMessage,
@@ -40,11 +43,12 @@ class MessageStatusRow extends StatelessWidget {
       displayTimestamp,
       sent,
       received,
-      seen);
+      seen,
+      pinned);
 }
 
 class MessageStatus extends StatelessWidget {
-  const MessageStatus(this.sentTimestamp, this.sent, this.received, this.seen,
+  const MessageStatus(this.sentTimestamp, this.sent, this.received, this.seen, this.pinned,
       {Key key,
       this.displayStatusIcon = true,
       this.displayPlaceholderCheckMark = false})
@@ -62,18 +66,22 @@ class MessageStatus extends StatelessWidget {
 
   final dynamic displayPlaceholderCheckMark;
 
+  final bool pinned;
+
   @override
   Widget build(BuildContext _context) =>
-      messageStatus(sentTimestamp, sent, received, seen,
+      messageStatus(sentTimestamp, sent, received, seen, pinned,
           displayStatusIcon: displayStatusIcon,
           displayPlaceholderCheckMark: displayPlaceholderCheckMark);
 }
 
 class MessagePeerStatus extends StatelessWidget {
-  const MessagePeerStatus(this.sentTimestamp, {Key key}) : super(key: key);
+  const MessagePeerStatus(this.sentTimestamp, this.pinned, {Key key}) : super(key: key);
 
   final dynamic sentTimestamp;
 
+  final bool pinned;
+
   @override
-  Widget build(BuildContext _context) => messagePeerStatus(sentTimestamp);
+  Widget build(BuildContext _context) => messagePeerStatus(sentTimestamp, pinned);
 }

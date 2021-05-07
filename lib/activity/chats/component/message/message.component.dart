@@ -1,8 +1,7 @@
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/animation.dart';
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -13,12 +12,11 @@ import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
-import 'package:flutterping/util/extension/duration.extension.dart';
 import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/util/extension/duration.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:http/http.dart' as http;
@@ -35,12 +33,16 @@ class MessageComponent extends StatefulWidget {
 
   final bool isPeerMessage;
 
+  final bool pinnedStyle;
+
   const MessageComponent({Key key,
     this.message,
     this.isPeerMessage,
     this.displayTimestamp,
     this.margin,
-    this.picturesPath}) : super(key: key);
+    this.picturesPath,
+    this.pinnedStyle = false,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => MessageComponentState();
@@ -49,11 +51,15 @@ class MessageComponent extends StatefulWidget {
 class MessageComponentState extends State<MessageComponent> {
   ScaffoldState scaffold;
 
+  StateSetter messageActionsSetState;
+
   double maxWidth = DEVICE_MEDIA_SIZE.width - 150;
 
   AudioPlayer audioPlayer = AudioPlayer();
 
   String recordingCurrentPosition = '00:00';
+
+  bool isPinButtonLoading = false;
 
   @override
   void initState() {
@@ -65,9 +71,9 @@ class MessageComponentState extends State<MessageComponent> {
       });
     });
 
-    audioPlayer.onPlayerStateChanged.listen((AudioPlayerState s) {
+    audioPlayer.onPlayerStateChanged.listen((AudioPlayerState audioPlayerState) {
       setState(() {
-        widget.message.isRecordingPlaying = s == AudioPlayerState.PLAYING;
+        widget.message.isRecordingPlaying = audioPlayerState == AudioPlayerState.PLAYING;
       });
     });
   }
@@ -78,17 +84,28 @@ class MessageComponentState extends State<MessageComponent> {
 
     return GestureDetector(
       onTapUp: resolveMessageTapHandler(),
-      onLongPressEnd: (details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
-          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
-        ]);
+      onLongPressStart: (details) {
+        onMessageTapDown(details, widget.message, widget.isPeerMessage, messageOptionsPopup());
       },
       child: Container(
         margin: widget.margin,
         child: Container(
-          margin: EdgeInsets.only(left: 5, right: 5, bottom: widget.displayTimestamp ? 20 : 2.5),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 5, bottom: widget.displayTimestamp ? 20 : 2.5),
           child: Column(crossAxisAlignment: widget.isPeerMessage ? CrossAxisAlignment.start : CrossAxisAlignment.end,
               children: [
+                widget.pinnedStyle && widget.message.pinned ? Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade100),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                  margin: EdgeInsets.only(bottom: 5),
+                  child: Texgt('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
+                    color: CompanyColor.blueDark,
+                    fontWeight: FontWeight.w300
+                  ))
+                ) : Container(),
                 buildMessageContent(),
                 MessageStatusRow(widget.isPeerMessage,
                     widget.message.sentTimestamp,
@@ -96,7 +113,8 @@ class MessageComponentState extends State<MessageComponent> {
                     widget.displayTimestamp,
                     widget.message.sent,
                     widget.message.received,
-                    widget.message.seen),
+                    widget.message.seen,
+                    widget.message.pinned),
               ]),
         ),
       ),
@@ -175,7 +193,8 @@ class MessageComponentState extends State<MessageComponent> {
   buildMessageContent() {
     Widget _messageWidget;
 
-    BoxDecoration messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration() : myTextBoxDecoration();
+    var displayPinnedBorder = widget.message.pinned && !widget.pinnedStyle;
+    BoxDecoration messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration(displayPinnedBorder) : myTextBoxDecoration(displayPinnedBorder);
 
     if (widget.message.deleted) {
       print('MESSAGE DELETED');
@@ -235,7 +254,7 @@ class MessageComponentState extends State<MessageComponent> {
     if (widget.message.deleted) {
       messageTapHandler = (_) {};
 
-    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
+    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
       String filePath = widget.isPeerMessage
           ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;
@@ -291,39 +310,108 @@ class MessageComponentState extends State<MessageComponent> {
         };
       }
     } else if (widget.message.messageType == 'STICKER') {
-      messageTapHandler = (details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
-          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
-        ]);
+      messageTapHandler = (_) {
+        // onMessageTapDown(details, widget.message, widget.isPeerMessage, messageOptionsPopup());
       };
 
     } else {
-      messageTapHandler = (details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage, [
-          PopupMenuItem(value: 'DELETE', child: Text("Delete")),
-        ]);
+      messageTapHandler = (_) {
+        // onMessageTapDown(details, widget.message, widget.isPeerMessage, messageOptionsPopup());
       };
     }
 
     return messageTapHandler;
   }
 
-  onMessageTapDown(details, MessageDto message, bool isPeerMessage, items) async {
+  // Popups
+  void onMessageTapDown(details, MessageDto message, bool isPeerMessage, items) async {
     FocusScope.of(context).requestFocus(new FocusNode());
-    showMenu(
-      context: context,
-      position: RelativeRect.fromLTRB(isPeerMessage ? 0 : 1, details.globalPosition.dy, 0, 0),
-      elevation: 8.0,
-      items: items,
-    ).then((value) {
-      if (value == 'EDIT') {
 
-      } else if (value == 'DELETE') {
-        doDeleteMessage(message).then(onDeleteMessageSuccess, onError: onDeleteMessageError);
-      }
+    showModalBottomSheet(context: context, builder: (BuildContext context) {
+      return StatefulBuilder(
+          builder: (context, setState) {
+            messageActionsSetState = setState;
+            return Container(
+                child: Wrap(children: [
+                  ListTile(
+                      dense: true,
+                      leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
+                      title: Text('Reply'),
+                      onTap: () {}),
+                  ListTile(
+                      dense: true,
+                      leading: Icon(Icons.copy, size: 20, color: Colors.grey.shade600),
+                      title: Text('Copy'),
+                      onTap: () {
+                        FlutterClipboard.copy(message.text).then(( value ) {
+                          Navigator.of(context).pop();
+                          scaffold.showSnackBar(SnackBarsComponent.info('Copied to clipboard'));
+                        });
+                      }),
+                  ListTile(
+                      dense: true,
+                      leading: Icon(Icons.edit, size: 20, color: Colors.grey.shade600),
+                      title: Text('Edit'),
+                      onTap: () {
+                        doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
+                      }),
+                  ListTile(
+                      dense: true,
+                      leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
+                      title: Text(message.pinned ? 'Unpin' : 'Pin'),
+                      onTap: () {
+                        doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
+                      }),
+                  ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
+                      title: Text('Delete'),
+                      onTap: () {}),
+                ])
+            );
+          });
     });
+
+    // double left = details.globalPosition.dx;
+    // double right = DEVICE_MEDIA_SIZE.width - details.globalPosition.dx;
+    // double top = details.globalPosition.dy;
+    // double bottom = DEVICE_MEDIA_SIZE.height - details.globalPosition.dy;
+    //
+    //
+    // print(details.globalPosition.dx);
+    // print(DEVICE_MEDIA_SIZE.width);
+    // print(details.globalPosition.dy);
+    // print(DEVICE_MEDIA_SIZE.height);
+    // print('----');
+    // print(left);
+    // print(right);
+    // print(top);
+    // print(bottom);
+    //
+    // showMenu(
+    //   context: context,
+    //   position: RelativeRect.fromLTRB(left - 75, top - 75, right, bottom),
+    //   elevation: 2.0,
+    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+    //   items: items,
+    // ).then((value) {
+    //   if (value == 'EDIT') {
+    //
+    //   } else if (value == 'DELETE') {
+    //     doDeleteMessage(message).then(onDeleteMessageSuccess, onError: onDeleteMessageError);
+    //   }
+    // });
   }
 
+  messageOptionsPopup() {
+    return [
+      PopupMenuItem(value: 'DELETE', child: Row(children: [
+        Container(margin: EdgeInsets.only(right: 10),
+            child: Icon(Icons.delete_outline, size: 20, color: Colors.grey)),
+        Text('Delete', style: TextStyle(color: Colors.grey))
+      ]))
+    ];
+  }
+
+  // Delete message
   Future doDeleteMessage(message) async {
     String url = '/api/messages/' + message.id.toString();
 
@@ -350,5 +438,46 @@ class MessageComponentState extends State<MessageComponent> {
   onDeleteMessageError(error) {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error());
+  }
+
+  // Pin message
+  Future<bool> doUpdatePinStatus(MessageDto message) async {
+    messageActionsSetState(() {
+      isPinButtonLoading = true;
+    });
+
+    String url = '/api/messages/${message.id}/pin';
+
+    http.Response response = await HttpClientService.post(url, body: !message.pinned);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    await Future.delayed(Duration(seconds: 1));
+
+    return !message.pinned;
+  }
+
+  onPinSuccess(message, pinned) {
+    isPinButtonLoading = false;
+    Navigator.of(context).pop();
+
+    setState(() {
+      message.pinned = pinned;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.success(pinned ? 'Message pinned'
+        : 'Message unpinned'));
+  }
+
+  onPinError(error) {
+    print(error);
+    isPinButtonLoading = false;
+    Navigator.of(context).pop();
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(content: 'Something went wrong'));
   }
 }

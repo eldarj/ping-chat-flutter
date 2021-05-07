@@ -63,6 +63,10 @@ class MessageDto {
 
   int nodeId;
 
+  bool pinned;
+
+  int pinnedTimestamp;
+
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
   }
@@ -80,6 +84,8 @@ class MessageDto {
     this.recordingDuration,
     this.nodeId,
     this.isRecordingPlaying = false,
+    this.pinned,
+    this.pinnedTimestamp
   });
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
@@ -124,7 +130,9 @@ class MessageDto {
           ? 0
           : parsedJson['totalUnreadMessages'] as int
       ..recordingDuration = parsedJson['recordingDuration']
-      ..messageType = parsedJson['messageType'] as String;
+      ..messageType = parsedJson['messageType'] as String
+      ..pinned = parsedJson['pinned'] as bool
+      ..pinnedTimestamp = parsedJson['pinnedTimestamp'] as int;
   }
 
   Map<String, dynamic> toJson() => {
@@ -153,5 +161,7 @@ class MessageDto {
     'messageType': messageType,
     'recordingDuration': recordingDuration,
     'deleted': deleted,
+    'pinned': pinned,
+    'pinnedTimestamp': pinnedTimestamp,
   };
 }
