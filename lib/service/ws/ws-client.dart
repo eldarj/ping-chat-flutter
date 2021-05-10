@@ -16,7 +16,7 @@ class WsClient {
       developer.log('WsClient - getClient - tryConnect with token: $userToken');
       _stompClient = StompClient(
           config: StompConfig(
-              url: 'ws://192.168.0.13:8089/ws/connect',
+              url: 'ws://192.168.1.25:8089/ws/connect',
               reconnectDelay: 5000,
               webSocketConnectHeaders: {
                 'authorization': 'Bearer ${userToken}',
@@ -47,10 +47,12 @@ class WsClient {
   }
 
   void send(String destination, dynamic body, {jsonEncode = true}) {
-    _stompClient.send(
-      destination: _WS_SEND_PREFIX + destination,
-      body: jsonEncode ? json.encode(body) : body,
-    );
+    if (_stompClient != null) {
+      _stompClient.send(
+        destination: _WS_SEND_PREFIX + destination,
+        body: jsonEncode ? json.encode(body) : body,
+      );
+    }
   }
 
   Function({Map<String, String> unsubscribeHeaders}) subscribe({

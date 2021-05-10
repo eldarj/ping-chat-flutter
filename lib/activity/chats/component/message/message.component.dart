@@ -8,12 +8,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/activity/chats/component/message/reply.component.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/message-edit.publisher.dart';
 import 'package:flutterping/service/messaging/message-pin.publisher.dart';
+import 'package:flutterping/service/messaging/message-reply.publisher.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
@@ -86,8 +88,11 @@ class MessageComponentState extends State<MessageComponent> {
 
     return GestureDetector(
       onTapUp: resolveMessageTapHandler(),
-      onLongPressStart: (details) {
-        onMessageTapDown(details, widget.message, widget.isPeerMessage);
+      onLongPressStart: (_) {
+        onMessageTapDown(widget.message, widget.isPeerMessage);
+      },
+      onDoubleTap: () {
+        onMessageTapDown(widget.message, widget.isPeerMessage);
       },
       child: Container(
         margin: widget.margin,
@@ -95,33 +100,40 @@ class MessageComponentState extends State<MessageComponent> {
           margin: EdgeInsets.only(left: 5, right: 5, top: 5, bottom: widget.displayTimestamp ? 20 : 2.5),
           child: Column(crossAxisAlignment: widget.isPeerMessage ? CrossAxisAlignment.start : CrossAxisAlignment.end,
               children: [
-                widget.pinnedStyle && widget.message.pinned ? Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.shade100),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-                  margin: EdgeInsets.only(bottom: 5),
-                  child: Text('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
-                    color: CompanyColor.blueDark,
-                    fontWeight: FontWeight.w300
-                  ))
-                ) : Container(),
+                buildMessagePinDetails(),
                 buildMessageContent(),
-                MessageStatusRow(widget.isPeerMessage,
-                    widget.message.sentTimestamp,
-                    widget.message.displayCheckMark,
-                    widget.displayTimestamp,
-                    widget.message.sent,
-                    widget.message.received,
-                    widget.message.seen,
-                    widget.message.pinned,
-                    widget.message.edited),
+                buildMessageStatus(),
               ]),
         ),
       ),
     );
+  }
+
+  buildMessagePinDetails() {
+    return widget.pinnedStyle && widget.message.pinned ? Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+        margin: EdgeInsets.only(bottom: 5),
+        child: Text('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
+            color: CompanyColor.blueDark,
+        ))
+    ) : Container();
+  }
+
+  buildMessageStatus() {
+    return MessageStatusRow(widget.isPeerMessage,
+        widget.message.sentTimestamp,
+        widget.message.displayCheckMark,
+        widget.displayTimestamp,
+        widget.message.sent,
+        widget.message.received,
+        widget.message.seen,
+        widget.message.pinned,
+        widget.message.edited);
   }
 
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
@@ -245,10 +257,52 @@ class MessageComponentState extends State<MessageComponent> {
       _messageWidget = MessageText(widget.message.text, edited: widget.message.edited);
     }
 
-    return Container(
-        decoration: messageDecoration,
-        constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
-        child: _messageWidget);
+    Widget w;
+
+    if (widget.message.replyMessage != null) {
+      w = Container(
+        padding: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Color.fromRGBO(240, 240, 240, 0.2),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(crossAxisAlignment: widget.isPeerMessage
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.end,
+          children: [
+            ReplyComponent(
+              message: widget.message,
+              isPeerMessage: widget.isPeerMessage,
+              picturesPath: widget.picturesPath,
+            ),
+            Container(
+                decoration: messageDecoration,
+                constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
+                child: _messageWidget)
+          ]
+        )
+      );
+    } else {
+      w = Container(
+          decoration: messageDecoration,
+          constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
+          child: _messageWidget);
+    }
+
+    return w;
+  }
+
+  buildReplyMessage() {
+    Widget w = Container();
+    if (widget.message.replyMessage != null) {
+      return ReplyComponent(
+          message: widget.message,
+          isPeerMessage: widget.isPeerMessage,
+          picturesPath: widget.picturesPath,
+      );
+    }
+
+    return w;
   }
 
   // Message tap handler
@@ -392,7 +446,7 @@ class MessageComponentState extends State<MessageComponent> {
   }
 
   // Message tap actions widgets
-  void onMessageTapDown(details, MessageDto message, bool isPeerMessage) async {
+  void onMessageTapDown(MessageDto message, bool isPeerMessage) async {
     FocusScope.of(context).requestFocus(new FocusNode());
 
     Widget actionsWidget;
@@ -433,7 +487,10 @@ class MessageComponentState extends State<MessageComponent> {
             dense: true,
             leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
             title: Text('Reply'),
-            onTap: () {}),
+            onTap: () {
+              Navigator.of(context).pop();
+              messageReplyPublisher.emitReplyEvent(message);
+            }),
         ListTile(
             dense: true,
             leading: Icon(Icons.copy, size: 20, color: Colors.grey.shade600),
@@ -474,11 +531,14 @@ class MessageComponentState extends State<MessageComponent> {
             dense: true,
             leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
             title: Text('Reply'),
-            onTap: () {}),
+            onTap: () {
+              Navigator.of(context).pop();
+              messageReplyPublisher.emitReplyEvent(message);
+            }),
         ListTile(
             dense: true,
             leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
-            title: Text(message.pinned ? 'Unpin' : 'Pin'),
+            title: Text(message.pinned != null && message.pinned ? 'Unpin' : 'Pin'),
             onTap: () {
               doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
             }),
@@ -497,11 +557,14 @@ class MessageComponentState extends State<MessageComponent> {
             dense: true,
             leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
             title: Text('Reply'),
-            onTap: () {}),
+            onTap: () {
+              Navigator.of(context).pop();
+              messageReplyPublisher.emitReplyEvent(message);
+            }),
         ListTile(
             dense: true,
             leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
-            title: Text(message.pinned ? 'Unpin' : 'Pin'),
+            title: Text(message.pinned != null && message.pinned ? 'Unpin' : 'Pin'),
             onTap: () {
               doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
             }),
@@ -521,7 +584,10 @@ class MessageComponentState extends State<MessageComponent> {
                 dense: true,
                 leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
                 title: Text('Reply'),
-                onTap: () {}),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  messageReplyPublisher.emitReplyEvent(message);
+                }),
             ListTile(
                 dense: true,
                 leading: Icon(Icons.copy, size: 20, color: Colors.grey.shade600),
@@ -555,7 +621,10 @@ class MessageComponentState extends State<MessageComponent> {
                 dense: true,
                 leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
                 title: Text('Reply'),
-                onTap: () {}),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  messageReplyPublisher.emitReplyEvent(message);
+                }),
             ListTile(
                 dense: true,
                 leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),

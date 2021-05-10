@@ -45,11 +45,20 @@ class SingleChatInputRow extends StatefulWidget {
 
   final Function onSubmitEdit;
 
+  final bool isReplying;
+
+  final Widget replyWidget;
+
+  final Function onCancelReply;
+
+  final Function onSubmitReply;
+
   const SingleChatInputRow({Key key, this.messageSendingService, this.onProgress, this.onOpenStickerBar,
-    this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController, this.isEditing,
+    this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController,
     this.inputTextFocusNode, this.doSendMessage, this.userId, this.peerId, this.userSentNodeId,
     this.picturesPath, this.myContactName,
-    this.onCancelEdit, this.onSubmitEdit,
+    this.isEditing, this.onCancelEdit, this.onSubmitEdit,
+    this.isReplying, this.replyWidget, this.onCancelReply, this.onSubmitReply,
   }) : super(key: key);
 
   @override
@@ -207,22 +216,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
   Widget build(BuildContext context) {
     return Column(
       children: [
-        widget.isEditing ? Container(
-            alignment: Alignment.centerLeft,
-            padding: EdgeInsets.only(top: 5, bottom: 5, left: 12.5),
-            margin: EdgeInsets.only(bottom: 1),
-            decoration: BoxDecoration(
-              border: Border(
-                  top: BorderSide(color: CompanyColor.blueDark),
-                  bottom: BorderSide(color: CompanyColor.blueDark))
-            ),
-            child: Text('EDIT', style: TextStyle(
-                color: CompanyColor.blueDark,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.4
-            ))
-        ) : Container(),
+        buildTopDetailsSection(),
         Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -237,9 +231,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                   child: Row(children: [
                     Material(
                       color: Colors.white,
-                      child: !widget.isEditing
-                          ? buildStickerButton()
-                          : buildCancelEditButton()
+                      child: buildStickerButton()
                     ),
                     Container(
                       height: 55,
@@ -266,7 +258,8 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                   ]),
                 ),
                 widget.isEditing
-                    ? buildEditButton() : widget.displaySendButton
+                    ? buildEditButton() : widget.isReplying
+                    ? buildReplyButton() : widget.displaySendButton
                     ? buildSendButton()
                     : buildRecordingRow()
               ],
@@ -291,6 +284,30 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                 icon: Icon(Icons.check),
                 iconSize: 26,
                 onPressed: widget.onSubmitEdit,
+                color: Colors.white,
+              ),
+            )
+        ),
+      ],
+    );
+  }
+
+  buildReplyButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+            margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
+            height: 45, width: 45,
+            decoration: BoxDecoration(
+              color: CompanyColor.blueDark,
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: Container(
+              child: IconButton(
+                icon: Icon(Icons.check),
+                iconSize: 26,
+                onPressed: widget.onSubmitReply,
                 color: Colors.white,
               ),
             )
@@ -384,27 +401,39 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
   }
 
   buildStickerButton() {
-    return IconButton(
-      icon: !widget.displayStickers
-          ? Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark)
-          : Icon(Icons.keyboard_arrow_down, color: CompanyColor.blueDark),
-      onPressed: widget.onOpenStickerBar,
-      color: CompanyColor.blueDark,
-    );
-  }
+    Widget w;
 
-  buildCancelEditButton() {
-    return IconButton(
-        icon: Icon(Icons.close),
+    if (widget.isEditing) {
+      w = IconButton(
+          icon: Icon(Icons.close),
+          color: CompanyColor.blueDark,
+          onPressed: () {
+            widget.onCancelEdit.call();
+          }
+      );
+    } else if (widget.isReplying) {
+      w = IconButton(
+          icon: Icon(Icons.close),
+          color: CompanyColor.blueDark,
+          onPressed: () {
+            widget.onCancelReply.call();
+          }
+      );
+    } else {
+      w = IconButton(
+        icon: !widget.displayStickers
+            ? Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark)
+            : Icon(Icons.keyboard_arrow_down, color: CompanyColor.blueDark),
+        onPressed: widget.onOpenStickerBar,
         color: CompanyColor.blueDark,
-        onPressed: () {
-          widget.onCancelEdit.call();
-        }
-    );
+      );
+    }
+
+    return w;
   }
 
   buildAttachmentButton() {
-    return !widget.isEditing ? Material(
+    return !widget.isEditing && !widget.isReplying ? Material(
       color: Colors.white,
       child: IconButton(
         icon: Icon(Icons.attachment),
@@ -439,5 +468,52 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
         ),
       ],
     );
+  }
+
+  buildTopDetailsSection() {
+    Widget w;
+
+    if (widget.isEditing) {
+      w = Container(
+          alignment: Alignment.centerLeft,
+          padding: EdgeInsets.only(top: 5, bottom: 5, left: 12.5),
+          margin: EdgeInsets.only(bottom: 1),
+          decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              boxShadow: [Shadows.topShadow()]
+          ),
+          child: Text('EDIT', style: TextStyle(
+              color: CompanyColor.blueDark,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4
+          ))
+      );
+    } else if (widget.isReplying) {
+      w = Container(
+          alignment: Alignment.centerLeft,
+          padding: EdgeInsets.only(top: 5, bottom: 5, left: 12.5),
+          margin: EdgeInsets.only(bottom: 1),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            boxShadow: [Shadows.topShadow()]
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('REPLY', style: TextStyle(
+                  color: CompanyColor.blueDark,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4
+              )),
+              widget.replyWidget
+            ],
+          )
+      );
+    } else {
+     w = Container();
+    }
+
+    return w;
   }
 }

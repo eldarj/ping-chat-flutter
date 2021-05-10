@@ -1,6 +1,7 @@
 import 'package:filesize/filesize.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutterping/model/client-dto.model.dart';
-
+import 'package:flutterping/model/reply-dto.model.dart';
 
 class MessageDto {
   int id;
@@ -69,6 +70,10 @@ class MessageDto {
 
   bool edited = false;
 
+  ReplyDto replyMessage;
+
+  GlobalKey widgetKey;
+
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
   }
@@ -89,6 +94,7 @@ class MessageDto {
     this.pinned,
     this.pinnedTimestamp,
     this.edited,
+    this.replyMessage
   });
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
@@ -136,7 +142,10 @@ class MessageDto {
       ..messageType = parsedJson['messageType'] as String
       ..pinned = parsedJson['pinned'] as bool
       ..pinnedTimestamp = parsedJson['pinnedTimestamp'] as int
-      ..edited = parsedJson['edited'] as bool;
+      ..edited = parsedJson['edited'] as bool
+      ..replyMessage = parsedJson['replyMessage'] == null
+          ? null
+          : ReplyDto.fromJson(parsedJson['replyMessage'] as Map<String, dynamic>);
   }
 
   Map<String, dynamic> toJson() => {
@@ -168,5 +177,6 @@ class MessageDto {
     'pinned': pinned,
     'pinnedTimestamp': pinnedTimestamp,
     'edited': edited,
+    'replyMessage': replyMessage
   };
 }

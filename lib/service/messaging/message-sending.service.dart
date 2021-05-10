@@ -1,5 +1,6 @@
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/model/reply-dto.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 
@@ -26,6 +27,17 @@ class MessageSendingService {
     MessageDto message = _create();
     message.messageType = 'TEXT_MESSAGE';
     message.text = text;
+
+    wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
+
+    return message;
+  }
+
+  MessageDto sendReply(String text, MessageDto replyMessage) {
+    MessageDto message = _create();
+    message.messageType = 'TEXT_MESSAGE';
+    message.text = text;
+    message.replyMessage = ReplyDto.fromMessage(replyMessage);
 
     wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
 

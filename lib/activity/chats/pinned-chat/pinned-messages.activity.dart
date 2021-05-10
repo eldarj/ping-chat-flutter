@@ -171,7 +171,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
     String widgetKey = message.text != null ? message.text : message.fileName;
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.only(bottom: 10),
       margin: EdgeInsets.only(bottom: 5),
       decoration: BoxDecoration(
         color: Colors.white,

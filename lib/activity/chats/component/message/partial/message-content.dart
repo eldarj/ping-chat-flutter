@@ -69,6 +69,8 @@ class MessageImage extends StatelessWidget {
 
   final String text;
 
+  final double borderRadius;
+
   MessageImage(
       this.filePath,
       this.isDownloadingFile,
@@ -78,6 +80,7 @@ class MessageImage extends StatelessWidget {
       {
         Key key,
         this.text,
+        this.borderRadius = 15
       }
   ) : super(key: key);
 
@@ -120,7 +123,7 @@ class MessageImage extends StatelessWidget {
         child: Stack(alignment: Alignment.center,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(borderRadius),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 colorFilteredImage,
                 !isUploading && text != null ? Container(

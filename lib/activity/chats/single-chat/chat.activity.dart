@@ -24,11 +24,13 @@ import 'package:flutterping/model/message-download-progress.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
+import 'package:flutterping/model/reply-dto.model.dart';
 import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/image-download.publisher.dart';
 import 'package:flutterping/service/messaging/message-edit.publisher.dart';
+import 'package:flutterping/service/messaging/message-reply.publisher.dart';
 import 'package:flutterping/service/messaging/message-pin.publisher.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
@@ -119,6 +121,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   bool isEditing = false;
   int editingMessageId = 0;
+
+  bool isReplying = false;
+  Widget replyWidget = Container();
+  MessageDto replyMessage;
+
+  ScrollController chatListController = new ScrollController();
 
   ChatActivityState({ this.contactName });
 
@@ -264,6 +272,80 @@ class ChatActivityState extends BaseState<ChatActivity> {
         textController.text = editEvent.text;
       });
     });
+
+    messageReplyPublisher.onReplyEvent(STREAMS_LISTENER_ID, (MessageDto message) {
+      setState(() {
+        isReplying = true;
+        replyMessage = message;
+
+        switch (message.messageType) {
+          case 'RECORDING':
+            replyWidget = Row(
+              children: [
+                Container(
+                    margin: EdgeInsets.only(right: 5),
+                    child: Icon(Icons.keyboard_voice, color: Colors.grey.shade500, size: 15)),
+                Text('Recording', style: TextStyle(color: Colors.grey.shade500)),
+              ],
+            );
+            break;
+          case 'MEDIA':
+            replyWidget = Row(
+              children: [
+                Container(
+                    margin: EdgeInsets.only(right: 5),
+                    child: Icon(Icons.ondemand_video, color: Colors.grey.shade500, size: 15)),
+                Text('Media', style: TextStyle(color: Colors.grey.shade500)),
+              ],
+            ) ;
+            break;
+          case 'FILE':
+            replyWidget = Row(
+              children: [
+                Container(
+                    margin: EdgeInsets.only(right: 5),
+                    child: Icon(Icons.insert_drive_file, color: Colors.grey.shade500, size: 15)),
+                Text('File', style: TextStyle(color: Colors.grey.shade500)),
+              ],
+            );
+            break;
+          case 'IMAGE':
+            replyWidget = Row(
+              children: [
+                Container(
+                    margin: EdgeInsets.only(right: 5),
+                    child: Icon(Icons.photo_size_select_large, color: Colors.grey.shade500, size: 15)),
+                Text('Image', style: TextStyle(color: Colors.grey.shade500)),
+              ],
+            );
+            break;
+          case 'MAP_LOCATION':
+            replyWidget = Row(
+              children: [
+                Container(
+                    margin: EdgeInsets.only(right: 5),
+                    child: Icon(Icons.location_on_outlined, color: Colors.grey.shade500, size: 15)),
+                Text('Location', style: TextStyle(color: Colors.grey.shade500)),
+              ],
+            );
+            break;
+          case 'STICKER':
+            replyWidget = Row(
+              children: [
+                Container(
+                    margin: EdgeInsets.only(right: 5),
+                    child: Icon(Icons.sentiment_very_satisfied, color: Colors.grey.shade500, size: 15)),
+                Text('Sticker', style: TextStyle(color: Colors.grey.shade500)),
+              ],
+            );
+            break;
+          default:
+            replyWidget = Text(message.text,
+                overflow: TextOverflow.ellipsis, maxLines: 1,
+                style: TextStyle(color: Colors.grey.shade500));
+        }
+      });
+    });
   }
 
   @override
@@ -341,6 +423,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     if (messageEditPublisher != null) {
       messageEditPublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
+    if (messageReplyPublisher != null) {
+      messageReplyPublisher.removeListener(STREAMS_LISTENER_ID);
     }
 
     IsolateNameServer.removePortNameMapping(CHAT_ACTIVITY_DOWNLOADER_PORT_ID);
@@ -465,9 +551,19 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 userSentNodeId: userSentNodeId,
                 picturesPath: picturesPath,
                 inputTextController: textController,
-                inputTextFocusNode: textFocusNode, displayStickers: displayStickers, displaySendButton: displaySendButton,
-                doSendMessage: doSendMessage, onOpenShareBottomSheet: onOpenShareBottomSheet, onOpenStickerBar: onOpenStickerBar,
+                inputTextFocusNode: textFocusNode,
+                displayStickers: displayStickers,
+                displaySendButton: displaySendButton,
                 messageSendingService: widget.messageSendingService,
+                doSendMessage: doSendMessage,
+                onOpenShareBottomSheet: onOpenShareBottomSheet,
+                onOpenStickerBar: onOpenStickerBar,
+                onProgress: (message, progress) {
+                  setState(() {
+                    message.uploadProgress = progress / 100;
+                  });
+                },
+                isEditing: isEditing,
                 onCancelEdit: () {
                   setState(() {
                     isEditing = false;
@@ -490,12 +586,16 @@ class ChatActivityState extends BaseState<ChatActivity> {
                     textController.text = '';
                   });
                 },
-                onProgress: (message, progress) {
+                isReplying: isReplying,
+                replyWidget: replyWidget,
+                onCancelReply: () {
                   setState(() {
-                    message.uploadProgress = progress / 100;
+                    isReplying = false;
+                    replyWidget = Container();
+                    replyMessage = null;
                   });
                 },
-                isEditing: isEditing
+                onSubmitReply: doSendReply
               ),
               displayStickers ? StickerBar(sendFunc: doSendEmoji) : Container(),
             ]),
@@ -562,6 +662,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
               color: Colors.transparent,
               child: ListView.builder(
                 reverse: true,
+                controller: chatListController,
                 itemCount: messages == null ? 0 : messages.length,
                 itemBuilder: (context, index) {
                   return buildSingleMessage(messages[index],
@@ -604,10 +705,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
     previousWasPeerMessage = isPeerMessage;
     previousMessageDate = thisMessageDate;
 
-    String widgetKey = message.text != null ? message.text : message.fileName;
+    String widgetKeyValue = message.text != null ? message.text : message.fileName;
+    message.widgetKey = new GlobalKey();
 
     return MessageComponent(
-      key: new Key(widgetKey),
+      key: message.widgetKey,
       margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
           left: 5, right: 5,
           bottom: isLastMessage ? 20 : 0),
@@ -652,15 +754,34 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   doSendEmoji(stickerCode) async {
     widget.messageSendingService.sendSticker(stickerCode);
+    chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
   }
 
   doSendMessage() {
     if (textController.text.length > 0) {
       widget.messageSendingService.sendTextMessage(textController.text);
+
       setState(() {
         textController.clear();
       });
+
+      chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
     }
+  }
+
+  doSendReply() {
+    if (textController.text.length > 0) {
+      widget.messageSendingService.sendReply(textController.text, replyMessage);
+    }
+
+    setState(() {
+      isReplying = false;
+      replyWidget = Container();
+      replyMessage = null;
+      textController.clear();
+    });
+
+    chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
   }
 
   doGetPageOnScroll() async {

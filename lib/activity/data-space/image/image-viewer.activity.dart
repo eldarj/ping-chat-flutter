@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/model/reply-dto.model.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
@@ -31,9 +32,14 @@ class ImageViewerActivity extends StatefulWidget {
 
   final int timestamp;
 
-  const ImageViewerActivity({Key key, this.message,
+  final ReplyDto reply;
+
+  const ImageViewerActivity({Key key,
+    this.message,
     this.messageId, this.nodeId,
-    this.file, this.sender, this.timestamp, this.contactName}) : super(key: key);
+    this.file, this.sender, this.timestamp, this.contactName,
+    this.reply
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ImageViewerActivityState();
@@ -107,19 +113,19 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
     Widget w = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          widget.message != null && widget.message.messageType == 'MAP_LOCATION' ? Container(
+          displayMapLocation() ? Container(
             margin: EdgeInsets.only(bottom: 5),
-            child: Text(widget.message.text, style: TextStyle(
+            child: Text(widget.reply != null ? widget.reply.text : widget.message.text, style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w400
             ))
           ) : Container(),
-          Text(widget.sender, style: TextStyle(
+          widget.sender != null ? Text(widget.sender, style: TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.bold
-          )),
+          )) : Container(),
           Text(DateTimeUtil.convertTimestampToTimeAgo(widget.timestamp), style: TextStyle(
               color: Colors.white,
               fontSize: 12
@@ -128,6 +134,19 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
 
     return w;
   }
+
+  bool displayMapLocation() {
+    bool isMapLocation = false;
+
+    if (widget.reply != null) {
+      isMapLocation = widget.reply.messageType == 'MAP_LOCATION';
+    } else if (widget.message != null) {
+      isMapLocation =  widget.message.messageType == 'MAP_LOCATION';
+    }
+
+    return isMapLocation;
+  }
+
   Future doDeleteMessage() async {
     try {
       widget.file.delete();
