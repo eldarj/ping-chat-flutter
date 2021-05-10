@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:flutterping/model/message-dto.model.dart';
 import 'package:rxdart/rxdart.dart';
 
 class EditEvent {
-  int messageId;
+  MessageDto message;
   String text;
 
-  EditEvent(this.messageId, this.text);
+  EditEvent(this.message, this.text);
 }
 
 class MessageEditPublisher {
@@ -33,8 +34,8 @@ class MessageEditPublisher {
     }
   }
 
-  emitEditEvent(int messageId, String text) {
-    _subject.add(new EditEvent(messageId, text));
+  emitEditEvent(MessageDto message, String text) {
+    _subject.add(new EditEvent(message, text));
   }
 
   removeListener(String key) {

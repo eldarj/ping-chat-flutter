@@ -120,7 +120,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displayDeleteLoader = false;
 
   bool isEditing = false;
-  int editingMessageId = 0;
+  MessageDto editingMessage = null;
 
   bool isReplying = false;
   Widget replyWidget = Container();
@@ -172,6 +172,16 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
       sendSeenStatus([new MessageSeenDto(id: message.id,
           senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber)]);
+    });
+
+    wsClientService.editedmessagePub.addListener(STREAMS_LISTENER_ID, (MessageDto editedMessage) async {
+      var message = messages.firstWhere((element) => element.id == editedMessage.id, orElse: () => null);
+      if (message != null) {
+        setState(() {
+          message.edited = true;
+          message.text = editedMessage.text;
+        });
+      }
     });
 
     wsClientService.sendingMessagesPub.addListener(STREAMS_LISTENER_ID, (message) async {
@@ -268,7 +278,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     messageEditPublisher.onEditEvent(STREAMS_LISTENER_ID, (EditEvent editEvent) {
       setState(() {
         isEditing = true;
-        editingMessageId = editEvent.messageId;
+        editingMessage = editEvent.message;
         textController.text = editEvent.text;
       });
     });
@@ -403,6 +413,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     if (wsClientService != null) {
       wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.editedmessagePub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
@@ -567,14 +578,14 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 onCancelEdit: () {
                   setState(() {
                     isEditing = false;
-                    editingMessageId = 0;
+                    editingMessage = null;
                     textController.text = '';
                   });
                 },
                 onSubmitEdit: () {
-                  doSendEditMessage(editingMessageId, textController.text);
+                  doSendEditMessage(editingMessage, textController.text);
 
-                  MessageDto message = messages.firstWhere((element) => element.id == editingMessageId, orElse: () => null);
+                  MessageDto message = messages.firstWhere((element) => element.id == editingMessage.id, orElse: () => null);
                   if (message != null) {
                     message.text = textController.text;
                     message.edited = true;
@@ -582,7 +593,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
                   setState(() {
                     isEditing = false;
-                    editingMessageId = 0;
+                    editingMessage = null;
                     textController.text = '';
                   });
                 },
@@ -767,6 +778,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
       chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
     }
+  }
+
+  doSendEditMessage(MessageDto message, String text) async {
+    // String url = '/api/messages/$messageId';
+    // await HttpClientService.post(url, body: text);
+    widget.messageSendingService.sendEdit(message, text);
   }
 
   doSendReply() {
@@ -1074,11 +1091,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
     scaffold.showSnackBar(SnackBarsComponent.error(
         content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
     ));
-  }
-
-  doSendEditMessage(int messageId, String text) async {
-    String url = '/api/messages/$messageId';
-    await HttpClientService.post(url, body: text);
   }
 }
 

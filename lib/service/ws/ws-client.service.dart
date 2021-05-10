@@ -27,6 +27,7 @@ class WsClientService {
   WsPublisher<int> userStatusPub = new WsPublisher();
 
   WsPublisher<MessageDto> receivingMessagesPub = new WsPublisher();
+  WsPublisher<MessageDto> editedmessagePub = new WsPublisher();
   WsPublisher<MessageDto> sendingMessagesPub = new WsPublisher(ws: _wsFunc);
 
   WsPublisher<MessageSeenDto> outgoingReceivedPub = new WsPublisher(ws: _wsFunc);
@@ -47,6 +48,11 @@ class WsClientService {
       wsClient.subscribe(destination: '/user/messages/receive', callback: (frame) async {
         MessageDto newMessage = MessageDto.fromJson(json.decode(frame.body));
         receivingMessagesPub.subject.add(newMessage);
+      });
+
+      wsClient.subscribe(destination: '/user/messages/edited', callback: (frame) async {
+        MessageDto editedMessage = MessageDto.fromJson(json.decode(frame.body));
+        editedmessagePub.subject.add(editedMessage);
       });
 
       wsClient.subscribe(destination: '/user/messages/seen', callback: (frame) async {

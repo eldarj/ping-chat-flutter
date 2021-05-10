@@ -44,6 +44,13 @@ class MessageSendingService {
     return message;
   }
 
+  MessageDto sendEdit(MessageDto message, text) {
+    message.text = text;
+    wsClientService.sendingMessagesPub.sendEvent(message, '/messages/edit');
+
+    return message;
+  }
+
   MessageDto sendSticker(String stickerCode, {chained: false}) {
     MessageDto message = _create(chained: chained);
     message.messageType = 'STICKER';

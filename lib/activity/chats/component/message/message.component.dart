@@ -263,7 +263,7 @@ class MessageComponentState extends State<MessageComponent> {
       w = Container(
         padding: EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: Color.fromRGBO(240, 240, 240, 0.2),
+          color: Color.fromRGBO(230, 230, 230, 0.2),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Column(crossAxisAlignment: widget.isPeerMessage
@@ -507,7 +507,7 @@ class MessageComponentState extends State<MessageComponent> {
             title: Text('Edit'),
             onTap: () {
               Navigator.of(context).pop();
-              messageEditPublisher.emitEditEvent(message.id, message.text);
+              messageEditPublisher.emitEditEvent(message, message.text);
             }),
         ListTile(
             dense: true,
