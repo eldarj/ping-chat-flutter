@@ -64,7 +64,7 @@ Widget messageStatus(sentTimestamp, sent, received, seen, pinned, edited, {
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       Container(
-        margin: EdgeInsets.only(top: 2.5),
+        margin: EdgeInsets.only(top: 2.5, right: 5),
         padding: EdgeInsets.only(left: 2.5, right: 5, top: 1.5),
         decoration: BoxDecoration(
           color: Color.fromRGBO(255, 255, 255, 0.8),
@@ -109,7 +109,7 @@ Widget messagePeerStatus(sentTimestamp, pinned, edited) {
     direction: Axis.horizontal,
     children: [
       Container(
-        margin: EdgeInsets.only(top: 2.5),
+        margin: EdgeInsets.only(top: 2.5, left: 5),
         padding: EdgeInsets.only(left: 5, right: 5, top: 1.5),
         decoration: BoxDecoration(
           color: Color.fromRGBO(255, 255, 255, 0.8),

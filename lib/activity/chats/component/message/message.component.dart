@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:clipboard/clipboard.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -39,13 +38,16 @@ class MessageComponent extends StatefulWidget {
 
   final Color myChatBubbleColor;
 
+  final Function onMessageTapDown;
+
   const MessageComponent({Key key,
     this.message,
     this.displayTimestamp,
     this.margin,
     this.picturesPath,
     this.pinnedStyle = false,
-    this.myChatBubbleColor
+    this.myChatBubbleColor,
+    this.onMessageTapDown
   }) : super(key: key);
 
   @override
@@ -62,8 +64,6 @@ class MessageComponentState extends State<MessageComponent> {
   AudioPlayer audioPlayer = AudioPlayer();
 
   String recordingCurrentPosition = '00:00';
-
-  bool isPinButtonLoading = false;
 
   @override
   void initState() {
@@ -89,10 +89,10 @@ class MessageComponentState extends State<MessageComponent> {
     return GestureDetector(
       onTapUp: resolveMessageTapHandler(),
       onLongPressStart: (_) {
-        onMessageTapDown();
+        widget.onMessageTapDown.call();
       },
       onDoubleTap: () {
-        onMessageTapDown();
+        widget.onMessageTapDown.call();
       },
       child: Container(
         margin: widget.margin,
@@ -264,7 +264,7 @@ class MessageComponentState extends State<MessageComponent> {
       w = Container(
         padding: EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: Color.fromRGBO(230, 230, 230, 0.2),
+          color: Color.fromRGBO(240, 240, 240, 0.3),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.end,
@@ -286,19 +286,6 @@ class MessageComponentState extends State<MessageComponent> {
           decoration: messageDecoration,
           constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
           child: _messageWidget);
-    }
-
-    return w;
-  }
-
-  buildReplyMessage() {
-    Widget w = Container();
-    if (widget.message.replyMessage != null) {
-      return ReplyComponent(
-          isPeerMessage: false,
-          message: widget.message,
-          picturesPath: widget.picturesPath,
-      );
     }
 
     return w;
@@ -390,194 +377,5 @@ class MessageComponentState extends State<MessageComponent> {
   onDeleteMessageError(error) {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error());
-  }
-
-  // Pin message
-  Future<bool> doUpdatePinStatus(MessageDto message) async {
-    messageActionsSetState(() {
-      isPinButtonLoading = true;
-    });
-
-    String url = '/api/messages/${message.id}/pin';
-
-    message.pinned = message.pinned != null && message.pinned;
-    http.Response response = await HttpClientService.post(url, body: !message.pinned);
-
-    if(response.statusCode != 200) {
-      throw new Exception();
-    }
-
-    await Future.delayed(Duration(seconds: 1));
-
-    return !message.pinned;
-  }
-
-  onPinSuccess(message, pinned) {
-    isPinButtonLoading = false;
-    Navigator.of(context).pop();
-
-    setState(() {
-      message.pinned = pinned;
-    });
-
-    messagePinPublisher.emitPinUpdate(message.id, pinned);
-
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.success(pinned ? 'Message pinned'
-        : 'Message unpinned'));
-  }
-
-  onPinError(error) {
-    print(error);
-    isPinButtonLoading = false;
-    Navigator.of(context).pop();
-
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.error(content: 'Something went wrong'));
-  }
-
-  // Message tap actions widgets
-  void onMessageTapDown() async {
-    FocusScope.of(context).requestFocus(new FocusNode());
-
-    Widget actionsWidget;
-
-    switch (widget.message.messageType) {
-      case 'RECORDING':
-        actionsWidget = buildMediaMessageActions();
-        break;
-      case 'MEDIA':
-        actionsWidget = buildMediaMessageActions();
-        break;
-      case 'FILE':
-        actionsWidget = buildMediaMessageActions();
-        break;
-      case 'IMAGE':
-        actionsWidget = buildImageMessageActions();
-        break;
-      case 'MAP_LOCATION':
-        actionsWidget = buildMapMessageActions();
-        break;
-      case 'STICKER':
-        actionsWidget = buildStickerMessageActions();
-        break;
-      default:
-        actionsWidget = buildTextMessageActions();
-    }
-
-    showModalBottomSheet(context: context, builder: (BuildContext context) {
-      return actionsWidget;
-    });
-  }
-
-  Widget buildTextMessageActions() {
-    return StatefulBuilder(builder: (context, setState) {
-      messageActionsSetState = setState;
-      return Wrap(children: [
-        buildReplyTile(),
-        buildCopyTile(),
-        buildEditTile(),
-        buildPinTile(),
-        buildDeleteTile(),
-      ]);
-    });
-  }
-
-  Widget buildStickerMessageActions() {
-    return StatefulBuilder(builder: (context, setState) {
-      messageActionsSetState = setState;
-      return Wrap(children: [
-        buildReplyTile(),
-        buildPinTile(),
-        buildDeleteTile(),
-      ]);
-    });
-  }
-
-  Widget buildImageMessageActions() {
-    return StatefulBuilder(builder: (context, setState) {
-      messageActionsSetState = setState;
-      return Wrap(children: [
-        buildReplyTile(),
-        buildPinTile(),
-        buildDeleteTile(),
-      ]);
-    });
-  }
-
-  Widget buildMapMessageActions() {
-    return StatefulBuilder(
-        builder: (context, setState) {
-          messageActionsSetState = setState;
-          return Wrap(children: [
-            buildReplyTile(),
-            buildCopyTile(),
-            buildPinTile(),
-            buildDeleteTile(),
-          ]);
-        });
-  }
-
-  Widget buildMediaMessageActions() {
-    return StatefulBuilder(
-        builder: (context, setState) {
-          messageActionsSetState = setState;
-          return Wrap(children: [
-            buildReplyTile(),
-            buildPinTile(),
-            buildDeleteTile(),
-          ]);
-        });
-  }
-
-  buildReplyTile() {
-    return ListTile(
-        dense: true,
-        leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
-        title: Text('Reply'),
-        onTap: () {
-          Navigator.of(context).pop();
-          messageReplyPublisher.emitReplyEvent(widget.message);
-        });
-  }
-
-  buildCopyTile() {
-    return ListTile(
-        dense: true,
-        leading: Icon(Icons.copy, size: 20, color: Colors.grey.shade600),
-        title: Text('Copy'),
-        onTap: () {
-          FlutterClipboard.copy(widget.message.text).then(( value ) {
-            Navigator.of(context).pop();
-            scaffold.showSnackBar(SnackBarsComponent.info('Copied to clipboard'));
-          });
-        });
-  }
-
-  buildPinTile() {
-    return ListTile(
-        dense: true,
-        leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
-        title: Text(widget.message.pinned != null && widget.message.pinned ? 'Unpin' : 'Pin'),
-        onTap: () {
-          doUpdatePinStatus(widget.message).then((pinned) => onPinSuccess(widget.message, pinned), onError: onPinError);
-        });
-  }
-
-  buildEditTile() {
-    return ListTile(
-        dense: true,
-        leading: Icon(Icons.edit, size: 20, color: Colors.grey.shade600),
-        title: Text('Edit'),
-        onTap: () {
-          Navigator.of(context).pop();
-          messageEditPublisher.emitEditEvent(widget.message, widget.message.text);
-        });
-  }
-
-  buildDeleteTile() {
-    return ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
-        title: Text('Delete'),
-        onTap: () {});
   }
 }

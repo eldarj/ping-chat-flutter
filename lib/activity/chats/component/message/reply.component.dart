@@ -69,8 +69,12 @@ class ReplyComponentState extends State<ReplyComponent> {
         margin: EdgeInsets.only(bottom: 2.5),
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade100),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(10),
+            bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
+            bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
+          ),
         ),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +129,12 @@ class ReplyComponentState extends State<ReplyComponent> {
         opacity: 0.8,
         child: Container(
           constraints: BoxConstraints(maxWidth: 120,),
-          child: MessageImage(filePath, false, false, 0.0, () {}, borderRadius: 0),
+          child: ClipRRect(
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
+                  bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
+              ),
+              child: MessageImage(filePath, false, false, 0.0, () {}, borderRadius: 0)),
         ),
       );
       padding = EdgeInsets.all(0);
@@ -148,7 +157,7 @@ class ReplyComponentState extends State<ReplyComponent> {
       _messageWidget = Opacity(
         opacity: 0.8,
         child: Container(
-            width: 50, height: 50,
+            width: 75, height: 50,
             child: MessageSticker(widget.message.replyMessage.text)),
       );
 

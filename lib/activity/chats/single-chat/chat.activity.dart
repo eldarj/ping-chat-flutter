@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutterping/activity/calls/callscreen.activity.dart';
 import 'package:flutterping/activity/chats/component/message/peer-message.component.dart';
@@ -129,6 +130,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   MessageDto replyMessage;
 
   ScrollController chatListController = new ScrollController();
+
+  bool isPinButtonLoading = false;
 
   ChatActivityState({ this.contactName });
 
@@ -746,6 +749,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         displayTimestamp: displayTimestamp,
         picturesPath: picturesPath,
         myChatBubbleColor: myChatBubbleColor,
+        onMessageTapDown: () => onMessageTapDown(message)
       );
     }
   }
@@ -1110,6 +1114,184 @@ class ChatActivityState extends BaseState<ChatActivity> {
     scaffold.showSnackBar(SnackBarsComponent.error(
         content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
     ));
+  }
+
+  // Pin message
+  Future<bool> doUpdatePinStatus(MessageDto message) async {
+    setState(() {
+      isPinButtonLoading = true;
+    });
+
+    String url = '/api/messages/${message.id}/pin';
+
+    message.pinned = message.pinned != null && message.pinned;
+    http.Response response = await HttpClientService.post(url, body: !message.pinned);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    await Future.delayed(Duration(seconds: 1));
+
+    return !message.pinned;
+  }
+
+  onPinSuccess(message, pinned) {
+
+    setState(() {
+      isPinButtonLoading = false;
+      message.pinned = pinned;
+    });
+
+    messagePinPublisher.emitPinUpdate(message.id, pinned);
+
+    Navigator.of(ROOT_CONTEXT).pop();
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.success(pinned ? 'Message pinned'
+        : 'Message unpinned'));
+  }
+
+  onPinError(error) {
+    print(error);
+
+    setState(() {
+      isPinButtonLoading = false;
+    });
+
+    Navigator.of(ROOT_CONTEXT).pop();
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(content: 'Something went wrong'));
+  }
+
+
+  Widget buildTextMessageActions(message) {
+    return Wrap(children: [
+      buildReplyTile(message),
+      buildCopyTile(message),
+      buildEditTile(message),
+      buildPinTile(message),
+      buildDeleteTile(message),
+    ]);
+  }
+
+  Widget buildStickerMessageActions(message) {
+    return Wrap(children: [
+      buildReplyTile(message),
+      buildPinTile(message),
+      buildDeleteTile(message),
+    ]);
+  }
+
+  Widget buildImageMessageActions(message) {
+    return Wrap(children: [
+      buildReplyTile(message),
+      buildPinTile(message),
+      buildDeleteTile(message),
+    ]);
+  }
+
+  Widget buildMapMessageActions(message) {
+    return Wrap(children: [
+      buildReplyTile(message),
+      buildCopyTile(message),
+      buildPinTile(message),
+      buildDeleteTile(message),
+    ]);
+  }
+
+  Widget buildMediaMessageActions(message) {
+    return Wrap(children: [
+      buildReplyTile(message),
+      buildPinTile(message),
+      buildDeleteTile(message),
+    ]);
+  }
+
+
+  // Message tap actions widgets
+  void onMessageTapDown(message) async {
+    FocusScope.of(ROOT_CONTEXT).requestFocus(new FocusNode());
+
+    Widget actionsWidget;
+
+    switch (message.messageType) {
+      case 'RECORDING':
+        actionsWidget = buildMediaMessageActions(message);
+        break;
+      case 'MEDIA':
+        actionsWidget = buildMediaMessageActions(message);
+        break;
+      case 'FILE':
+        actionsWidget = buildMediaMessageActions(message);
+        break;
+      case 'IMAGE':
+        actionsWidget = buildImageMessageActions(message);
+        break;
+      case 'MAP_LOCATION':
+        actionsWidget = buildMapMessageActions(message);
+        break;
+      case 'STICKER':
+        actionsWidget = buildStickerMessageActions(message);
+        break;
+      default:
+        actionsWidget = buildTextMessageActions(message);
+    }
+
+    showModalBottomSheet(context: context, builder: (BuildContext context) {
+      return actionsWidget;
+    });
+  }
+
+  buildReplyTile(message) {
+    return ListTile(
+        dense: true,
+        leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
+        title: Text('Reply'),
+        onTap: () {
+          Navigator.of(ROOT_CONTEXT).pop();
+          messageReplyPublisher.emitReplyEvent(message);
+        });
+  }
+
+  buildCopyTile(message) {
+    return ListTile(
+        dense: true,
+        leading: Icon(Icons.copy, size: 20, color: Colors.grey.shade600),
+        title: Text('Copy'),
+        onTap: () {
+          FlutterClipboard.copy(message.text).then(( value ) {
+            Navigator.of(ROOT_CONTEXT).pop();
+            scaffold.showSnackBar(SnackBarsComponent.info('Copied to clipboard'));
+          });
+        });
+  }
+
+  buildPinTile(message) {
+    return ListTile(
+        dense: true,
+        leading: isPinButtonLoading ? Spinner(size: 20) : Icon(Icons.push_pin, size: 20, color: Colors.grey.shade600),
+        title: Text(message.pinned != null && message.pinned ? 'Unpin' : 'Pin'),
+        onTap: () {
+          doUpdatePinStatus(message).then((pinned) => onPinSuccess(message, pinned), onError: onPinError);
+        });
+  }
+
+  buildEditTile(message) {
+    return ListTile(
+        dense: true,
+        leading: Icon(Icons.edit, size: 20, color: Colors.grey.shade600),
+        title: Text('Edit'),
+        onTap: () {
+          Navigator.of(ROOT_CONTEXT).pop();
+          messageEditPublisher.emitEditEvent(message, message.text);
+        });
+  }
+
+  buildDeleteTile(message) {
+    return ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
+        title: Text('Delete'),
+        onTap: () {});
   }
 }
 

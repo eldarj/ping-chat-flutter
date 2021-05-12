@@ -282,19 +282,6 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
     return w;
   }
 
-  buildReplyMessage() {
-    Widget w = Container();
-    if (widget.message.replyMessage != null) {
-      return ReplyComponent(
-        isPeerMessage: true,
-        message: widget.message,
-        picturesPath: widget.picturesPath,
-      );
-    }
-
-    return w;
-  }
-
   // Message tap handler
   resolveMessageTapHandler() {
     Function messageTapHandler = (_) {};
@@ -492,7 +479,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
         leading: Icon(Icons.reply, size: 20, color: Colors.grey.shade600),
         title: Text('Reply'),
         onTap: () {
-          Navigator.of(context).pop();
+          Navigator.of(ROOT_CONTEXT).pop();
           messageReplyPublisher.emitReplyEvent(widget.message);
         });
   }
@@ -504,7 +491,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
         title: Text('Copy'),
         onTap: () {
           FlutterClipboard.copy(widget.message.text).then(( value ) {
-            Navigator.of(context).pop();
+            Navigator.of(ROOT_CONTEXT).pop();
             scaffold.showSnackBar(SnackBarsComponent.info('Copied to clipboard'));
           });
         });
