@@ -31,6 +31,7 @@ import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ContactsActivity extends StatefulWidget {
   final bool displaySavedContactSnackbar;
@@ -187,14 +188,14 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
             appBar: BaseAppBar.getProfileAppBar(scaffold,
                 titleText: 'Contacts',
                 actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 0),
-                    child: TextButton(child: displaySyncLoader ? Spinner(size: 20)
-                        : Icon(Icons.person_add, color: CompanyColor.iconGrey),
-                        onPressed: () {
-                          NavigatorUtil.push(context, AddContactActivity(user: user));
-                        }),
-                  ),
+                  TextButton(child: displaySyncLoader ? Spinner(size: 20)
+                      : Icon(Icons.search, color: CompanyColor.iconGrey),
+                      onPressed: () {
+                        NavigatorUtil.push(context, SearchContactsActivity(
+                            type: SearchContactsType.CONTACT,
+                            contacts: contacts
+                        ));
+                      }),
                 ],
                 bottomTabs: TabBar(
                     onTap: (index) {
@@ -205,6 +206,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                       doGetContacts(clearRides: true, favouritesOnly: index == 1)
                           .then(onGetContactsSuccess, onError: onGetContactsError);
                     },
+                    indicatorColor: CompanyColor.blueDark,
                     tabs: [
                       Tab(icon: Icon(Icons.people)),
                       Tab(icon: Icon(Icons.star_border)),
@@ -215,14 +217,9 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
             floatingActionButton: FloatingActionButton(
               elevation: 1,
               backgroundColor: CompanyColor.blueDark,
-              child: Icon(Icons.search, color: Colors.white),
+              child: Icon(Icons.edit, color: Colors.white),
               onPressed: () {
-                print('USER ID');
-                print(userId.toString());
-                NavigatorUtil.push(context, SearchContactsActivity(
-                    type: SearchContactsType.CONTACT,
-                    contacts: contacts
-                ));
+                NavigatorUtil.push(context, AddContactActivity(user: user));
               },
             ),
             body: Builder(builder: (context) {
@@ -234,7 +231,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
   }
 
   Widget buildActivityContent() {
-    Widget widget = ActivityLoader.build();
+    // Widget widget = ActivityLoader.build();
+    Widget widget = ActivityLoader.shimmer();
 
     if (!displayLoader) {
       if (!isError) {
@@ -259,10 +257,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                   ) : Text('You don\'t have any contacts in your favorites', style: TextStyle(color: Colors.grey)),
                 ),
               ),
-              Container(
-                  child: Text(totalContacts > 0 ? 'Showing ${contacts.length} of ${totalContacts}' : '',
-                      style: TextStyle(color: Colors.grey.shade400, fontSize: 12))
-              ),
+              // Container(
+              //     child: Text(totalContacts > 0 ? 'Showing ${contacts.length} of ${totalContacts}' : '',
+              //         style: TextStyle(color: Colors.grey.shade400, fontSize: 12))
+              // ),
               Opacity(
                   opacity: isLoadingOnScroll ? 1 : 0,
                   child: LinearProgressLoader.build(context)
@@ -344,7 +342,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                           color: Colors.grey.shade400,
                           borderRadius: BorderRadius.circular(5),
                         ),
-                        child: Icon(Icons.delete, color: Colors.red)),
+                        child: Icon(Icons.delete, color: Colors.grey.shade800)),
                     onTap: () => doDeleteContact(contact).then(onDeleteContactSuccess,
                         onError: (error) => onDeleteContactError(contact, error)),
                   ),
@@ -393,7 +391,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 Container(
-                                                    margin: EdgeInsets.only(bottom: 5),
                                                     child: Text(contact.contactName,
                                                         style: TextStyle(fontSize: 18,
                                                             fontWeight: FontWeight.bold,
@@ -404,7 +401,10 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                                                     child: Text(
                                                         (contact.contactUser.firstName ?? '')
                                                             + ' '
-                                                            + (contact.contactUser.lastName ?? '')
+                                                            + (contact.contactUser.lastName ?? ''),
+                                                      style: TextStyle(
+                                                        color: Colors.grey.shade500
+                                                      ),
                                                     )
                                                 ) : Container()
                                               ]
@@ -512,6 +512,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
         '&favourites=' + favouritesOnly.toString();
 
     http.Response response = await HttpClientService.get(url);
+
+    await Future.delayed(Duration(milliseconds: 500));
 
     if(response.statusCode != 200) {
       throw new Exception();

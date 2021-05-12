@@ -10,6 +10,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutterping/activity/calls/callscreen.activity.dart';
+import 'package:flutterping/activity/chats/component/message/peer-message.component.dart';
 import 'package:flutterping/activity/chats/component/settings/chat-settings-menu.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
@@ -724,17 +725,29 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     message.widgetKey = new GlobalKey();
 
-    return MessageComponent(
-      key: message.widgetKey,
-      margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
-          left: 5, right: 5,
-          bottom: isLastMessage ? 20 : 0),
-      message: message,
-      isPeerMessage: isPeerMessage,
-      displayTimestamp: displayTimestamp,
-      picturesPath: picturesPath,
-      myChatBubbleColor: myChatBubbleColor,
-    );
+    if (isPeerMessage) {
+      return PeerMessageComponent(
+        key: message.widgetKey,
+        margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
+            left: 5, right: 5,
+            bottom: isLastMessage ? 20 : 0),
+        message: message,
+        displayTimestamp: displayTimestamp,
+        picturesPath: picturesPath
+      );
+
+    } else {
+      return MessageComponent(
+        key: message.widgetKey,
+        margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
+            left: 5, right: 5,
+            bottom: isLastMessage ? 20 : 0),
+        message: message,
+        displayTimestamp: displayTimestamp,
+        picturesPath: picturesPath,
+        myChatBubbleColor: myChatBubbleColor,
+      );
+    }
   }
 
   onOpenStickerBar() {

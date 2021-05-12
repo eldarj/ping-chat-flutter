@@ -34,6 +34,16 @@ class BaseAppBar {
         titleText: titleText, titleWidget: titleWidget, actions: actions, centerTitle: centerTitle);
   }
 
+  static getCloseAppBar(Function getContext, {
+    titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed }) {
+    return getBase(getContext,
+        leading: CloseButton(onPressed: () async {
+          await Future.delayed(Duration(milliseconds: 250));
+          onBackPressed(getContext);
+        }),
+        titleText: titleText, titleWidget: titleWidget, actions: actions, centerTitle: centerTitle);
+  }
+
   static getProfileAppBar(ScaffoldState scaffold, {
     titleWidget, titleText, actions, bottomTabs, centerTitle = true
   }) {
@@ -56,7 +66,7 @@ class BaseAppBar {
                         width: 45, height: 45,
                         child: FutureBuilder(future: UserService.getUser(), builder: (context, snapshot) {
                           return snapshot.hasData ? RoundProfileImageComponent(url: snapshot.data.profileImagePath,
-                              height: 45, width: 45, margin: 0) : Spinner();
+                              height: 40, width: 40, margin: 0) : Spinner();
                         })
                     ),
                     Container(alignment: Alignment.center,

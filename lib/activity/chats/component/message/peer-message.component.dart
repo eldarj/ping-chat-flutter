@@ -26,7 +26,7 @@ import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 
-class MessageComponent extends StatefulWidget {
+class PeerMessageComponent extends StatefulWidget {
   final MessageDto message;
 
   final bool displayTimestamp;
@@ -37,33 +37,27 @@ class MessageComponent extends StatefulWidget {
 
   final bool pinnedStyle;
 
-  final Color myChatBubbleColor;
-
-  const MessageComponent({Key key,
+  const PeerMessageComponent({Key key,
     this.message,
     this.displayTimestamp,
     this.margin,
     this.picturesPath,
     this.pinnedStyle = false,
-    this.myChatBubbleColor
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => MessageComponentState();
+  State<StatefulWidget> createState() => PeerMessageComponentState();
 }
 
-class MessageComponentState extends State<MessageComponent> {
+class PeerMessageComponentState extends State<PeerMessageComponent> {
   ScaffoldState scaffold;
-
   StateSetter messageActionsSetState;
-
   double maxWidth = DEVICE_MEDIA_SIZE.width - 150;
 
-  AudioPlayer audioPlayer = AudioPlayer();
-
-  String recordingCurrentPosition = '00:00';
-
   bool isPinButtonLoading = false;
+
+  AudioPlayer audioPlayer = AudioPlayer(); // TODO: Optimize, one per app not per message
+  String recordingCurrentPosition = '00:00';
 
   @override
   void initState() {
@@ -98,7 +92,7 @@ class MessageComponentState extends State<MessageComponent> {
         margin: widget.margin,
         child: Container(
           margin: EdgeInsets.only(left: 5, right: 5, top: 5, bottom: widget.displayTimestamp ? 20 : 2.5),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.end,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 buildMessagePinDetails(),
                 buildMessageContent(),
@@ -119,14 +113,14 @@ class MessageComponentState extends State<MessageComponent> {
         padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
         margin: EdgeInsets.only(bottom: 5),
         child: Text('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
-            color: CompanyColor.blueDark,
+          color: CompanyColor.blueDark,
         ))
     ) : Container();
   }
 
   buildMessageStatus() {
     return MessageStatusRow(
-        false,
+        true,
         widget.message.sentTimestamp,
         widget.message.displayCheckMark,
         widget.displayTimestamp,
@@ -141,7 +135,7 @@ class MessageComponentState extends State<MessageComponent> {
     String desc = message.fileSizeFormatted();
     String title = message.fileName;
 
-    var iconBg = CompanyColor.accentGreenLight;
+    var iconBg = CompanyColor.blueDark;
 
     IconData icon = message.messageType == 'MEDIA' ? Icons.ondemand_video : Icons.file_copy_outlined;
     Widget iconWidget = Icon(icon, color: Colors.grey.shade100, size: 20);
@@ -210,29 +204,27 @@ class MessageComponentState extends State<MessageComponent> {
     Widget _messageWidget;
 
     var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
-    BoxDecoration messageDecoration = myTextBoxDecoration(displayPinnedBorder, myMessageBackground: widget.myChatBubbleColor);
-
-    var messageBrightness = CompanyColor.getBrightness(widget.myChatBubbleColor);
+    BoxDecoration messageDecoration = peerTextBoxDecoration(displayPinnedBorder);
 
     if (widget.message.deleted) {
       print('MESSAGE DELETED');
       _messageWidget = MessageDeleted();
 
     } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
-      String filePath = widget.message.filePath;
+      String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
           widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
 
     } else if (widget.message.messageType == 'RECORDING') {
-      String filePath = widget.message.filePath;
+      String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
           widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
 
     } else if (widget.message.messageType == 'IMAGE') {
       print('MESSAGE IMAGE');
-      String filePath = widget.message.filePath;
+      String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc);
@@ -243,18 +235,17 @@ class MessageComponentState extends State<MessageComponent> {
       messageDecoration = stickerBoxDecoration();
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
-      String filePath = widget.message.filePath;
+      String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       _messageWidget = MessageImage(
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
-          brightness: messageBrightness
+          brightness: Brightness.light
       );
-      messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: false,
-          myMessageBackground: widget.myChatBubbleColor);
+      messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: true);
     } else {
       _messageWidget = MessageText(widget.message.text, edited: widget.message.edited,
-          brightness: messageBrightness
+          brightness: Brightness.light
       );
     }
 
@@ -262,24 +253,24 @@ class MessageComponentState extends State<MessageComponent> {
 
     if (widget.message.replyMessage != null) {
       w = Container(
-        padding: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: Color.fromRGBO(230, 230, 230, 0.2),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            ReplyComponent(
-              isPeerMessage: false,
-              message: widget.message,
-              picturesPath: widget.picturesPath,
-            ),
-            Container(
-                decoration: messageDecoration,
-                constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
-                child: _messageWidget)
-          ]
-        )
+          padding: EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: Color.fromRGBO(230, 230, 230, 0.2),
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ReplyComponent(
+                  message: widget.message,
+                  isPeerMessage: true,
+                  picturesPath: widget.picturesPath,
+                ),
+                Container(
+                    decoration: messageDecoration,
+                    constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
+                    child: _messageWidget)
+              ]
+          )
       );
     } else {
       w = Container(
@@ -295,9 +286,9 @@ class MessageComponentState extends State<MessageComponent> {
     Widget w = Container();
     if (widget.message.replyMessage != null) {
       return ReplyComponent(
-          isPeerMessage: false,
-          message: widget.message,
-          picturesPath: widget.picturesPath,
+        isPeerMessage: true,
+        message: widget.message,
+        picturesPath: widget.picturesPath,
       );
     }
 
@@ -312,7 +303,7 @@ class MessageComponentState extends State<MessageComponent> {
       messageTapHandler = (_) {};
 
     } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
-      String filePath = widget.message.filePath;
+      String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       messageTapHandler = (_) async {
         OpenFile.open(filePath);
@@ -320,7 +311,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     } else if (widget.message.messageType == 'RECORDING') {
       if (!widget.message.isUploading) {
-        String filePath = widget.message.filePath;
+        String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
         messageTapHandler = (_) async {
           if (widget.message.isRecordingPlaying) {
@@ -333,7 +324,7 @@ class MessageComponentState extends State<MessageComponent> {
 
     } else if (widget.message.messageType == 'IMAGE') {
       if (!widget.message.isUploading) {
-        String filePath = widget.message.filePath;
+        String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
         messageTapHandler = (_) async {
           NavigatorUtil.push(context,
@@ -346,7 +337,7 @@ class MessageComponentState extends State<MessageComponent> {
       }
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       if (!widget.message.isUploading) {
-        String filePath = widget.message.filePath;
+        String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
         messageTapHandler = (_) async {
           NavigatorUtil.push(context,
@@ -361,35 +352,6 @@ class MessageComponentState extends State<MessageComponent> {
     }
 
     return messageTapHandler;
-  }
-
-  // Delete message
-  Future doDeleteMessage(message) async {
-    String url = '/api/messages/' + message.id.toString();
-
-    if (message.fileName != null) {
-      String filePath = widget.picturesPath + '/' + message.fileName;
-      File(filePath).delete();
-    }
-
-    http.Response response = await HttpClientService.delete(url);
-
-    if (response.statusCode != 200) {
-      throw Exception();
-    }
-
-    return true;
-  }
-
-  onDeleteMessageSuccess(_) async {
-    setState(() {
-      widget.message.deleted = true;
-    });
-  }
-
-  onDeleteMessageError(error) {
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.error());
   }
 
   // Pin message
@@ -476,9 +438,7 @@ class MessageComponentState extends State<MessageComponent> {
       return Wrap(children: [
         buildReplyTile(),
         buildCopyTile(),
-        buildEditTile(),
         buildPinTile(),
-        buildDeleteTile(),
       ]);
     });
   }
@@ -489,7 +449,6 @@ class MessageComponentState extends State<MessageComponent> {
       return Wrap(children: [
         buildReplyTile(),
         buildPinTile(),
-        buildDeleteTile(),
       ]);
     });
   }
@@ -500,7 +459,6 @@ class MessageComponentState extends State<MessageComponent> {
       return Wrap(children: [
         buildReplyTile(),
         buildPinTile(),
-        buildDeleteTile(),
       ]);
     });
   }
@@ -513,7 +471,6 @@ class MessageComponentState extends State<MessageComponent> {
             buildReplyTile(),
             buildCopyTile(),
             buildPinTile(),
-            buildDeleteTile(),
           ]);
         });
   }
@@ -525,7 +482,6 @@ class MessageComponentState extends State<MessageComponent> {
           return Wrap(children: [
             buildReplyTile(),
             buildPinTile(),
-            buildDeleteTile(),
           ]);
         });
   }
@@ -562,22 +518,5 @@ class MessageComponentState extends State<MessageComponent> {
         onTap: () {
           doUpdatePinStatus(widget.message).then((pinned) => onPinSuccess(widget.message, pinned), onError: onPinError);
         });
-  }
-
-  buildEditTile() {
-    return ListTile(
-        dense: true,
-        leading: Icon(Icons.edit, size: 20, color: Colors.grey.shade600),
-        title: Text('Edit'),
-        onTap: () {
-          Navigator.of(context).pop();
-          messageEditPublisher.emitEditEvent(widget.message, widget.message.text);
-        });
-  }
-
-  buildDeleteTile() {
-    return ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
-        title: Text('Delete'),
-        onTap: () {});
   }
 }

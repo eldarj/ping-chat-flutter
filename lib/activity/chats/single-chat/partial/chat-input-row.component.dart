@@ -434,9 +434,10 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
 
   buildAttachmentButton() {
     return !widget.isEditing && !widget.isReplying ? Material(
-      color: Colors.white,
+      color: Colors.grey.shade50,
+      shape: CircleBorder(),
       child: IconButton(
-        icon: Icon(Icons.attachment),
+        icon: Icon(Icons.attachment_rounded),
         onPressed: () async {
           widget.onOpenShareBottomSheet.call();
         },

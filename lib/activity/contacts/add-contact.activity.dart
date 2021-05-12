@@ -63,7 +63,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getBackAppBar(
+    appBar = BaseAppBar.getCloseAppBar(
         getScaffoldContext,
         actions: [
           TextButton(

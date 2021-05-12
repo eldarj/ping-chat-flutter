@@ -408,7 +408,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }
 
   Widget buildActivityContent() {
-    Widget widget = ActivityLoader.build();
+    Widget widget = ActivityLoader.shimmer();
 
     if (!displayLoader) {
       if (!isError) {
@@ -532,85 +532,87 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     String messageContent, bool displayStatusIcon = true, bool seen = true, String messageSent, bool isOnline = false,
     String statusLabel = '', int contactBindingId = 0, MessageDto message
   }) {
-    return InkWell(
-      onTap: () async {
-        await Future.delayed(Duration(milliseconds: 250));
-        NavigatorUtil.push(context, ChatActivity(
-            myContactName: myContactName, peer: contact, peerContactName: peerContactName,
-            statusLabel: statusLabel, contactBindingId: contactBindingId));
-      },
-      child: Container(
-        height: 75,
-        decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.grey.shade100, width: 1))
-        ),
-        padding: EdgeInsets.all(10),
+    return Material(
+      child: InkWell(
+        onTap: () async {
+          await Future.delayed(Duration(milliseconds: 250));
+          NavigatorUtil.push(context, ChatActivity(
+              myContactName: myContactName, peer: contact, peerContactName: peerContactName,
+              statusLabel: statusLabel, contactBindingId: contactBindingId));
+        },
         child: Container(
-          child: Row(
-              children: [
-                Container(
-                    padding: EdgeInsets.only(right: 10),
-                    child: Stack(
-                        alignment: AlignmentDirectional.topEnd,
-                        children: [
-                          RoundProfileImageComponent(url: profile, margin: 2.5, borderRadius: 50, height: 50, width: 50),
-                          Container(
-                              decoration: BoxDecoration(
-                                  color: isOnline ? Colors.green : Colors.grey,
-                                  border: Border.all(color: Colors.white, width: 1),
-                                  borderRadius: BorderRadius.circular(50)
-                              ),
-                              margin: EdgeInsets.all(5),
-                              width: 10, height: 10)
-                        ])
-                ),
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          height: 75,
+          decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Colors.grey.shade100, width: 1))
+          ),
+          padding: EdgeInsets.all(10),
+          child: Container(
+            child: Row(
+                children: [
+                  Container(
+                      padding: EdgeInsets.only(right: 10),
+                      child: Stack(
+                          alignment: AlignmentDirectional.topEnd,
                           children: [
+                            RoundProfileImageComponent(url: profile, margin: 2.5, borderRadius: 50, height: 50, width: 50),
                             Container(
-                              alignment: Alignment.topLeft,
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                        child: Text(peerContactName, style: TextStyle(fontSize: 18,
-                                            fontWeight: FontWeight.bold, color: Colors.black87))),
-                                    buildMessageContent(message)
-                                  ]
-                              ),
-                            )
+                                decoration: BoxDecoration(
+                                    color: isOnline ? Colors.green : Colors.grey,
+                                    border: Border.all(color: Colors.white, width: 1),
+                                    borderRadius: BorderRadius.circular(50)
+                                ),
+                                margin: EdgeInsets.all(5),
+                                width: 10, height: 10)
+                          ])
+                  ),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                          child: Text(peerContactName, style: TextStyle(fontSize: 18,
+                                              fontWeight: FontWeight.bold, color: Colors.black87))),
+                                      buildMessageContent(message)
+                                    ]
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            MessageStatus(message.sentTimestamp, message.sent,
+                                message.received, message.seen,
+                                message.pinned, message.edited,
+                                displayStatusIcon: displayStatusIcon),
+                            message.totalUnreadMessages > 0 ? Container(
+                                height: 15, width: 15, alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                    color: CompanyColor.bluePrimary),
+                                child: Text(message.totalUnreadMessages.toString(),
+                                    style: TextStyle(fontSize: 12, color: Colors.white))
+                            ) : Container(),
                           ],
                         ),
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          MessageStatus(message.sentTimestamp, message.sent,
-                              message.received, message.seen,
-                              message.pinned, message.edited,
-                              displayStatusIcon: displayStatusIcon),
-                          message.totalUnreadMessages > 0 ? Container(
-                              height: 15, width: 15, alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: CompanyColor.bluePrimary),
-                              child: Text(message.totalUnreadMessages.toString(),
-                                  style: TextStyle(fontSize: 12, color: Colors.white))
-                          ) : Container(),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-              ]
+                      ],
+                    ),
+                  )
+                ]
+            ),
           ),
         ),
       ),
@@ -707,6 +709,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
     http.Response response = await HttpClientService.get(url);
 
+    await Future.delayed(Duration(milliseconds: 500));
+
     if(response.statusCode != 200) {
       throw new Exception();
     }
@@ -736,7 +740,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
   }
 
-  void onGetChatDataError(Object error) {
+  void onGetChatDataError(Object error) async {
     print(error);
     setState(() {
       displayLoader = false;

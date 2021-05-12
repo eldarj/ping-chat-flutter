@@ -142,7 +142,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext);
+    appBar = BaseAppBar.getCloseAppBar(getScaffoldContext);
     drawer = new NavigationDrawerComponent();
   }
 
@@ -316,7 +316,10 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
           child: Text(
               (contact.contactUser.firstName ?? '')
                   + ' '
-                  + (contact.contactUser.lastName ?? '')
+                  + (contact.contactUser.lastName ?? ''),
+              style: TextStyle(
+                  color: Colors.grey.shade500
+              )
           )
       ) : Container();
     }
@@ -336,7 +339,6 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                            margin: EdgeInsets.only(bottom: 5),
                             child: Text(contact.contactName,
                                 style: TextStyle(fontSize: 18,
                                     fontWeight: FontWeight.bold,

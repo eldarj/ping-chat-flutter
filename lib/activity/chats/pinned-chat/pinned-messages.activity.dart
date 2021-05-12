@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutterping/activity/calls/callscreen.activity.dart';
+import 'package:flutterping/activity/chats/component/message/peer-message.component.dart';
 import 'package:flutterping/activity/chats/component/settings/chat-settings-menu.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
@@ -170,6 +171,28 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
     bool isPeerMessage = user.id != message.sender.id;
     String widgetKey = message.text != null ? message.text : message.fileName;
 
+    Widget messageWidget;
+
+    if (isPeerMessage) {
+      messageWidget = PeerMessageComponent(
+        key: new Key(widgetKey),
+        margin: EdgeInsets.only(left: 5, right: 5),
+        message: message,
+        displayTimestamp: true,
+        picturesPath: picturesPath,
+        pinnedStyle: true,
+      );
+    } else {
+      messageWidget = MessageComponent(
+        key: new Key(widgetKey),
+        margin: EdgeInsets.only(left: 5, right: 5),
+        message: message,
+        displayTimestamp: true,
+        picturesPath: picturesPath,
+        pinnedStyle: true,
+      );
+    }
+
     return Container(
       padding: EdgeInsets.only(bottom: 10),
       margin: EdgeInsets.only(bottom: 5),
@@ -177,15 +200,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
         color: Colors.white,
         boxShadow: [Shadows.bottomShadow()]
       ),
-      child: MessageComponent(
-        key: new Key(widgetKey),
-        margin: EdgeInsets.only(left: 5, right: 5),
-        message: message,
-        isPeerMessage: isPeerMessage,
-        displayTimestamp: true,
-        picturesPath: picturesPath,
-        pinnedStyle: true,
-      ),
+      child: messageWidget,
     );
   }
 
