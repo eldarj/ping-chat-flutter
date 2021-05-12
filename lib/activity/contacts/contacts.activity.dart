@@ -490,11 +490,11 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
         setState(() {
           isLoadingOnScroll = false;
         });
-        scaffold.showSnackBar(SnackBar(
-            content: Text('All contacts displayed', style: TextStyle(color: Colors.white)),
-            duration: Duration(seconds: 2),
-            backgroundColor: Theme.of(context).accentColor
-        ));
+        // scaffold.showSnackBar(SnackBar(
+        //     content: Text('All contacts displayed', style: TextStyle(color: Colors.white)),
+        //     duration: Duration(seconds: 2),
+        //     backgroundColor: Theme.of(context).accentColor
+        // ));
       }
     }
   }

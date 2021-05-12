@@ -67,7 +67,7 @@ Widget messageStatus(sentTimestamp, sent, received, seen, pinned, edited, {
         margin: EdgeInsets.only(top: 2.5),
         padding: EdgeInsets.only(left: 2.5, right: 5, top: 1.5),
         decoration: BoxDecoration(
-          color: Color.fromRGBO(255, 255, 255, 0.5),
+          color: Color.fromRGBO(255, 255, 255, 0.8),
           borderRadius: BorderRadius.circular(5),
         ),
         child: Row(children: [
@@ -80,14 +80,14 @@ Widget messageStatus(sentTimestamp, sent, received, seen, pinned, edited, {
             child: Row(
               children: [
                 Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp) + ' ',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
+                    style: TextStyle(color: Colors.grey.shade800, fontSize: 11)),
                 Text(edited != null && edited ? '- Edited' : '', style: TextStyle(
-                    fontSize: 10, color: Colors.grey.shade500)),
+                    fontSize: 11, color: Colors.grey.shade800)),
                 pinned != null && pinned ? Container(
                   child: Row(
                     children: [
                       Text('- Pinned', style: TextStyle(
-                          fontSize: 10, color: Colors.grey.shade500)),
+                          fontSize: 11, color: Colors.grey.shade800)),
                       Container(
                           margin: EdgeInsets.only(left: 1, bottom: 1),
                           child: Icon(Icons.album_outlined, size: 8, color: CompanyColor.blueDark)),
@@ -112,20 +112,20 @@ Widget messagePeerStatus(sentTimestamp, pinned, edited) {
         margin: EdgeInsets.only(top: 2.5),
         padding: EdgeInsets.only(left: 5, right: 5, top: 1.5),
         decoration: BoxDecoration(
-          color: Color.fromRGBO(255, 255, 255, 0.5),
+          color: Color.fromRGBO(255, 255, 255, 0.8),
           borderRadius: BorderRadius.circular(5),
         ),
         child: Row(
           children: [
             Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp) + ' ',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
+                style: TextStyle(color: Colors.grey.shade800, fontSize: 11)),
             Text(edited != null && edited ? '- Edited' : '',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
+                style: TextStyle(color: Colors.grey.shade800, fontSize: 11)),
             pinned != null && pinned ? Container(
                 child: Row(
                   children: [
                     Text('- Pinned', style: TextStyle(
-                        fontSize: 10, color: Colors.grey.shade500)),
+                        fontSize: 11, color: Colors.grey.shade800)),
                     Container(
                         margin: EdgeInsets.only(left: 1, bottom: 1),
                         child: Icon(Icons.album_outlined, size: 8, color: CompanyColor.blueDark)),

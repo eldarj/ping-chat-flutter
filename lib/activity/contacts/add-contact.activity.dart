@@ -65,6 +65,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
   preRender() async {
     appBar = BaseAppBar.getCloseAppBar(
         getScaffoldContext,
+        elevation: 0.0,
         actions: [
           TextButton(
               onPressed: () {
@@ -87,7 +88,8 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
   @override
   Widget render() {
     return Container(
-      margin: EdgeInsets.only(left: 2.5, right: 2.5, top: 5),
+      color: Colors.white,
+      padding: EdgeInsets.only(left: 2.5, right: 2.5, top: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

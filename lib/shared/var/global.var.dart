@@ -42,7 +42,13 @@ class CompanyColor {
   }
 
   static Brightness getBrightness(Color myChatBubbleColor) {
-    return ThemeData.estimateBrightnessForColor(myChatBubbleColor);
+    Brightness brightness = Brightness.light;
+
+    if (myChatBubbleColor != null) {
+      brightness = ThemeData.estimateBrightnessForColor(myChatBubbleColor);
+    }
+
+    return brightness;
   }
 }
 

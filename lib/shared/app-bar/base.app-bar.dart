@@ -5,12 +5,14 @@ import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 class BaseAppBar {
-  static getBase(Function getContext, {leading, titleWidget, titleText = '', actions, centerTitle = true
+  static getBase(Function getContext, {
+    leading, titleWidget, titleText = '', actions, centerTitle = true, elevation: 10.0
   }) {
     return AppBar(
-        elevation: 0.0,
+        elevation: elevation,
+        shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
         centerTitle: centerTitle,
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: Colors.white,
         titleSpacing: 0,
         automaticallyImplyLeading: false,
         title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
@@ -25,7 +27,9 @@ class BaseAppBar {
   }
 
   static getBackAppBar(Function getContext, {
-    titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed }) {
+    titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed,
+    elevation = 10.0
+  }) {
     return getBase(getContext,
         leading: BackButton(onPressed: () async {
           await Future.delayed(Duration(milliseconds: 250));
@@ -35,12 +39,15 @@ class BaseAppBar {
   }
 
   static getCloseAppBar(Function getContext, {
-    titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed }) {
+    titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed,
+    elevation = 10.0
+  }) {
     return getBase(getContext,
         leading: CloseButton(onPressed: () async {
           await Future.delayed(Duration(milliseconds: 250));
           onBackPressed(getContext);
         }),
+        elevation: elevation,
         titleText: titleText, titleWidget: titleWidget, actions: actions, centerTitle: centerTitle);
   }
 
@@ -48,9 +55,10 @@ class BaseAppBar {
     titleWidget, titleText, actions, bottomTabs, centerTitle = true
   }) {
     return AppBar(
-        elevation: 0.0,
+        elevation: 10,
+        shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
         centerTitle: centerTitle,
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: Colors.white,
         bottom: bottomTabs,
         leading: GestureDetector(
           onTap: () {

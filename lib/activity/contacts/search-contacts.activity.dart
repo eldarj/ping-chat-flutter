@@ -142,7 +142,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getCloseAppBar(getScaffoldContext);
+    appBar = BaseAppBar.getCloseAppBar(getScaffoldContext, elevation: 0.0);
     drawer = new NavigationDrawerComponent();
   }
 
@@ -157,6 +157,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                 ? Container(margin: EdgeInsets.only(right: 15), child: Spinner(size: 25))
                 : Container(),
             Container(
+                color: Colors.white,
                 margin: EdgeInsets.only(left: 5, right: 5),
                 child: TextField(
                   controller: searchController,

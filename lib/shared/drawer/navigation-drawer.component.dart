@@ -74,8 +74,8 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                 children: <Widget>[
                   Material(
                     color: Colors.white,
-                    elevation: 1,
-                    shadowColor: Colors.white,
+                    elevation: 10.0,
+                    shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
                     child: InkWell(
                       onTap: () {
                         NavigatorUtil.push(context, MyProfileActivity());

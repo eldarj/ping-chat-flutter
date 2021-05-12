@@ -171,7 +171,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                            boxShadow: [BoxShadow(color: Colors.grey.shade200, blurRadius: 15, spreadRadius: 1)],
+                            boxShadow: [BoxShadow(color: Colors.grey.shade50, blurRadius: 15, spreadRadius: 1)],
                             borderRadius: BorderRadius.all(Radius.circular(20))
                         ),
                         child: new RoundProfileImageComponent(url: clientDto.profileImagePath,

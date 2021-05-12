@@ -7,57 +7,77 @@ class PolicyInfoActivity extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
           elevation: 0.0,
-          leading: FlatButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Icon(Icons.close),
-          ),
+          leading: CloseButton(onPressed: () {
+            Navigator.pop(context);
+          }),
           actions: [
             Container(
                 margin: EdgeInsets.only(right: 20),
-                child: Center(child: Text('Last updated 2.4.2021',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),)))
+                child: Center(child: Text('Last updated April 23 2021',
+                  style: TextStyle(color: Colors.grey.shade400),)))
           ],
-          backgroundColor: Colors.white),
+          backgroundColor: Colors.white
+      ),
       body: Builder(builder: (context) {
         return Container(
             color: Colors.white,
             child: Container(
-                margin: EdgeInsets.only(top: 10, bottom: 0, left: 50, right: 50),
                 decoration: BoxDecoration(
                   color: Colors.white,
                 ),
                 child: ListView(
                     children: [
                       Container(
-                          margin: EdgeInsets.only(top: 20, bottom: 20),
-                          child: Text('Use of information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-                      Text('We may use your information in other ways for which we provide specific notice at the time of collection.\n\n'),
-                      Text('No information will be externally used or exposed.'),
-                      Container(
-                          margin: EdgeInsets.only(top: 20, bottom: 20),
-                          child: Text('Publicly viewable information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-                      Text('No sensitive information will be visible neither externally nor internally, only on the '
-                          'user\'s side and user\'s contacts side.'),
-                      Container(
-                          margin: EdgeInsets.only(top: 20, bottom: 20),
-                          child: Text('Media', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-                      Text('Only media that you provide publicly, using the media settings, will be viewable by '
-                          'the users.\n\n\nPlease, check out more under your profile and media settings.\n'),
-                      Container(
-                          margin: EdgeInsets.only(top: 20, bottom: 20),
-                          child: Text('Personal data protection', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-                      Text('Ping takes the security of your personal data very seriously.\n\n\nPing will make the best '
-                          'effort to secure any personal data, while storing it as well as during the transit using '
-                          'encryption such as Transport Layer Security, SSL and encryption.\n\n'),
-                      Text('When you use some Ping services and applications, we strongly advise to make sure what '
-                          'information you publicly share, any data that is set to public, can be viewed by '
-                          'end users.\n\nWhich for Ping can not restrict to read, collect or use in any way.'),
-                      Container(
-                          margin: EdgeInsets.only(top: 30, bottom: 20),
-                          child: Text('Need help?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-                      Text('If any clarification or help needed, please contact us at policy@ping.com\n\n\n')
+                        padding: EdgeInsets.only(left: 25, right: 25, top: 5, bottom: 35),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Container(
+                              margin: EdgeInsets.only(top: 10, bottom: 20),
+                              child: Text('Use of information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+                          Text('We may use your information in other ways for which we provide specific notice at the time of collection.\n\n'),
+                          Text('No information will be externally used or exposed.'),
+                          Container(
+                              margin: EdgeInsets.only(top: 20, bottom: 20),
+                              child: Text('Publicly viewable information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+                          Text('No sensitive information will be visible neither externally nor internally, only on the '
+                              'user\'s side and user\'s contacts side.'),
+                          Container(
+                              margin: EdgeInsets.only(top: 20, bottom: 20),
+                              child: Text('Media', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+                          Text('Only media that you provide publicly, using the media settings, will be viewable by '
+                              'the users.\n\n\nPlease, check out more under your profile and media settings.\n'),
+                          Container(
+                              margin: EdgeInsets.only(top: 20, bottom: 20),
+                              child: Text('Personal data protection', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+                          Text('Ping takes the security of your personal data very seriously.\n\n\nPing will make the best '
+                              'effort to secure any personal data, while storing it as well as during the transit using '
+                              'encryption such as Transport Layer Security, SSL and encryption.\n\n'),
+                          Text('When you use some Ping services and applications, we strongly advise to make sure what '
+                              'information you publicly share, any data that is set to public, can be viewed by '
+                              'end users.\n\nWhich for Ping can not restrict to read, collect or use in any way.'),
+                        ])),
+                        Container(
+                            padding: EdgeInsets.symmetric(horizontal: 25, vertical: 35),
+                          color: Colors.grey.shade50,
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Container(
+                                margin: EdgeInsets.only(bottom: 20),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Need help?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                    Container(
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                      child: Icon(Icons.question_answer, color: Colors.grey.shade50)
+                                    )
+                                  ]
+                                )),
+                            Text('If any clarification or help needed, please contact us at policy@ping.com')
+                          ])
+                        ),
                     ]
                 )
             )

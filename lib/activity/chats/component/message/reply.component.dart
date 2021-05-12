@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/message-dto.model.dart';
@@ -67,13 +68,14 @@ class ReplyComponentState extends State<ReplyComponent> {
       onTap: resolveMessageTapHandler(),
       child: Container(
         margin: EdgeInsets.only(bottom: 2.5),
+        padding: EdgeInsets.only(bottom: 5, top: 5),
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
-            bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
-            bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
+            topLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
+            topRight: Radius.circular(MESSAGE_REPLY_RADIUS),
+            bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : MESSAGE_REPLY_RADIUS),
+            bottomRight: Radius.circular(widget.isPeerMessage ? MESSAGE_REPLY_RADIUS : 0)
           ),
         ),
         child: Column(

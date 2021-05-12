@@ -6,7 +6,7 @@ import 'package:flutterping/main.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
 
-const MESSAGE_PADDING = EdgeInsets.only(top: 7.5, bottom: 7.5, left: 10, right: 10);
+const MESSAGE_PADDING = EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15);
 
 class MessageText extends StatelessWidget {
   const MessageText(this.text, {Key key, this.edited = false, this.brightness = Brightness.light}) : super(key: key);

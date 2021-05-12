@@ -489,8 +489,11 @@ ChatActivityState({ this.contactName });
                     Container(
                       margin: EdgeInsets.only(left: 10),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(contactName, style: TextStyle(fontWeight: FontWeight.normal)),
-                        Text(widget.statusLabel, style: TextStyle(fontSize: 12, color: Colors.grey))
+                        Text(contactName),
+                        widget.statusLabel != ''
+                          ? Text(widget.statusLabel, style: TextStyle(
+                            fontSize: 12, color: Colors.grey))
+                          : Container()
                       ]),
                     ),
                   ],
@@ -662,7 +665,7 @@ ChatActivityState({ this.contactName });
   }
 
   Widget buildMessagesList() {
-    Widget widget = Center(child: Spinner());
+    Widget widget = Center(child: Spinner(padding: 5, backgroundColor: Colors.white));
 
     if (!displayLoader) {
       if (messages != null && messages.length > 0) {
@@ -696,16 +699,22 @@ ChatActivityState({ this.contactName });
           ),
         );
       } else {
-        widget = Center(
-          child: Container(
-            margin: EdgeInsets.all(25),
-            padding: EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: Color.fromRGBO(255, 255, 255, 0.8),
-              borderRadius: BorderRadius.circular(5),
+        widget = Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(25),
+              margin: EdgeInsets.only(bottom: 25),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey.shade200,
+              ),
+              child: Icon(Icons.chat, size: 50, color: Colors.white)
             ),
-            child: Text('Here begins history. Say hello!', style: TextStyle(color: Colors.grey)),
-          ),
+            Container(
+                margin: EdgeInsets.only(bottom: 25),
+                child: Text('Here begins history. Say hello!', style: TextStyle(color: Colors.grey))),
+          ],
         );
       }
     }
@@ -739,7 +748,8 @@ ChatActivityState({ this.contactName });
             bottom: isLastMessage ? 20 : 0),
         message: message,
         displayTimestamp: displayTimestamp,
-        picturesPath: picturesPath
+        picturesPath: picturesPath,
+        onMessageTapDown: () => onMessageTapDown(message)
       );
 
     } else {

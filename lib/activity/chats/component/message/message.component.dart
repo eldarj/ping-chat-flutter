@@ -97,7 +97,7 @@ class MessageComponentState extends State<MessageComponent> {
       child: Container(
         margin: widget.margin,
         child: Container(
-          margin: EdgeInsets.only(left: 5, right: 5, top: 1.5, bottom: widget.displayTimestamp ? 25 : 0),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.displayTimestamp ? 20 : 0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 buildMessagePinDetails(),
@@ -119,7 +119,7 @@ class MessageComponentState extends State<MessageComponent> {
         padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
         margin: EdgeInsets.only(bottom: 5),
         child: Text('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
-            color: CompanyColor.blueDark,
+          color: CompanyColor.blueDark,
         ))
     ) : Container();
   }
@@ -140,8 +140,6 @@ class MessageComponentState extends State<MessageComponent> {
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
     String desc = message.fileSizeFormatted();
     String title = message.fileName;
-
-    var iconBg = CompanyColor.accentGreenLight;
 
     IconData icon = message.messageType == 'MEDIA' ? Icons.ondemand_video : Icons.file_copy_outlined;
     Widget iconWidget = Icon(icon, color: Colors.grey.shade100, size: 20);
@@ -186,7 +184,7 @@ class MessageComponentState extends State<MessageComponent> {
                   width: 50, height: 50,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
-                      color: iconBg
+                      color: CompanyColor.accentGreenLight
                   ),
                   child: iconWidget
               ),
@@ -210,6 +208,7 @@ class MessageComponentState extends State<MessageComponent> {
     Widget _messageWidget;
 
     var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
+
     BoxDecoration messageDecoration = myTextBoxDecoration(
         displayPinnedBorder,
         myMessageBackground: widget.myChatBubbleColor,
@@ -270,10 +269,10 @@ class MessageComponentState extends State<MessageComponent> {
         decoration: BoxDecoration(
           color: Color.fromRGBO(255, 255, 255, 0.5),
           borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(15),
-              topRight: Radius.circular(10),
-              bottomLeft: Radius.circular(10),
-              bottomRight: Radius.circular(10)
+              topLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
+              topRight: Radius.circular(MESSAGE_REPLY_RADIUS),
+              bottomLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
+              bottomRight: Radius.circular(MESSAGE_BUBBLE_RADIUS)
           ),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.end,

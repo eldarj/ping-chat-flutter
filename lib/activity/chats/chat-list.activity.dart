@@ -413,6 +413,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     if (!displayLoader) {
       if (!isError) {
         widget = Container(
+          color: Colors.white,
           child: Column(
             children: [
               Opacity(
@@ -533,6 +534,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     String statusLabel = '', int contactBindingId = 0, MessageDto message
   }) {
     return Material(
+      color: Colors.white,
       child: InkWell(
         onTap: () async {
           await Future.delayed(Duration(milliseconds: 250));
@@ -550,7 +552,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
             child: Row(
                 children: [
                   Container(
-                      padding: EdgeInsets.only(right: 10),
+                      padding: EdgeInsets.only(left: 5, right: 10),
                       child: Stack(
                           alignment: AlignmentDirectional.topEnd,
                           children: [
@@ -582,7 +584,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                     children: [
                                       Container(
                                           child: Text(peerContactName, style: TextStyle(fontSize: 18,
-                                              fontWeight: FontWeight.bold, color: Colors.black87))),
+                                              fontWeight: FontWeight.w500, color: Colors.black87))),
                                       buildMessageContent(message)
                                     ]
                                 ),
