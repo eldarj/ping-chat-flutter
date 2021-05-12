@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
-BoxDecoration imageDecoration(pinned, {isPeerMessage = true}) => BoxDecoration(
-  color: isPeerMessage ? Color.fromRGBO(239, 239, 239, 1) : CompanyColor.myMessageBackground,
+BoxDecoration imageDecoration(pinned, {isPeerMessage = true, myMessageBackground}) => BoxDecoration(
+  color: isPeerMessage ? Color.fromRGBO(239, 239, 239, 1) : myMessageBackground ?? CompanyColor.myMessageBackground,
   borderRadius: BorderRadius.circular(15),
   border: Border.all(
-      color: pinned != null && pinned
-          ? CompanyColor.blueAccent
-          : Color.fromRGBO(230, 230, 230, 1),
-      width: pinned != null && pinned ? 1.5 : 1
+      width: 1,
+      color: Color.fromRGBO(230, 230, 230, 1),
   )
 );
 
 BoxDecoration peerTextBoxDecoration(pinned) => BoxDecoration(
   color: Color.fromRGBO(239, 239, 239, 1),
   border: Border.all(
-      color: pinned != null && pinned
-          ? CompanyColor.blueAccent
-          : Color.fromRGBO(230, 230, 230, 1),
-      width: pinned != null && pinned ? 1.5 : 1
+      width: 1,
+      color: Color.fromRGBO(230, 230, 230, 1),
   ),
   borderRadius: BorderRadius.only(
       bottomLeft: Radius.circular(10),
@@ -30,13 +26,11 @@ BoxDecoration peerTextBoxDecoration(pinned) => BoxDecoration(
   )],
 );
 
-BoxDecoration myTextBoxDecoration(pinned) => BoxDecoration(
-  color: CompanyColor.myMessageBackground,
+BoxDecoration myTextBoxDecoration(pinned, { myMessageBackground }) => BoxDecoration(
+  color: myMessageBackground ?? CompanyColor.myMessageBackground,
   border: Border.all(
-      color: pinned != null && pinned
-          ? CompanyColor.blueAccent
-          : Color.fromRGBO(220, 245, 205, 1),
-      width: pinned != null && pinned ? 1.5 : 1
+      width: 1,
+      color: myMessageBackground ?? Color.fromRGBO(220, 245, 205, 1),
   ),
   borderRadius: BorderRadius.only( //63731484
       topLeft: Radius.circular(10),

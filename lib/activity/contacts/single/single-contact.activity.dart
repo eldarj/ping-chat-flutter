@@ -351,9 +351,9 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                               width: 45, height: 45,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(50.0),
-                                  color: Colors.grey.shade400
+                                  color: Colors.grey.shade50
                               ),
-                              child: Icon(Icons.image_outlined, color: Colors.grey.shade300, size: 20)),
+                              child: Icon(Icons.image_outlined, color: Colors.grey.shade700, size: 20)),
                           Container(child: Text('Chat background', style: TextStyle(color: Colors.grey.shade700))),
                         ],
                       ),

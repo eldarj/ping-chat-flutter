@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/profile/profile-image-upload/profile-image-upload.activity.dart';
+import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/user-settings.dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
@@ -17,12 +18,14 @@ import 'package:flutterping/shared/component/round-profile-image.component.dart'
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class MyProfileActivity extends StatefulWidget {
@@ -31,6 +34,8 @@ class MyProfileActivity extends StatefulWidget {
 }
 
 class MyProfileActivityState extends BaseState<MyProfileActivity> {
+  StateSetter backgroundsModalSetState;
+
   var displayLoader = true;
 
   DateFormat dateFormat = DateFormat("dd.MM.yy");
@@ -38,6 +43,18 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
   String createdAtFormatted;
 
   bool displaySettingsLoader = false;
+
+  List<Color> chatBubbleColors = [
+    CompanyColor.myMessageBackground,
+    CompanyColor.blueDark,
+    Colors.blueAccent,
+    Colors.indigoAccent,
+    Colors.deepOrange,
+    Colors.green,
+    CompanyColor.accentGreenDark,
+    CompanyColor.accentPurpleLight,
+    CompanyColor.accentPurple,
+  ];
 
   getFormattedDate(timestamp) {
     if (timestamp is int) {
@@ -249,7 +266,8 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                 duration: Duration(milliseconds: 500),
                 opacity: displaySettingsLoader ? 0.5 : 1,
                 child: Column(children: [
-                  buildPreferencesButton(
+                  buildChatBubbleColorButton(),
+                  buildSwitchButton(
                       Icons.vibration,
                       'Vibrate',
                       'Vibrate on new messages',
@@ -258,7 +276,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                         clientDto.userSettings.vibrate = value;
                         doUpdateUserSettings().then(onSettingsSuccess, onError: onSettingsError);
                       }),
-                  buildPreferencesButton(
+                  buildSwitchButton(
                       Icons.notifications_none,
                       'Notifications',
                       'Receive incoming notifications',
@@ -267,7 +285,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                         clientDto.userSettings.receiveNotifications = value;
                         doUpdateUserSettings().then(onSettingsSuccess, onError: onSettingsError);
                       }),
-                  buildPreferencesButton(
+                  buildSwitchButton(
                       Icons.amp_stories,
                       'Dark mode',
                       'Turn dark mode ' + (clientDto.userSettings.darkMode ? 'off' : 'on'),
@@ -284,7 +302,63 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
     );
   }
 
-  buildPreferencesButton(icon, text, description, value, onChanged) {
+  buildChatBubbleColorButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          showCustomModalBottomSheet(context: context,
+              containerWidget: (_, animation, child) => FloatingModal(
+                child: child,
+                maxHeight: DEVICE_MEDIA_SIZE.height - 100,
+              ),
+              builder: buildBackgroundModal
+          );
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(children: [
+                  Container(
+                    child: Icon(Icons.chat_outlined, color: Colors.grey.shade700),
+                    margin: EdgeInsets.only(left: 7.5, right: 20),
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey.shade50,
+                    ),
+                  ),
+                  Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Chat color',
+                          style: TextStyle(color: Colors.grey.shade800)),
+                      Text('Change your chat bubbles color',
+                          style: TextStyle(color: Colors.grey.shade400))
+                    ],
+                  ),
+                ]),
+                Container(
+                  padding: EdgeInsets.all(2.5),
+                  margin: EdgeInsets.only(left: 10, right: 10),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Container(
+                  height: 25, width: 25, color: clientDto.userSettings.chatBubbleColorHex == null
+                      ? CompanyColor.myMessageBackground
+                      : CompanyColor.fromHexString(clientDto.userSettings.chatBubbleColorHex)),
+                ),
+              ]
+          ),
+        ),
+      ),
+    );
+  }
+
+  buildSwitchButton(icon, text, description, value, onChanged) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -367,11 +441,106 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
     );
   }
 
+  Widget buildBackgroundModal(BuildContext context)  {
+    return StatefulBuilder(
+        builder: (context, setState) {
+          backgroundsModalSetState = setState;
+          return Container(
+              padding: EdgeInsets.symmetric(vertical: 15),
+              child: Column(children: [
+                Container(
+                  margin: EdgeInsets.only(left: 20, right: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(margin: EdgeInsets.only(right: 10),
+                              width: 45, height: 45,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(50.0),
+                                  color: Colors.grey.shade50
+                              ),
+                              child: Icon(Icons.chat_outlined, color: Colors.grey.shade700, size: 20)),
+                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text('Chat color',
+                                style: TextStyle(color: Colors.grey.shade800)),
+                            Text('Change your chat bubbles color',
+                                style: TextStyle(color: Colors.grey.shade400))
+                          ]),
+                        ],
+                      ),
+                      CloseButton(onPressed: () async {
+                        Navigator.of(context).pop();
+                      })
+                    ],
+                  ),
+                ),
+                Divider(height: 25, thickness: 1),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(bottom: 20),
+                    margin: EdgeInsets.only(left: 20, right: 20),
+                    child: Align(
+                      child: Opacity(
+                        opacity: displaySettingsLoader ? 0.2 : 1,
+                        child: GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: 2),
+                          itemCount: chatBubbleColors.length,
+                          itemBuilder: (context, index) {
+                            var backgroundWidth = DEVICE_MEDIA_SIZE.width / 2 - 50;
+                            return Align(
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).pop();
+                                      clientDto.userSettings.chatBubbleColorHex = CompanyColor.toHexString(chatBubbleColors[index]);
+                                      doUpdateUserSettings().then(onSettingsSuccess, onError: onSettingsError);
+                                    },
+                                    child: Container(
+                                        padding: EdgeInsets.all(5),
+                                        height: backgroundWidth * 3,
+                                        width: backgroundWidth,
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            border: Border.all(color: Colors.white),
+                                            borderRadius: BorderRadius.circular(5),
+                                            boxShadow: [BoxShadow(color: Colors.grey.shade50,
+                                              offset: Offset.fromDirection(1, 0.7),
+                                              blurRadius: 5, spreadRadius: 5,
+                                            )]
+                                        ),
+                                        child: Container(
+                                          color: chatBubbleColors[index]
+                                        )),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              ])
+          );
+        }
+    );
+  }
+
   // Update user settings
   Future<UserSettingsDto> doUpdateUserSettings() async {
     setState(() {
       displaySettingsLoader = true;
     });
+
+    if (backgroundsModalSetState != null) {
+      backgroundsModalSetState(() {});
+    }
 
     http.Response response = await HttpClientService.post('/api/users/${clientDto.id}/settings', body: clientDto.userSettings);
 

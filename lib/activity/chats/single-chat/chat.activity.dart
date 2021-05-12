@@ -96,6 +96,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displayScrollLoader = false;
   bool displayStickers = false;
 
+  Color myChatBubbleColor;
   int userId;
   int userSentNodeId;
 
@@ -136,6 +137,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
     picturesPath = await new StorageIOService().getPicturesPath();
 
     var user = await UserService.getUser();
+
+    if (user.userSettings != null && user.userSettings.chatBubbleColorHex != null) {
+      myChatBubbleColor = CompanyColor.fromHexString(user.userSettings.chatBubbleColorHex);
+    }
+
     userId = user.id;
     userSentNodeId = user.sentNodeId;
 
@@ -716,7 +722,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
     previousWasPeerMessage = isPeerMessage;
     previousMessageDate = thisMessageDate;
 
-    String widgetKeyValue = message.text != null ? message.text : message.fileName;
     message.widgetKey = new GlobalKey();
 
     return MessageComponent(
@@ -728,6 +733,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       isPeerMessage: isPeerMessage,
       displayTimestamp: displayTimestamp,
       picturesPath: picturesPath,
+      myChatBubbleColor: myChatBubbleColor,
     );
   }
 

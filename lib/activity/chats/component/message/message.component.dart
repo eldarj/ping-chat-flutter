@@ -39,6 +39,8 @@ class MessageComponent extends StatefulWidget {
 
   final bool pinnedStyle;
 
+  final Color myChatBubbleColor;
+
   const MessageComponent({Key key,
     this.message,
     this.isPeerMessage,
@@ -46,6 +48,7 @@ class MessageComponent extends StatefulWidget {
     this.margin,
     this.picturesPath,
     this.pinnedStyle = false,
+    this.myChatBubbleColor
   }) : super(key: key);
 
   @override
@@ -209,7 +212,13 @@ class MessageComponentState extends State<MessageComponent> {
     Widget _messageWidget;
 
     var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
-    BoxDecoration messageDecoration = widget.isPeerMessage ? peerTextBoxDecoration(displayPinnedBorder) : myTextBoxDecoration(displayPinnedBorder);
+    BoxDecoration messageDecoration = widget.isPeerMessage
+        ? peerTextBoxDecoration(displayPinnedBorder)
+        : myTextBoxDecoration(displayPinnedBorder, myMessageBackground: widget.myChatBubbleColor);
+
+    var messageBrightness = !widget.isPeerMessage
+        ? CompanyColor.getBrightness(widget.myChatBubbleColor)
+        : Brightness.light;
 
     if (widget.message.deleted) {
       print('MESSAGE DELETED');
@@ -250,11 +259,17 @@ class MessageComponentState extends State<MessageComponent> {
           ? widget.picturesPath + '/' + widget.message.fileName
           : widget.message.filePath;
 
-      _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text);
-      messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: widget.isPeerMessage);
+      _messageWidget = MessageImage(
+          filePath, widget.message.isDownloadingFile, widget.message.isUploading,
+          widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
+          brightness: messageBrightness
+      );
+      messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: widget.isPeerMessage,
+          myMessageBackground: widget.myChatBubbleColor);
     } else {
-      _messageWidget = MessageText(widget.message.text, edited: widget.message.edited);
+      _messageWidget = MessageText(widget.message.text, edited: widget.message.edited,
+          brightness: messageBrightness
+      );
     }
 
     Widget w;

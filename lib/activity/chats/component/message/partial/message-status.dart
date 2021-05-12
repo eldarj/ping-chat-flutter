@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:functional_widget_annotation/functional_widget_annotation.dart' show swidget;
 
@@ -80,10 +81,19 @@ Widget messageStatus(sentTimestamp, sent, received, seen, pinned, edited, {
               children: [
                 Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp) + ' ',
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
-                Text(pinned != null && pinned ? 'Pinned' : '', style: TextStyle(
+                Text(edited != null && edited ? '- Edited' : '', style: TextStyle(
                     fontSize: 10, color: Colors.grey.shade500)),
-                Text(edited != null && edited ? 'Edited' : '', style: TextStyle(
-                    fontSize: 10, color: Colors.grey.shade500)),
+                pinned != null && pinned ? Container(
+                  child: Row(
+                    children: [
+                      Text('- Pinned', style: TextStyle(
+                          fontSize: 10, color: Colors.grey.shade500)),
+                      Container(
+                          margin: EdgeInsets.only(left: 1, bottom: 1),
+                          child: Icon(Icons.album_outlined, size: 8, color: CompanyColor.blueDark)),
+                    ],
+                  )
+                ) : Container(),
               ],
             ),
           ),
@@ -109,10 +119,19 @@ Widget messagePeerStatus(sentTimestamp, pinned, edited) {
           children: [
             Text(DateTimeUtil.convertTimestampToChatFriendlyDate(sentTimestamp) + ' ',
                 style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
-            Text(pinned != null && pinned ? 'Pinned' : '',
+            Text(edited != null && edited ? '- Edited' : '',
                 style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
-            Text(edited != null && edited ? 'Edited' : '',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 10))
+            pinned != null && pinned ? Container(
+                child: Row(
+                  children: [
+                    Text('- Pinned', style: TextStyle(
+                        fontSize: 10, color: Colors.grey.shade500)),
+                    Container(
+                        margin: EdgeInsets.only(left: 1, bottom: 1),
+                        child: Icon(Icons.album_outlined, size: 8, color: CompanyColor.blueDark)),
+                  ],
+                )
+            ) : Container(),
           ],
         ),
       )

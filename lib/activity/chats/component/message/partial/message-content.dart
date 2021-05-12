@@ -9,17 +9,22 @@ import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart
 const MESSAGE_PADDING = EdgeInsets.only(top: 7.5, bottom: 7.5, left: 10, right: 10);
 
 class MessageText extends StatelessWidget {
-  const MessageText(this.text, {Key key, this.edited = false}) : super(key: key);
+  const MessageText(this.text, {Key key, this.edited = false, this.brightness = Brightness.light}) : super(key: key);
 
   final String text;
 
   final bool edited;
 
+  final Brightness brightness;
+
   @override
   Widget build(BuildContext _context) {
     return Container(
         padding: MESSAGE_PADDING,
-        child: Text(text, style: TextStyle(fontSize: 16)));
+        child: Text(text, style: TextStyle(fontSize: 16, color: brightness == Brightness.light
+            ? Colors.grey.shade800
+            : Colors.white
+        )));
   }
 }
 
@@ -71,6 +76,8 @@ class MessageImage extends StatelessWidget {
 
   final double borderRadius;
 
+  final Brightness brightness;
+
   MessageImage(
       this.filePath,
       this.isDownloadingFile,
@@ -80,7 +87,8 @@ class MessageImage extends StatelessWidget {
       {
         Key key,
         this.text,
-        this.borderRadius = 15
+        this.borderRadius = 15,
+        this.brightness = Brightness.light
       }
   ) : super(key: key);
 
@@ -131,7 +139,12 @@ class MessageImage extends StatelessWidget {
                       border: Border(top: BorderSide(color: Colors.grey.shade300)),
                     ),
                     padding: MESSAGE_PADDING,
-                    child: Text(text, style: TextStyle(fontSize: 16))) : Container()
+                    child: Text(text, style: TextStyle(
+                        fontSize: 16,
+                        color: brightness == Brightness.light
+                            ? Colors.grey.shade800
+                            : Colors.white
+                    ))) : Container()
               ]),
             ),
             isUploading ? GestureDetector(

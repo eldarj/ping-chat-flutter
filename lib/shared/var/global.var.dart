@@ -26,6 +26,24 @@ class CompanyColor {
   // Component colors
   static Color myMessageBackground = Color.fromRGBO(235, 255, 220, 1);
   static Color myMessageBorder = Color.fromRGBO(230, 245, 230, 1);
+
+  static String toHexString(Color color) {
+    return '#FF${color.value.toRadixString(16).substring(2, 8)}';
+  }
+
+  static Color fromHexString(String hex) {
+    hex = hex.toUpperCase().replaceAll("#", "");
+
+    if (hex.length == 6) {
+      hex = "FF" + hex;
+    }
+
+    return Color(int.parse(hex, radix: 16));
+  }
+
+  static Brightness getBrightness(Color myChatBubbleColor) {
+    return ThemeData.estimateBrightnessForColor(myChatBubbleColor);
+  }
 }
 
 class Shadows {
