@@ -57,6 +57,9 @@ class RoundProfileImageComponentState extends State<RoundProfileImageComponent> 
       );
     } else if (widget.url != null) {
       return CachedNetworkImage(imageUrl: widget.url, fit: BoxFit.cover,
+          errorWidget: (context, url, error) => Container(
+              color: Colors.grey.shade100,
+              child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400)),
           placeholder: (context, url) => Container(
               margin: EdgeInsets.all(15),
               child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)));

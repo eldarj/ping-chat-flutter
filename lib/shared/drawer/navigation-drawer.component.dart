@@ -72,38 +72,44 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: <Widget>[
-                  Container(
+                  Material(
                     color: Colors.white,
-                    height: 245.0,
-                    child: DrawerHeader(
-                      margin: const EdgeInsets.only(top: 10, bottom: 0),
-                      decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.white)),
-                      child: Column(
-                          children: [
-                            displayLoader ? Container(margin:EdgeInsets.all(20), height: 80, width: 80, child: CircularProgressIndicator())
-                                : Container(
-                                margin: EdgeInsets.only(bottom: 20),
-                                decoration: BoxDecoration(
-                                    boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 25, spreadRadius: 5)],
-                                    borderRadius: BorderRadius.all(Radius.circular(100))
+                    elevation: 1,
+                    shadowColor: Colors.white,
+                    child: InkWell(
+                      onTap: () {
+                        NavigatorUtil.push(context, MyProfileActivity());
+                      },
+                      child: Container(
+                        padding: EdgeInsets.only(top: 75, bottom: 30),
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              displayLoader ? Container(margin:EdgeInsets.all(20), height: 80, width: 80, child: CircularProgressIndicator())
+                                  : Container(
+                                  margin: EdgeInsets.only(bottom: 20),
+                                  decoration: BoxDecoration(
+                                      boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 25, spreadRadius: 5)],
+                                      borderRadius: BorderRadius.all(Radius.circular(100))
+                                  ),
+                                  child: new RoundProfileImageComponent(url: user.profileImagePath,
+                                      height: 100, width: 100, borderRadius: 100, margin: 0)),
+                              displayLoader ? Column(children: [
+                                Container(margin: EdgeInsets.only(bottom: 5), color: CompanyColor.backgroundGrey, height: 20, width: 120),
+                                Container(color: CompanyColor.backgroundGrey, height: 20, width: 50),
+                              ]) : Column(children: [
+                                Text(user.firstName + " " + user.lastName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400)),
+                                Container(
+                                  margin: EdgeInsets.only(top: 5),
+                                  child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Text(user.countryCode.dialCode + " " + user.phoneNumber, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
+                                    ],
+                                  ),
                                 ),
-                                child: new RoundProfileImageComponent(url: user.profileImagePath,
-                                    height: 100, width: 100, borderRadius: 100, margin: 0)),
-                            displayLoader ? Column(children: [
-                              Container(margin: EdgeInsets.only(bottom: 5), color: CompanyColor.backgroundGrey, height: 20, width: 120),
-                              Container(color: CompanyColor.backgroundGrey, height: 20, width: 50),
-                            ]) : Column(children: [
-                              Text(user.firstName + " " + user.lastName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400)),
-                              Container(
-                                margin: EdgeInsets.only(top: 5),
-                                child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text(user.countryCode.dialCode + " " + user.phoneNumber, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                                  ],
-                                ),
-                              ),
-                            ]),
-                          ]
+                              ]),
+                            ]
+                        ),
                       ),
                     ),
                   ),
@@ -190,7 +196,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                           color: CompanyColor.backgroundGrey,
                           margin: EdgeInsets.only(top: 25),
                           padding: EdgeInsets.only(top: 10, bottom: 10),
-                          child: buildDrawerItem(context, 'Odjavi se',
+                          child: buildDrawerItem(context, 'Logout',
                               buildIcon(icon: Icons.exit_to_app, backgroundColor: Colors.red.shade300),
                               onTapFunction: () => showDialog(context: context, builder: (BuildContext context) {
                                 return LogoutDialog();

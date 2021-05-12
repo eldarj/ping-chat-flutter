@@ -11,7 +11,7 @@ class LogoutDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-        title: Text('Odjavi se'),
+        title: Text('Logout'),
         content: Text('Sigurno se želite odjaviti?'),
         actionsPadding: EdgeInsets.only(right: 10),
         actions: [

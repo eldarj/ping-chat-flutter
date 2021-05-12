@@ -406,6 +406,8 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
     var user = await UserService.getUser();
     http.Response response = await HttpClientService.get('/api/users/${user.id}');
 
+    await Future.delayed(Duration(milliseconds: 500));
+
     if (response.statusCode != 200) {
       throw new Exception();
     }
