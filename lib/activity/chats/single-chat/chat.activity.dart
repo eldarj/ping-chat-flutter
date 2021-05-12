@@ -132,8 +132,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
   ScrollController chatListController = new ScrollController();
 
   bool isPinButtonLoading = false;
+  StateSetter messageActionsSetState;
 
-  ChatActivityState({ this.contactName });
+ChatActivityState({ this.contactName });
 
   onInit() async {
     CURRENT_OPEN_CONTACT_BINDING_ID = widget.contactBindingId;
@@ -1116,55 +1117,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     ));
   }
 
-  // Pin message
-  Future<bool> doUpdatePinStatus(MessageDto message) async {
-    setState(() {
-      isPinButtonLoading = true;
-    });
-
-    String url = '/api/messages/${message.id}/pin';
-
-    message.pinned = message.pinned != null && message.pinned;
-    http.Response response = await HttpClientService.post(url, body: !message.pinned);
-
-    if(response.statusCode != 200) {
-      throw new Exception();
-    }
-
-    await Future.delayed(Duration(seconds: 1));
-
-    return !message.pinned;
-  }
-
-  onPinSuccess(message, pinned) {
-
-    setState(() {
-      isPinButtonLoading = false;
-      message.pinned = pinned;
-    });
-
-    messagePinPublisher.emitPinUpdate(message.id, pinned);
-
-    Navigator.of(ROOT_CONTEXT).pop();
-
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.success(pinned ? 'Message pinned'
-        : 'Message unpinned'));
-  }
-
-  onPinError(error) {
-    print(error);
-
-    setState(() {
-      isPinButtonLoading = false;
-    });
-
-    Navigator.of(ROOT_CONTEXT).pop();
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.error(content: 'Something went wrong'));
-  }
-
-
+  // Build message actions
   Widget buildTextMessageActions(message) {
     return Wrap(children: [
       buildReplyTile(message),
@@ -1208,38 +1161,42 @@ class ChatActivityState extends BaseState<ChatActivity> {
     ]);
   }
 
-
   // Message tap actions widgets
   void onMessageTapDown(message) async {
     FocusScope.of(ROOT_CONTEXT).requestFocus(new FocusNode());
 
-    Widget actionsWidget;
+    Function actionsWidget;
 
     switch (message.messageType) {
       case 'RECORDING':
-        actionsWidget = buildMediaMessageActions(message);
+        actionsWidget = buildMediaMessageActions;
         break;
       case 'MEDIA':
-        actionsWidget = buildMediaMessageActions(message);
+        actionsWidget = buildMediaMessageActions;
         break;
       case 'FILE':
-        actionsWidget = buildMediaMessageActions(message);
+        actionsWidget = buildMediaMessageActions;
         break;
       case 'IMAGE':
-        actionsWidget = buildImageMessageActions(message);
+        actionsWidget = buildImageMessageActions;
         break;
       case 'MAP_LOCATION':
-        actionsWidget = buildMapMessageActions(message);
+        actionsWidget = buildMapMessageActions;
         break;
       case 'STICKER':
-        actionsWidget = buildStickerMessageActions(message);
+        actionsWidget = buildStickerMessageActions;
         break;
       default:
-        actionsWidget = buildTextMessageActions(message);
+        actionsWidget = buildTextMessageActions;
     }
 
     showModalBottomSheet(context: context, builder: (BuildContext context) {
-      return actionsWidget;
+      return StatefulBuilder(
+          builder: (context, stater) {
+            messageActionsSetState = stater;
+            return actionsWidget.call(message);
+          }
+      );
     });
   }
 
@@ -1292,6 +1249,45 @@ class ChatActivityState extends BaseState<ChatActivity> {
     return ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
         title: Text('Delete'),
         onTap: () {});
+  }
+
+  // Pin message
+  Future<bool> doUpdatePinStatus(MessageDto message) async {
+    messageActionsSetState(() {
+      isPinButtonLoading = true;
+    });
+
+    String url = '/api/messages/${message.id}/pin';
+
+    message.pinned = message.pinned != null && message.pinned;
+    http.Response response = await HttpClientService.post(url, body: !message.pinned);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    await Future.delayed(Duration(seconds: 1));
+
+    return !message.pinned;
+  }
+
+  onPinSuccess(message, pinned) {
+    setState(() {
+      message.pinned = pinned;
+    });
+
+    isPinButtonLoading = false;
+    messagePinPublisher.emitPinUpdate(message.id, pinned);
+
+    Navigator.of(ROOT_CONTEXT).pop();
+  }
+
+  onPinError(error) {
+    print(error);
+
+    isPinButtonLoading = false;
+
+    Navigator.of(ROOT_CONTEXT).pop();
   }
 }
 
