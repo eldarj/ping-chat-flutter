@@ -27,7 +27,7 @@ BoxDecoration peerTextBoxDecoration(pinned) => BoxDecoration(
   )],
 );
 
-BoxDecoration myTextBoxDecoration(pinned, { myMessageBackground }) => BoxDecoration(
+BoxDecoration myTextBoxDecoration(pinned, { myMessageBackground, displayBubble = true }) => BoxDecoration(
   color: myMessageBackground ?? CompanyColor.myMessageBackground,
   // border: Border.all(
   //     width: 1,
@@ -36,7 +36,7 @@ BoxDecoration myTextBoxDecoration(pinned, { myMessageBackground }) => BoxDecorat
   borderRadius: BorderRadius.only( //63731484
       topLeft: Radius.circular(10),
       bottomLeft: Radius.circular(10),
-      bottomRight: Radius.circular(10)),
+      bottomRight: Radius.circular(displayBubble ? 10 : 0)),
   boxShadow: [BoxShadow(color: Colors.black12,
     offset: Offset.fromDirection(1, 0.7),
     blurRadius: 0, spreadRadius: 0,

@@ -97,7 +97,7 @@ class MessageComponentState extends State<MessageComponent> {
       child: Container(
         margin: widget.margin,
         child: Container(
-          margin: EdgeInsets.only(left: 5, right: 5, top: 5, bottom: widget.displayTimestamp ? 20 : 2.5),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 1.5, bottom: widget.displayTimestamp ? 25 : 0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 buildMessagePinDetails(),
@@ -210,7 +210,11 @@ class MessageComponentState extends State<MessageComponent> {
     Widget _messageWidget;
 
     var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
-    BoxDecoration messageDecoration = myTextBoxDecoration(displayPinnedBorder, myMessageBackground: widget.myChatBubbleColor);
+    BoxDecoration messageDecoration = myTextBoxDecoration(
+        displayPinnedBorder,
+        myMessageBackground: widget.myChatBubbleColor,
+        displayBubble: widget.displayTimestamp
+    );
 
     var messageBrightness = CompanyColor.getBrightness(widget.myChatBubbleColor);
 
@@ -262,10 +266,15 @@ class MessageComponentState extends State<MessageComponent> {
 
     if (widget.message.replyMessage != null) {
       w = Container(
-        padding: EdgeInsets.all(5),
+        padding: EdgeInsets.only(left: 5, top: 5), // TODO: Check reply UI
         decoration: BoxDecoration(
-          color: Color.fromRGBO(240, 240, 240, 0.3),
-          borderRadius: BorderRadius.circular(15),
+          color: Color.fromRGBO(255, 255, 255, 0.5),
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(15),
+              topRight: Radius.circular(10),
+              bottomLeft: Radius.circular(10),
+              bottomRight: Radius.circular(10)
+          ),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.end,
           children: [

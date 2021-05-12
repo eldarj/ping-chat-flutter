@@ -718,7 +718,9 @@ ChatActivityState({ this.contactName });
     bool isPeerMessage = userId != message.sender.id;
     DateTime thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
 
-    if (previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
+    if ((message.pinned == null || !message.pinned)
+        && (message.edited == null || !message.edited)
+        && previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
         && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage
         && !isLastMessage) {
       displayTimestamp = false;
