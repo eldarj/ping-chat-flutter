@@ -8,6 +8,7 @@ import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -141,13 +142,10 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
           });
           doUploadProfileImage().then(onUploadProfileImageSuccess, onError: onUploadProfileImageError);
         },
-        child: isLoadingSaveButton ? Container(
-            height: 20, width: 20,
-            child: Spinner()
-        ) : Container(margin: EdgeInsets.only(right: 10),
-            child: isSaveButtonSuccess ? Container(
-                child: Icon(Icons.check_circle, color: Colors.green)
-            ) : Text('Save'))
+        child: isLoadingSaveButton
+            ? Spinner(size: 20) : isSaveButtonSuccess
+            ? Container(child: Icon(Icons.check_circle, color: Colors.green))
+            : Text('Save')
     );
   }
 
@@ -169,6 +167,8 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
       isLoadingSaveButton = false;
       isSaveButtonSuccess = true;
     });
+
+    await Future.delayed(Duration(seconds: 1));
 
     Navigator.pop(context, savedProfileImagePath);
   }

@@ -78,7 +78,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   initialize() async {
     ClientDto user = await UserService.getUser();
-    if (user != null) {
+    if (user != null && user.phoneNumber != null) {
       ContactService.syncContacts(user.countryCode.dialCode);
 
       instantiateWsClientService();

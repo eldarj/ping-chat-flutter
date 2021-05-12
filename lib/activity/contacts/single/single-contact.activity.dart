@@ -686,7 +686,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           buildSectionHeader('Shared media', linkWidget: TextButton(
-            onPressed: () {
+            onPressed: () { // TODO: FIX while loading
               NavigatorUtil.push(context, ContactSharedActivity(
                   peer: widget.peer,
                   picturesPath: picturesPath,

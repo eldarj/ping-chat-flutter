@@ -1,3 +1,5 @@
+import 'package:flutterping/model/user-settings.dto.model.dart';
+
 import 'country-code-dto.model.dart';
 
 class ClientDto {
@@ -21,6 +23,8 @@ class ClientDto {
 
   String backgroundImagePath;
 
+  UserSettingsDto userSettings;
+
   ClientDto();
 
   factory ClientDto.fromJson(Map<String, dynamic> json) {
@@ -38,7 +42,11 @@ class ClientDto {
       ..receivedNodeId = json['receivedNodeId'] as int
       ..isActive = json['isActive'] as bool
       ..backgroundImagePath = json['backgroundImagePath'] as String
-      ..profileImagePath = json['profileImagePath'] as String;
+      ..profileImagePath = json['profileImagePath'] as String
+      ..userSettings = json['userSettings'] == null
+          ? UserSettingsDto()
+          : UserSettingsDto.fromJson(json['userSettings'] as Map<String, dynamic>)
+    ;
   }
 
   Map<String, dynamic> toJson() => {
@@ -54,6 +62,7 @@ class ClientDto {
     'receivedNodeId': receivedNodeId,
     'backgroundImagePath': backgroundImagePath,
     'profileImagePath': profileImagePath,
+    'userSettings': userSettings,
   };
 
   get fullPhoneNumber => countryCode.dialCode + phoneNumber;
