@@ -194,8 +194,8 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
     }
 
     return Container(
-      padding: EdgeInsets.only(bottom: 10),
-      margin: EdgeInsets.only(bottom: 5),
+      padding: EdgeInsets.only(bottom: 15, top: 15),
+      margin: EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [Shadows.bottomShadow()]
