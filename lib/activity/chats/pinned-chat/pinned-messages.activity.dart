@@ -178,7 +178,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
         key: new Key(widgetKey),
         margin: EdgeInsets.only(left: 5, right: 5),
         message: message,
-        displayTimestamp: true,
+        // displayTimestamp: true,
         picturesPath: picturesPath,
         pinnedStyle: true,
       );
@@ -187,7 +187,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
         key: new Key(widgetKey),
         margin: EdgeInsets.only(left: 5, right: 5),
         message: message,
-        displayTimestamp: true,
+        // displayTimestamp: true,
         picturesPath: picturesPath,
         pinnedStyle: true, // TODO: Unpin handler
       );

@@ -113,8 +113,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   int pageNumber = 1;
   int pageSize = 50;
 
-  bool previousWasPeerMessage;
-  DateTime previousMessageDate;
+  // bool previousWasPeerMessage;
+  // DateTime previousMessageDate;
 
   Function userPresenceSubscriptionFn;
 
@@ -739,20 +739,20 @@ ChatActivityState({ this.contactName });
   }
 
   Widget buildSingleMessage(MessageDto message, {isLastMessage, isFirstMessage = false}) {
-    bool displayTimestamp = true;
+    // bool displayTimestamp = true;
     bool isPeerMessage = userId != message.sender.id;
     DateTime thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
 
-    if ((message.pinned == null || !message.pinned)
-        && (message.edited == null || !message.edited)
-        && previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
-        && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage
-        && !isLastMessage) {
-      displayTimestamp = false;
-    }
-
-    previousWasPeerMessage = isPeerMessage;
-    previousMessageDate = thisMessageDate;
+    // if ((message.pinned == null || !message.pinned)
+    //     && (message.edited == null || !message.edited)
+    //     && previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
+    //     && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage
+    //     && !isLastMessage) {
+    //   displayTimestamp = false;
+    // }
+    //
+    //  previousWasPeerMessage = isPeerMessage;
+    // previousMessageDate = thisMessageDate;
 
     message.widgetKey = new GlobalKey();
 
@@ -763,7 +763,7 @@ ChatActivityState({ this.contactName });
             left: 5, right: 5,
             bottom: isLastMessage ? 20 : 0),
         message: message,
-        displayTimestamp: displayTimestamp,
+        // displayTimestamp: displayTimestamp,
         picturesPath: picturesPath,
         onMessageTapDown: () => onMessageTapDown(message)
       );
@@ -775,7 +775,7 @@ ChatActivityState({ this.contactName });
             left: 5, right: 5,
             bottom: isLastMessage ? 20 : 0),
         message: message,
-        displayTimestamp: displayTimestamp,
+        // displayTimestamp: displayTimestamp,
         picturesPath: picturesPath,
         myChatBubbleColor: myChatBubbleColor,
         onMessageTapDown: () => onMessageTapDown(message)

@@ -29,7 +29,7 @@ import 'package:open_file/open_file.dart';
 class PeerMessageComponent extends StatefulWidget {
   final MessageDto message;
 
-  final bool displayTimestamp;
+  // final bool displayTimestamp;
 
   final EdgeInsets margin;
 
@@ -41,7 +41,7 @@ class PeerMessageComponent extends StatefulWidget {
 
   const PeerMessageComponent({Key key,
     this.message,
-    this.displayTimestamp,
+    // this.displayTimestamp,
     this.margin,
     this.picturesPath,
     this.pinnedStyle = false,
@@ -95,7 +95,8 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       child: Container(
         margin: widget.margin,
         child: Container(
-          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.displayTimestamp ? 20 : 0),
+          // margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.displayTimestamp ? 20 : 0),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: 20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 buildMessagePinDetails(),
@@ -127,7 +128,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
         true,
         widget.message.sentTimestamp,
         widget.message.displayCheckMark,
-        widget.displayTimestamp,
+        // widget.displayTimestamp,
         widget.message.sent,
         widget.message.received,
         widget.message.seen,
@@ -209,7 +210,8 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
     BoxDecoration messageDecoration = peerTextBoxDecoration(
         displayPinnedBorder,
-        displayBubble: widget.displayTimestamp
+      // displayBubble: widget.displayTimestamp
+        displayBubble: true
     );
 
     if (widget.message.deleted) {

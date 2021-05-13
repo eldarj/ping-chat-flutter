@@ -244,6 +244,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                           child: TextField(
                             textAlignVertical: TextAlignVertical.center,
                             textInputAction: TextInputAction.newline,
+                            textCapitalization: TextCapitalization.sentences,
                             minLines: 1,
                             maxLines: 2,
                             onSubmitted: (value) {
