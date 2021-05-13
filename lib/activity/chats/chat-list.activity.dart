@@ -408,7 +408,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }
 
   Widget buildActivityContent() {
-    Widget widget = ActivityLoader.shimmer();
+    Widget widget = ActivityLoader.contactsShimmer();
 
     if (!displayLoader) {
       if (!isError) {

@@ -9,7 +9,22 @@ class ActivityLoader {
     );
   }
 
-  static Widget shimmer() {
+  static Widget shimmer({ Widget child }) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade100,
+      child: child ?? Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  static Widget contactsShimmer() {
     return Column(children: [
       Shimmer.fromColors(
         baseColor: Colors.grey.shade200,

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:flutterping/activity/chats/component/gifs/gif-bar.component.dart';
 import 'package:flutterping/service/gif/giphy.client.service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,7 +19,7 @@ import 'package:flutterping/activity/chats/component/message/message.component.d
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
 import 'package:flutterping/activity/chats/single-chat/partial/chat-input-row.component.dart';
-import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
+import 'package:flutterping/activity/chats/component/stickers/sticker-bar.component.dart';
 import 'package:flutterping/activity/contacts/single/single-contact.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
@@ -627,6 +628,7 @@ ChatActivityState({ this.contactName });
                 onSubmitReply: doSendReply
               ),
               displayStickers ? StickerBar(sendFunc: doSendEmoji) : Container(),
+              displayGifs ? GifBar(sendFunc: doSendGif, onSearchGifs: doSearchGifs) : Container(),
             ]),
           );
         })
@@ -781,7 +783,6 @@ ChatActivityState({ this.contactName });
   }
 
   onOpenGifPicker() async {
-    var urls = giphyClientService.getGifs("love");
     setState(() {
       displayGifs = !displayGifs;
       if (displayGifs) {
@@ -816,6 +817,14 @@ ChatActivityState({ this.contactName });
   doSendEmoji(stickerCode) async {
     widget.messageSendingService.sendSticker(stickerCode);
     chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
+  }
+
+  doSendGif(String url) async {
+
+  }
+
+  doSearchGifs() async {
+
   }
 
   doSendMessage() {

@@ -18,7 +18,7 @@ import 'package:flutterping/activity/chats/component/message/message.component.d
 import 'package:flutterping/activity/chats/component/message/message.component.dart';
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
 import 'package:flutterping/activity/chats/single-chat/partial/chat-input-row.component.dart';
-import 'package:flutterping/activity/chats/component/stickers/sticker-bar.dart';
+import 'package:flutterping/activity/chats/component/stickers/sticker-bar.component.dart';
 import 'package:flutterping/activity/contacts/single/single-contact.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';

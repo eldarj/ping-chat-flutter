@@ -450,8 +450,15 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
   }
 
   buildGifButton() {
-    Widget w = IconButton(icon: Icon(Icons.gif_outlined, color: CompanyColor.blueDark),
-        onPressed: widget.onOpenGifPicker);
+    Widget w;
+
+    if (widget.displayGifs) {
+      w = IconButton(icon: Icon(Icons.close, color: CompanyColor.blueDark),
+          onPressed: widget.onOpenGifPicker);
+    } else {
+      w = IconButton(icon: Icon(Icons.gif_outlined, color: CompanyColor.blueDark),
+          onPressed: widget.onOpenGifPicker);
+    }
 
     return w;
   }

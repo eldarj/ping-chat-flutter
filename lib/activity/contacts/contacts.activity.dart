@@ -232,7 +232,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
 
   Widget buildActivityContent() {
     // Widget widget = ActivityLoader.build();
-    Widget widget = ActivityLoader.shimmer();
+    Widget widget = ActivityLoader.contactsShimmer();
 
     if (!displayLoader) {
       if (!isError) {
