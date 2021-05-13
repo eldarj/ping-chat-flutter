@@ -30,6 +30,7 @@ class SingleChatInputRow extends StatefulWidget {
 
   final Function onOpenStickerBar;
   final bool displayStickers;
+  final bool displayGifs;
 
   final Function onOpenShareBottomSheet;
   final bool displaySendButton;
@@ -53,10 +54,12 @@ class SingleChatInputRow extends StatefulWidget {
 
   final Function onSubmitReply;
 
+  final Function onOpenGifPicker;
+
   const SingleChatInputRow({Key key, this.messageSendingService, this.onProgress, this.onOpenStickerBar,
     this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController,
     this.inputTextFocusNode, this.doSendMessage, this.userId, this.peerId, this.userSentNodeId,
-    this.picturesPath, this.myContactName,
+    this.picturesPath, this.myContactName, this.onOpenGifPicker, this.displayGifs,
     this.isEditing, this.onCancelEdit, this.onSubmitEdit,
     this.isReplying, this.replyWidget, this.onCancelReply, this.onSubmitReply,
   }) : super(key: key);
@@ -222,46 +225,60 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
               color: Colors.white,
               boxShadow: [Shadows.topShadow()],
             ),
-            width: DEVICE_MEDIA_SIZE.width, height: 55,
-            child: Stack(
-              alignment: Alignment.bottomLeft,
+            width: DEVICE_MEDIA_SIZE.width, height: 110,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: 55,
-                  child: Row(children: [
-                    Material(
-                      color: Colors.white,
-                      child: buildStickerButton()
-                    ),
+                Stack(
+                  alignment: Alignment.bottomLeft,
+                  children: [
                     Container(
                       height: 55,
-                      constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
-                      child: TextField(
-                        textAlignVertical: TextAlignVertical.center,
-                        textInputAction: TextInputAction.newline,
-                        minLines: 1,
-                        maxLines: 2,
-                        onSubmitted: (value) {
-                          widget.inputTextController.text += "asd"; //TODO: Remove
-                        },
-                        style: TextStyle(fontSize: 15.0),
-                        controller: widget.inputTextController,
-                        focusNode: widget.inputTextFocusNode,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Type a message',
-                          hintStyle: TextStyle(color: Colors.grey),
+                      child: Row(children: [
+                        Material(
+                          color: Colors.white,
+                          child: buildStickerButton()
                         ),
-                      ),
+                        Container(
+                          height: 55,
+                          constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
+                          child: TextField(
+                            textAlignVertical: TextAlignVertical.center,
+                            textInputAction: TextInputAction.newline,
+                            minLines: 1,
+                            maxLines: 2,
+                            onSubmitted: (value) {
+                              widget.inputTextController.text += "asd"; //TODO: Remove
+                            },
+                            style: TextStyle(fontSize: 15.0),
+                            controller: widget.inputTextController,
+                            focusNode: widget.inputTextFocusNode,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Type a message',
+                              hintStyle: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                        buildAttachmentButton(),
+                      ]),
                     ),
-                    buildAttachmentButton(),
-                  ]),
+                    widget.isEditing
+                        ? buildEditButton() : widget.isReplying
+                        ? buildReplyButton() : widget.displaySendButton
+                        ? buildSendButton()
+                        : buildRecordingRow()
+                  ],
                 ),
-                widget.isEditing
-                    ? buildEditButton() : widget.isReplying
-                    ? buildReplyButton() : widget.displaySendButton
-                    ? buildSendButton()
-                    : buildRecordingRow()
+                Container(
+                  child: Row(
+                    children: [
+                      Material(
+                          color: Colors.white,
+                          child: buildGifButton()
+                      ),
+                    ]
+                  ),
+                ),
               ],
             )),
       ],
@@ -428,6 +445,13 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
         color: CompanyColor.blueDark,
       );
     }
+
+    return w;
+  }
+
+  buildGifButton() {
+    Widget w = IconButton(icon: Icon(Icons.gif_outlined, color: CompanyColor.blueDark),
+        onPressed: widget.onOpenGifPicker);
 
     return w;
   }

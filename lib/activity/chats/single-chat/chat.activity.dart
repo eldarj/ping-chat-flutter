@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:flutterping/service/gif/giphy.client.service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -97,6 +98,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displaySendButton = false;
   bool displayScrollLoader = false;
   bool displayStickers = false;
+  bool displayGifs = true;
 
   Color myChatBubbleColor;
   int userId;
@@ -578,11 +580,13 @@ ChatActivityState({ this.contactName });
                 inputTextController: textController,
                 inputTextFocusNode: textFocusNode,
                 displayStickers: displayStickers,
+                displayGifs: displayGifs,
                 displaySendButton: displaySendButton,
                 messageSendingService: widget.messageSendingService,
                 doSendMessage: doSendMessage,
                 onOpenShareBottomSheet: onOpenShareBottomSheet,
                 onOpenStickerBar: onOpenStickerBar,
+                onOpenGifPicker: onOpenGifPicker,
                 onProgress: (message, progress) {
                   setState(() {
                     message.uploadProgress = progress / 100;
@@ -771,6 +775,16 @@ ChatActivityState({ this.contactName });
     setState(() {
       displayStickers = !displayStickers;
       if (displayStickers) {
+        FocusScope.of(context).requestFocus(new FocusNode());
+      }
+    });
+  }
+
+  onOpenGifPicker() async {
+    var urls = giphyClientService.getGifs("love");
+    setState(() {
+      displayGifs = !displayGifs;
+      if (displayGifs) {
         FocusScope.of(context).requestFocus(new FocusNode());
       }
     });

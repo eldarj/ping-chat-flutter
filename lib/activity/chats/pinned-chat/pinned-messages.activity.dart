@@ -189,7 +189,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
         message: message,
         displayTimestamp: true,
         picturesPath: picturesPath,
-        pinnedStyle: true,
+        pinnedStyle: true, // TODO: Unpin handler
       );
     }
 
