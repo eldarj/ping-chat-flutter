@@ -6,27 +6,51 @@ import 'package:flutter/material.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
-import 'package:http/testing.dart';
+import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/util/other/date-time.util.dart';
 
 const MESSAGE_PADDING = EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15);
 
 class MessageText extends StatelessWidget {
-  const MessageText(this.text, {Key key, this.edited = false, this.brightness = Brightness.light}) : super(key: key);
-
-  final String text;
+   final String text;
+  final int timestamp;
 
   final bool edited;
 
-  final Brightness brightness;
+  final Color textColor;
+
+  const MessageText(this.text, this.timestamp, {
+    Key key,
+    this.edited = false,
+    this.textColor
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext _context) {
+    Color textColor = this.textColor ?? Colors.grey.shade800;
     return Container(
         padding: MESSAGE_PADDING,
-        child: Text(text, style: TextStyle(fontSize: 16, color: brightness == Brightness.light
-            ? Colors.grey.shade800
-            : Colors.white
-        )));
+        child: Wrap(
+          alignment: WrapAlignment.end,
+          children: [
+            Container(
+              child: Text(text,
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: textColor
+                  )
+              ),
+            ),
+            Container(
+              child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(timestamp),
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: textColor
+                  )
+              )
+            )
+          ],
+        ));
   }
 }
 
@@ -117,7 +141,7 @@ class MessageImage extends StatelessWidget {
 
   final double borderRadius;
 
-  final Brightness brightness;
+  final Color textColor;
 
   MessageImage(
       this.filePath,
@@ -129,7 +153,7 @@ class MessageImage extends StatelessWidget {
         Key key,
         this.text,
         this.borderRadius = 15,
-        this.brightness = Brightness.light
+        this.textColor
       }
   ) : super(key: key);
 
@@ -137,6 +161,8 @@ class MessageImage extends StatelessWidget {
   Widget build(BuildContext _context) {
     File file = File(filePath);
     bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+    Color textColor = this.textColor ?? Colors.grey.shade800;
 
     if (!isFileValid) {
       return Container(
@@ -182,9 +208,7 @@ class MessageImage extends StatelessWidget {
                     padding: MESSAGE_PADDING,
                     child: Text(text, style: TextStyle(
                         fontSize: 16,
-                        color: brightness == Brightness.light
-                            ? Colors.grey.shade800
-                            : Colors.white
+                        color: textColor
                     ))) : Container()
               ]),
             ),

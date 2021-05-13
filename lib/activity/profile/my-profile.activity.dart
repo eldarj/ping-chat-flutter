@@ -44,17 +44,9 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   bool displaySettingsLoader = false;
 
-  List<Color> chatBubbleColors = [
-    CompanyColor.myMessageBackground,
-    CompanyColor.blueDark,
-    Colors.blueAccent,
-    Colors.indigoAccent,
-    Colors.deepOrange,
-    Colors.green,
-    CompanyColor.accentGreenDark,
-    CompanyColor.accentPurpleLight,
-    CompanyColor.accentPurple,
-  ];
+  List<Color> chatBubbleColors = CompanyColor.textColorByBubble
+      .entries.map<Color>((element) => element.key)
+      .toList();
 
   getFormattedDate(timestamp) {
     if (timestamp is int) {

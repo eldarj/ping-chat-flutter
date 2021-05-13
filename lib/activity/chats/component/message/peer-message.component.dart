@@ -252,12 +252,13 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       _messageWidget = MessageImage(
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
-          brightness: Brightness.light
       );
       messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: true);
     } else {
-      _messageWidget = MessageText(widget.message.text, edited: widget.message.edited,
-          brightness: Brightness.light
+      _messageWidget = MessageText(
+          widget.message.text,
+          widget.message.sentTimestamp,
+          edited: widget.message.edited,
       );
     }
 

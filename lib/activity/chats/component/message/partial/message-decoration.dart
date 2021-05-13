@@ -37,7 +37,7 @@ BoxDecoration myTextBoxDecoration(pinned, { myMessageBackground, displayBubble =
   //     width: 1,
   //     color: myMessageBackground ?? Color.fromRGBO(220, 245, 205, 1),
   // ),
-  borderRadius: BorderRadius.only( //63731484
+  borderRadius: BorderRadius.only(
       topLeft: Radius.circular(MESSAGE_BUBBLE_RADIUS),
       bottomLeft: Radius.circular(MESSAGE_BUBBLE_RADIUS),
       bottomRight: Radius.circular(displayBubble ? MESSAGE_BUBBLE_RADIUS : 2)),

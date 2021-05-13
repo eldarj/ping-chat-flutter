@@ -209,6 +209,7 @@ class MessageComponentState extends State<MessageComponent> {
     Widget _messageWidget;
 
     var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
+    Color textColor = CompanyColor.getTextColor(widget.myChatBubbleColor);
 
     BoxDecoration messageDecoration = myTextBoxDecoration(
         displayPinnedBorder,
@@ -217,7 +218,6 @@ class MessageComponentState extends State<MessageComponent> {
         displayBubble: true
     );
 
-    var messageBrightness = CompanyColor.getBrightness(widget.myChatBubbleColor);
 
     if (widget.message.deleted) {
       print('MESSAGE DELETED');
@@ -257,13 +257,16 @@ class MessageComponentState extends State<MessageComponent> {
       _messageWidget = MessageImage(
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
-          brightness: messageBrightness
+          textColor: textColor,
       );
       messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: false,
           myMessageBackground: widget.myChatBubbleColor);
     } else {
-      _messageWidget = MessageText(widget.message.text, edited: widget.message.edited,
-          brightness: messageBrightness
+      _messageWidget = MessageText(
+        widget.message.text,
+        widget.message.sentTimestamp,
+        edited: widget.message.edited,
+        textColor: textColor,
       );
     }
 

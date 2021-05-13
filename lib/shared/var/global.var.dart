@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 
 class CompanyColor {
+  static Map textColorByBubble = {
+    CompanyColor.myMessageBackground: Colors.grey.shade800,
+    CompanyColor.blueDark: Colors.white,
+    Colors.indigoAccent: Colors.white,
+    Colors.deepOrange: Colors.white,
+    CompanyColor.accentGreenDark: Colors.white,
+    CompanyColor.accentPurpleLight: Colors.white,
+    CompanyColor.accentPurple: Colors.white
+  };
+
   static Color blueLight = Color.fromRGBO(162, 226, 243, 1); // #A2ECF3
   static Color blueAccent = Color.fromRGBO(37, 218, 227, 1); // #25E4E3
   static Color bluePrimary = Color.fromRGBO(38, 197, 221, 1); // #26CFDD
@@ -49,6 +59,10 @@ class CompanyColor {
     }
 
     return brightness;
+  }
+
+  static Color getTextColor(Color chatBubbleColor) {
+    return textColorByBubble[chatBubbleColor];
   }
 }
 
