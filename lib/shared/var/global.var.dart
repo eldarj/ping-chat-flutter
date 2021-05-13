@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
 
+class MessageTheme {
+  Color bubbleColor;
+  Color textColor;
+  Color statusLabelColor;
+  Color seenIconColor;
+
+  MessageTheme(this.bubbleColor, this.seenIconColor, {
+    this.textColor = Colors.white,
+    statusLabelColor
+  }) {
+    this.statusLabelColor = statusLabelColor ?? Colors.grey.shade100;
+  }
+}
+
 class CompanyColor {
-  static Map textColorByBubble = {
-    CompanyColor.myMessageBackground: Colors.grey.shade800,
-    CompanyColor.blueDark: Colors.white,
-    Colors.indigoAccent: Colors.white,
-    Colors.deepOrange: Colors.white,
-    CompanyColor.accentGreenDark: Colors.white,
-    CompanyColor.accentPurpleLight: Colors.white,
-    CompanyColor.accentPurple: Colors.white
+  static Map<Color, MessageTheme> messageThemes = {
+    CompanyColor.myMessageBackground: MessageTheme(CompanyColor.myMessageBackground, Colors.green, textColor: Colors.grey.shade800, statusLabelColor: Colors.grey.shade500),
+    CompanyColor.blueDark: MessageTheme(CompanyColor.blueDark, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100),
+    Colors.indigoAccent: MessageTheme(Colors.indigoAccent, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade300),
+    Colors.deepOrange: MessageTheme(Colors.deepOrange, Color.fromRGBO(255, 200, 0, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100),
+    CompanyColor.accentGreenDark: MessageTheme(CompanyColor.accentGreenDark, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100),
+    CompanyColor.accentPurpleLight: MessageTheme(CompanyColor.accentPurpleLight, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100),
+    CompanyColor.accentPurple: MessageTheme(CompanyColor.accentPurple, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100)
   };
 
   static Color blueLight = Color.fromRGBO(162, 226, 243, 1); // #A2ECF3
   static Color blueAccent = Color.fromRGBO(37, 218, 227, 1); // #25E4E3
   static Color bluePrimary = Color.fromRGBO(38, 197, 221, 1); // #26CFDD
-  static const Color blueDark = Color.fromRGBO(28, 166, 197, 1); // #63CFD9
+  static const Color blueDark = Color.fromRGBO(28, 166, 197, 1); //// #63CFD9
 
   static Color accentGreenLight = Color(0xff1bb29f);
   static Color accentGreen = Color.fromRGBO(0, 102, 116, 1);
@@ -61,9 +75,9 @@ class CompanyColor {
     return brightness;
   }
 
-  static Color getTextColor(Color chatBubbleColor) {
-    return textColorByBubble[chatBubbleColor];
-  }
+  // static Color getTextColor(Color chatBubbleColor) {
+  //   return textColorByBubble[chatBubbleColor];
+  // }
 }
 
 class Shadows {

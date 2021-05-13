@@ -148,6 +148,8 @@ ChatActivityState({ this.contactName });
 
     if (user.userSettings != null && user.userSettings.chatBubbleColorHex != null) {
       myChatBubbleColor = CompanyColor.fromHexString(user.userSettings.chatBubbleColorHex);
+    } else {
+      myChatBubbleColor = CompanyColor.myMessageBackground;
     }
 
     userId = user.id;

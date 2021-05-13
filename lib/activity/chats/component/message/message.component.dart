@@ -103,7 +103,7 @@ class MessageComponentState extends State<MessageComponent> {
               children: [
                 buildMessagePinDetails(),
                 buildMessageContent(),
-                buildMessageStatus(),
+                buildPinnedLabel(),
               ]),
         ),
       ),
@@ -125,17 +125,14 @@ class MessageComponentState extends State<MessageComponent> {
     ) : Container();
   }
 
-  buildMessageStatus() {
-    return MessageStatusRow(
-        false,
-        widget.message.sentTimestamp,
-        widget.message.displayCheckMark,
-        // widget.displayTimestamp,
-        widget.message.sent,
-        widget.message.received,
-        widget.message.seen,
-        widget.message.pinned,
-        widget.message.edited);
+  buildPinnedLabel() {
+    return widget.message.pinned != null && widget.message.pinned ? Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        MessagePinnedLabel(),
+      ],
+    ) : Container();
   }
 
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
@@ -209,11 +206,12 @@ class MessageComponentState extends State<MessageComponent> {
     Widget _messageWidget;
 
     var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
-    Color textColor = CompanyColor.getTextColor(widget.myChatBubbleColor);
+
+    MessageTheme messageTheme = CompanyColor.messageThemes[widget.myChatBubbleColor];
 
     BoxDecoration messageDecoration = myTextBoxDecoration(
         displayPinnedBorder,
-        myMessageBackground: widget.myChatBubbleColor,
+        myMessageBackground: messageTheme.bubbleColor,
         // displayBubble: widget.displayTimestamp
         displayBubble: true
     );
@@ -257,17 +255,12 @@ class MessageComponentState extends State<MessageComponent> {
       _messageWidget = MessageImage(
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
-          textColor: textColor,
+          textColor: messageTheme.textColor,
       );
       messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: false,
           myMessageBackground: widget.myChatBubbleColor);
     } else {
-      _messageWidget = MessageText(
-        widget.message.text,
-        widget.message.sentTimestamp,
-        edited: widget.message.edited,
-        textColor: textColor,
-      );
+      _messageWidget = MessageText(widget.message, messageTheme: messageTheme);
     }
 
     Widget w;

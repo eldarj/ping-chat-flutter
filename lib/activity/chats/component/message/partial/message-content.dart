@@ -3,7 +3,9 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
 import 'package:flutterping/main.dart';
+import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -12,29 +14,49 @@ import 'package:flutterping/util/other/date-time.util.dart';
 const MESSAGE_PADDING = EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15);
 
 class MessageText extends StatelessWidget {
-   final String text;
-  final int timestamp;
+  final MessageDto message;
 
-  final bool edited;
+  final MessageTheme messageTheme;
 
-  final Color textColor;
+  final bool displayStatusIcon;
 
-  const MessageText(this.text, this.timestamp, {
+  const MessageText(this.message, {
     Key key,
-    this.edited = false,
-    this.textColor
+    this.messageTheme,
+    this.displayStatusIcon = true
   }) : super(key: key);
 
   @override
   Widget build(BuildContext _context) {
-    Color textColor = this.textColor ?? Colors.grey.shade800;
+    Color textColor = Colors.grey.shade800;
+    Color statusLabelColor = Colors.grey.shade500;
+    Color seenIconColor = Colors.green;
+
+    if (this.messageTheme != null) {
+      textColor = this.messageTheme.textColor;
+      statusLabelColor = this.messageTheme.statusLabelColor;
+      seenIconColor = this.messageTheme.seenIconColor;
+    }
+
+    Widget statusIcon = Container();
+
+    if (displayStatusIcon) {
+      statusIcon = MessageStatusIcon(
+          message.sent, message.received, message.seen,
+          displayStatusIcon: true, displayPlaceholderCheckMark: message.displayCheckMark,
+          iconColor: statusLabelColor, seenIconColor: seenIconColor,
+      );
+    }
+
     return Container(
         padding: MESSAGE_PADDING,
         child: Wrap(
+          spacing: 10,
           alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Container(
-              child: Text(text,
+              child: Text(message.text,
                   style: TextStyle(
                       fontSize: 16,
                       color: textColor
@@ -42,12 +64,17 @@ class MessageText extends StatelessWidget {
               ),
             ),
             Container(
-              child: Text(DateTimeUtil.convertTimestampToChatFriendlyDate(timestamp),
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: textColor
-                  )
-              )
+              margin: EdgeInsets.only(top: 1.5),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                      padding: EdgeInsets.only(right: 2.5),
+                      margin: EdgeInsets.only(bottom: 1),
+                      child: statusIcon),
+                  MessageTimestampLabel(message.sentTimestamp, statusLabelColor, edited: message.edited)
+                ],
+              ),
             )
           ],
         ));

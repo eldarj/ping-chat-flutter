@@ -592,16 +592,18 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                             ],
                           ),
                         ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                        Row(
                           children: [
-                            MessageStatus(message.sentTimestamp, message.sent,
-                                message.received, message.seen,
-                                message.pinned, message.edited,
-                                displayStatusIcon: displayStatusIcon),
+                            displayStatusIcon ? Container(
+                                margin: EdgeInsets.only(bottom: 1),
+                                padding: EdgeInsets.only(right: 2.5),
+                                child: MessageStatusIcon(message.sent, message.received, message.seen, displayStatusIcon: displayStatusIcon)
+                            ) : Container(),
+                            MessageTimestampLabel(message.sentTimestamp, Colors.grey.shade800, edited: false),
                             message.totalUnreadMessages > 0 ? Container(
-                                height: 15, width: 15, alignment: Alignment.center,
+                                height: 15, width: 15,
+                                alignment: Alignment.center,
+                                margin: EdgeInsets.only(left: 5, bottom: 1.5),
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(5),
                                     color: CompanyColor.bluePrimary),

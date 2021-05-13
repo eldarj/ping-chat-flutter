@@ -44,7 +44,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   bool displaySettingsLoader = false;
 
-  List<Color> chatBubbleColors = CompanyColor.textColorByBubble
+  List<Color> chatBubbleColors = CompanyColor.messageThemes
       .entries.map<Color>((element) => element.key)
       .toList();
 

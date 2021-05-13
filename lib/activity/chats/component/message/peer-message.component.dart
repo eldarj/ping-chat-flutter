@@ -101,7 +101,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
               children: [
                 buildMessagePinDetails(),
                 buildMessageContent(),
-                buildMessageStatus(),
+                buildPinnedLabel(),
               ]),
         ),
       ),
@@ -123,17 +123,14 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
     ) : Container();
   }
 
-  buildMessageStatus() {
-    return MessageStatusRow(
-        true,
-        widget.message.sentTimestamp,
-        widget.message.displayCheckMark,
-        // widget.displayTimestamp,
-        widget.message.sent,
-        widget.message.received,
-        widget.message.seen,
-        widget.message.pinned,
-        widget.message.edited);
+  buildPinnedLabel() {
+    return widget.message.pinned != null && widget.message.pinned ? Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        MessagePinnedLabel(),
+      ],
+    ) : Container();
   }
 
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
@@ -255,11 +252,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       );
       messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: true);
     } else {
-      _messageWidget = MessageText(
-          widget.message.text,
-          widget.message.sentTimestamp,
-          edited: widget.message.edited,
-      );
+      _messageWidget = MessageText(widget.message, displayStatusIcon: false);
     }
 
     Widget w;
