@@ -671,6 +671,15 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           Text('Sticker', style: TextStyle(color: Colors.grey.shade500)),
         ],
       );
+    } else if (message.messageType == 'GIF') {
+      widget = Row(
+        children: [
+          Container(
+              margin: EdgeInsets.only(right: 5),
+              child: Icon(Icons.gif_outlined, color: Colors.grey.shade500, size: 15)),
+          Text('GIF', style: TextStyle(color: Colors.grey.shade500)),
+        ],
+      );
     } else if (message.messageType == 'TEXT_MESSAGE') {
       widget = Text(message.text??'fixme',
           overflow: TextOverflow.ellipsis, maxLines: 2,

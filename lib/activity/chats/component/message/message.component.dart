@@ -245,6 +245,10 @@ class MessageComponentState extends State<MessageComponent> {
       _messageWidget = MessageSticker(widget.message.text);
       messageDecoration = stickerBoxDecoration();
 
+    } else if (widget.message.messageType == 'GIF') {
+      _messageWidget = MessageGif(widget.message.text);
+      messageDecoration = gifBoxDecoration(widget.message.pinned);
+
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       String filePath = widget.message.filePath;
 

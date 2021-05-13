@@ -99,7 +99,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displaySendButton = false;
   bool displayScrollLoader = false;
   bool displayStickers = false;
-  bool displayGifs = true;
+  bool displayGifs = false;
 
   Color myChatBubbleColor;
   int userId;
@@ -360,6 +360,16 @@ ChatActivityState({ this.contactName });
                     margin: EdgeInsets.only(right: 5),
                     child: Icon(Icons.sentiment_very_satisfied, color: Colors.grey.shade500, size: 15)),
                 Text('Sticker', style: TextStyle(color: Colors.grey.shade500)),
+              ],
+            );
+            break;
+          case 'GIF':
+            replyWidget = Row(
+              children: [
+                Container(
+                    margin: EdgeInsets.only(right: 5),
+                    child: Icon(Icons.gif_outlined, color: Colors.grey.shade500, size: 15)),
+                Text('Gif', style: TextStyle(color: Colors.grey.shade500)),
               ],
             );
             break;
@@ -628,7 +638,7 @@ ChatActivityState({ this.contactName });
                 onSubmitReply: doSendReply
               ),
               displayStickers ? StickerBar(sendFunc: doSendEmoji) : Container(),
-              displayGifs ? GifBar(sendFunc: doSendGif, onSearchGifs: doSearchGifs) : Container(),
+              displayGifs ? GifBar(sendFunc: doSendGif) : Container(),
             ]),
           );
         })
@@ -819,12 +829,9 @@ ChatActivityState({ this.contactName });
     chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
   }
 
-  doSendGif(String url) async {
-
-  }
-
-  doSearchGifs() async {
-
+  doSendGif(String gifUrl) async {
+    widget.messageSendingService.sendGif(gifUrl);
+    chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
   }
 
   doSendMessage() {
@@ -1163,6 +1170,14 @@ ChatActivityState({ this.contactName });
     ]);
   }
 
+  Widget buildGifMessageActions(message) {
+    return Wrap(children: [
+      buildReplyTile(message),
+      buildPinTile(message),
+      buildDeleteTile(message),
+    ]);
+  }
+
   Widget buildStickerMessageActions(message) {
     return Wrap(children: [
       buildReplyTile(message),
@@ -1220,6 +1235,9 @@ ChatActivityState({ this.contactName });
         break;
       case 'STICKER':
         actionsWidget = buildStickerMessageActions;
+        break;
+      case 'GIF':
+        actionsWidget = buildGifMessageActions;
         break;
       default:
         actionsWidget = buildTextMessageActions;

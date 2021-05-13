@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
+import 'package:http/testing.dart';
 
 const MESSAGE_PADDING = EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15);
 
@@ -25,6 +27,45 @@ class MessageText extends StatelessWidget {
             ? Colors.grey.shade800
             : Colors.white
         )));
+  }
+}
+
+class MessageGif extends StatelessWidget {
+  const MessageGif(this.url, {Key key}) : super(key: key);
+
+  final dynamic url;
+
+  @override
+  Widget build(BuildContext _context) {
+    double size = DEVICE_MEDIA_SIZE.width / 1.25;
+    return Stack(
+      alignment: Alignment.bottomLeft,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+              constraints: BoxConstraints(
+                maxWidth: size, minWidth: 200,
+              ),
+              child: CachedNetworkImage(
+                fit: BoxFit.cover,
+                imageUrl: url,
+              )
+          ),
+        ),
+        Container(
+            decoration: BoxDecoration(
+              color: Color.fromRGBO(255, 255, 255, 1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            margin: EdgeInsets.only(left: 5, bottom: 2.5),
+            padding: EdgeInsets.only(left: 5, right: 5, bottom: 2),
+            child: Text('Giphy', style: TextStyle(
+                fontSize: 9, color: Colors.grey.shade500,
+                decoration: TextDecoration.underline
+            ))),
+      ],
+    );
   }
 }
 

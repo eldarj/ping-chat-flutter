@@ -61,6 +61,16 @@ class MessageSendingService {
     return message;
   }
 
+  MessageDto sendGif(String gifUrl, { chained: false }) {
+    MessageDto message = _create(chained: chained);
+    message.messageType = 'GIF';
+    message.text = gifUrl;
+
+    wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
+
+    return message;
+  }
+
   MessageDto addPreparedFile(String fileName, String filePath, String fileUrl,
       int fileSize, String messageType, {chained: false, recordingDuration, text}) {
     MessageDto message = _create(chained: chained);

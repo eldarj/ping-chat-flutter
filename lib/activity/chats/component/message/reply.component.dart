@@ -130,7 +130,7 @@ class ReplyComponentState extends State<ReplyComponent> {
       _messageWidget = Opacity(
         opacity: 0.8,
         child: Container(
-          constraints: BoxConstraints(maxWidth: 120,),
+          constraints: BoxConstraints(maxWidth: 120),
           child: ClipRRect(
               borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
@@ -161,6 +161,19 @@ class ReplyComponentState extends State<ReplyComponent> {
         child: Container(
             width: 75, height: 50,
             child: MessageSticker(widget.message.replyMessage.text)),
+      );
+
+    } else if (widget.message.replyMessage.messageType == 'GIF') {
+      _messageWidget = Opacity(
+        opacity: 0.8,
+        child: Container(
+            constraints: BoxConstraints(maxWidth: 80),
+            child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
+                    bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
+                ),
+                child: MessageGif(widget.message.replyMessage.text))),
       );
 
     } else {

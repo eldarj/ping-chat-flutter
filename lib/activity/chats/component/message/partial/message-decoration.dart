@@ -48,3 +48,11 @@ BoxDecoration myTextBoxDecoration(pinned, { myMessageBackground, displayBubble =
 );
 
 BoxDecoration stickerBoxDecoration() => BoxDecoration(color: Colors.transparent);
+
+BoxDecoration gifBoxDecoration(pinned, { isPeerMessage = true, myMessageBackground }) => BoxDecoration(
+  borderRadius: BorderRadius.circular(10),
+  border: Border.all(
+    width: 1,
+    color: Color.fromRGBO(240, 240, 240, 1),
+  )
+);

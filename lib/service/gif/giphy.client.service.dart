@@ -14,6 +14,8 @@ class GiphyClientService {
 
   String _giphyEndpoint;
 
+  List<String> _recentGifs = [];
+
   factory GiphyClientService() {
     return _appData;
   }
@@ -21,8 +23,12 @@ class GiphyClientService {
   GiphyClientService._internal() {
     _giphyEndpoint = "https://api.giphy.com/v1/gifs/search"
         "?api_key=846OBurQopjXvDr2eCxHwFntcrkDU3Wk"
-        "&limit=10"
+        "&limit=20"
         "&q=";
+  }
+
+  getRecentGifs() {
+    return _recentGifs;
   }
 
   Future<List<String>> getGifs(String query) async {
@@ -45,6 +51,8 @@ class GiphyClientService {
 
     } catch (ignored) {
     }
+
+    _recentGifs = gifUrls;
 
     return gifUrls;
   }

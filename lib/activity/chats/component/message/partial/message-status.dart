@@ -89,7 +89,7 @@ Widget messageStatus(sentTimestamp, sent, received, seen, pinned, edited, {
                       Text('- Pinned', style: TextStyle(
                           fontSize: 11, color: Colors.grey.shade800)),
                       Container(
-                          margin: EdgeInsets.only(left: 1, bottom: 1),
+                          margin: EdgeInsets.only(left: 1, bottom: 0.5),
                           child: Icon(Icons.album_outlined, size: 8, color: CompanyColor.blueDark)),
                     ],
                   )
@@ -127,7 +127,7 @@ Widget messagePeerStatus(sentTimestamp, pinned, edited) {
                     Text('- Pinned', style: TextStyle(
                         fontSize: 11, color: Colors.grey.shade800)),
                     Container(
-                        margin: EdgeInsets.only(left: 1, bottom: 1),
+                        margin: EdgeInsets.only(left: 1, bottom: 0.5),
                         child: Icon(Icons.album_outlined, size: 8, color: CompanyColor.blueDark)),
                   ],
                 )
