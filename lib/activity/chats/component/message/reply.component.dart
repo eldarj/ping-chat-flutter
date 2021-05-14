@@ -5,8 +5,12 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-deleted.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-image.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-gif.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-sticker.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-text.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message.decoration.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/message-dto.model.dart';
@@ -136,7 +140,10 @@ class ReplyComponentState extends State<ReplyComponent> {
                   bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
                   bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
               ),
-              child: MessageImage(filePath, false, false, 0.0, () {},
+              child: MessageImage(
+                  widget.message,
+                  filePath, false, false, 0.0, () {},
+                  text: widget.message.replyMessage.text,
                   isPeerMessage: widget.isPeerMessage)),
         ),
       );
@@ -152,8 +159,11 @@ class ReplyComponentState extends State<ReplyComponent> {
         opacity: 0.8,
         child: Container(
           constraints: BoxConstraints(maxWidth: 120),
-          child: MessageImage(filePath, false, false, 0.0, () {},
-              text: widget.message.replyMessage.text, isPeerMessage: widget.isPeerMessage),
+          child: MessageImage(
+            widget.message,
+            filePath, false, false, 0.0, () {}, displayText: true,
+            text: widget.message.replyMessage.text, isPeerMessage: widget.isPeerMessage,
+          ),
         ),
       );
 
@@ -175,7 +185,11 @@ class ReplyComponentState extends State<ReplyComponent> {
                     bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
                     bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
                 ),
-                child: MessageGif(url: widget.message.replyMessage.text, displayStatusIcon: false))),
+                child: MessageGif(
+                    url: widget.message.replyMessage.text, displayStatusIcon: false,
+                    isPeerMessage: widget.isPeerMessage
+                )
+            )),
       );
 
     } else {

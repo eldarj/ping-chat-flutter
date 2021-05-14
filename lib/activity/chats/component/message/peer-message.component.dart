@@ -5,9 +5,13 @@ import 'package:clipboard/clipboard.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-deleted.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-image.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-gif.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-sticker.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-text.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message.decoration.dart';
+import 'package:flutterping/activity/chats/component/message/partial/status-label.component.dart';
 import 'package:flutterping/activity/chats/component/message/reply.component.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
@@ -207,7 +211,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
     var displayPinnedBorder = widget.isPinnedMessage && !widget.pinnedStyle;
 
-    BoxDecoration messageDecoration = peerTextBoxDecoration(
+    BoxDecoration _messageDecoration = peerTextBoxDecoration(
         displayPinnedBorder,
         displayBubble: widget.isPinnedMessage || !widget.chained
     );
@@ -232,27 +236,34 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       print('MESSAGE IMAGE');
       String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
-      _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained, isPeerMessage: true);
-      messageDecoration = peerImageDecoration(widget.message.pinned);
+      _messageDecoration = peerImageDecoration(widget.message.pinned);
+      _messageWidget = MessageImage(
+          widget.message,
+          filePath, widget.message.isDownloadingFile, widget.message.isUploading,
+          widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained, isPeerMessage: true, displayStatusIcon: false,
+      );
 
     } else if (widget.message.messageType == 'STICKER') {
+      _messageDecoration = stickerBoxDecoration();
       _messageWidget = MessageSticker(stickerCode: widget.message.text, displayStatusIcon: false);
-      messageDecoration = stickerBoxDecoration();
 
     } else if (widget.message.messageType == 'GIF') {
-      _messageWidget = MessageGif(url: widget.message.text, message: widget.message, displayStatusIcon: false);
-      messageDecoration = gifBoxDecoration(widget.message.pinned);
+      _messageDecoration = gifBoxDecoration(widget.message.pinned, isPeerMessage: true);
+      _messageWidget = MessageGif(
+          url: widget.message.text, message: widget.message, displayStatusIcon: false,
+          isPeerMessage: true
+      );
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
+      _messageDecoration = peerImageDecoration(widget.message.pinned);
       _messageWidget = MessageImage(
+          widget.message,
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
-          chained: widget.chained, isPeerMessage: true
+          chained: widget.chained, isPeerMessage: true, displayStatusIcon: false, displayText: true,
       );
-      messageDecoration = peerImageDecoration(widget.message.pinned);
     } else {
       _messageWidget = MessageText(widget.message, displayStatusIcon: false);
     }
@@ -279,7 +290,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
               picturesPath: widget.picturesPath,
             ),
             Container(
-                decoration: messageDecoration,
+                decoration: _messageDecoration,
                 constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
                 child: _messageWidget)
           ]
@@ -287,7 +298,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       );
     } else {
       w = Container(
-          decoration: messageDecoration,
+          decoration: _messageDecoration,
           constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
           child: _messageWidget);
     }

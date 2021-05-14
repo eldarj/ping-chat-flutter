@@ -6,7 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/activity/chats/component/message/partial/status-label.component.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/main.dart';
@@ -63,7 +63,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   String userProfileImagePath;
 
   List<MessageDto> chats = [];
-  Map<int, Map> messagesPagePerContact = {};
+  // Map<int, Map> messagesPagePerContact = {};
 
   int totalChatsLoaded = 0;
 
@@ -541,10 +541,10 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         onTap: () async {
           await Future.delayed(Duration(milliseconds: 250));
           NavigatorUtil.push(context, ChatActivity(
-              onFetchedFirstPage: (result) {
-                messagesPagePerContact[contactBindingId] = result;
-              },
-              firstMessagesPage: messagesPagePerContact[contactBindingId],
+              // onFetchedFirstPage: (result) {
+              //   messagesPagePerContact[contactBindingId] = result;
+              // },
+              // firstMessagesPage: messagesPagePerContact[contactBindingId],
               myContactName: myContactName, peer: contact, peerContactName: peerContactName,
               statusLabel: statusLabel, contactBindingId: contactBindingId));
         },
@@ -603,9 +603,9 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                             displayStatusIcon ? Container(
                                 margin: EdgeInsets.only(bottom: 1),
                                 padding: EdgeInsets.only(right: 2.5),
-                                child: MessageStatusIcon(message.sent, message.received, message.seen, displayStatusIcon: displayStatusIcon)
+                                child: MessageStatusIcon(message.sent, message.received, message.seen)
                             ) : Container(),
-                            MessageTimestampLabel(message.sentTimestamp, Colors.grey.shade800, edited: false),
+                            MessageTimestampLabel(message.sentTimestamp, Colors.grey.shade500, edited: false),
                             message.totalUnreadMessages > 0 ? Container(
                                 height: 15, width: 15,
                                 alignment: Alignment.center,
@@ -739,7 +739,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     return {
       'chats': result['page'],
       'totalElements': result['totalElements'],
-      'messagesPagePerContact': result['additionalData']
+      // 'messagesPagePerContact': result['additionalData']
     };
   }
 
@@ -755,7 +755,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       MessageDto message = MessageDto.fromJson(element);
 
       chats.add(message);
-      messagesPagePerContact[message.contactBindingId] = result['messagesPagePerContact'][message.contactBindingId.toString()];
+      // messagesPagePerContact[message.contactBindingId] = result['messagesPagePerContact'][message.contactBindingId.toString()];
     });
 
     scaffold.removeCurrentSnackBar();

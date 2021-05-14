@@ -4,9 +4,13 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-content.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-deleted.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-image.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-gif.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-sticker.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-text.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message.decoration.dart';
+import 'package:flutterping/activity/chats/component/message/partial/status-label.component.dart';
 import 'package:flutterping/activity/chats/component/message/reply.component.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
@@ -214,8 +218,6 @@ class MessageComponentState extends State<MessageComponent> {
 
     MessageTheme messageTheme = CompanyColor.messageThemes[widget.myChatBubbleColor];
 
-    EdgeInsets _margin = EdgeInsets.all(0);
-
     BoxDecoration _messageDecoration = myTextBoxDecoration(
         displayPinnedBorder,
         myMessageBackground: messageTheme.bubbleColor,
@@ -243,7 +245,7 @@ class MessageComponentState extends State<MessageComponent> {
       String filePath = widget.message.filePath;
 
       _messageDecoration = imageDecoration(widget.message.pinned);
-      _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
+      _messageWidget = MessageImage(widget.message, filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained);
 
     } else if (widget.message.messageType == 'STICKER') {
@@ -252,18 +254,21 @@ class MessageComponentState extends State<MessageComponent> {
           messageTheme: messageTheme, displayTimestamp: widget.displayTimestamp);
 
     } else if (widget.message.messageType == 'GIF') {
-      _margin = EdgeInsets.only(bottom: 2.5);
       _messageDecoration = gifBoxDecoration(widget.message.pinned);
-      _messageWidget = MessageGif(url: widget.message.text, message: widget.message, messageTheme: messageTheme);
+      _messageWidget = MessageGif(
+          url: widget.message.text, message: widget.message, messageTheme: messageTheme,
+      );
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       String filePath = widget.message.filePath;
 
       _messageDecoration = imageDecoration(widget.message.pinned, myMessageBackground: widget.myChatBubbleColor);
       _messageWidget = MessageImage(
+          widget.message,
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
           textColor: messageTheme.textColor, chained: widget.chained,
+          messageTheme: messageTheme, displayText: true,
       );
     } else {
       _messageWidget = MessageText(widget.message, messageTheme: messageTheme);
@@ -300,7 +305,6 @@ class MessageComponentState extends State<MessageComponent> {
       );
     } else {
       w = Container(
-          margin: _margin,
           decoration: _messageDecoration,
           constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
           child: _messageWidget);

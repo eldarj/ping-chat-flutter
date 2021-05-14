@@ -77,16 +77,16 @@ class ChatActivity extends StatefulWidget {
 
   final bool wasContactActivityPrevious;
 
-  final Map firstMessagesPage;
+  // final Map firstMessagesPage;
 
-  final Function onFetchedFirstPage;
+  // final Function onFetchedFirstPage;
 
   String statusLabel;
 
   ChatActivity({Key key, this.myContactName, this.peer,
     this.peerContactName, this.statusLabel, this.contactBindingId,
-    this.wasContactActivityPrevious = false, this.firstMessagesPage,
-    this.onFetchedFirstPage,
+    this.wasContactActivityPrevious = false,
+    // this.onFetchedFirstPage,
   }): messageSendingService = new MessageSendingService(peer, peerContactName, myContactName, contactBindingId), super(key: key);
 
   @override
@@ -102,7 +102,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   bool displayLoader = true;
   bool displaySendButton = false;
-  bool displayScrollLoader = true;
+  bool displayScrollLoader = false;
   bool displayStickers = false;
   bool displayGifs = false;
 
@@ -168,13 +168,13 @@ class ChatActivityState extends BaseState<ChatActivity> {
       sendPresenceEvent(presenceEvent);
     }
 
-    if (widget.firstMessagesPage != null) {
-      onGetMessagesSuccess({
-        'messages': widget.firstMessagesPage['page'],
-        'totalElements': widget.firstMessagesPage['totalElements'],
-        'isContactAdded': widget.firstMessagesPage['additionalData']['isContactAdded']
-      });
-    }
+    // if (widget.firstMessagesPage != null) {
+    //   onGetMessagesSuccess({
+    //     'messages': widget.firstMessagesPage['page'],
+    //     'totalElements': widget.firstMessagesPage['totalElements'],
+    //     'isContactAdded': widget.firstMessagesPage['additionalData']['isContactAdded']
+    //   });
+    // }
 
     doGetMessages(clearData: true).then(onGetMessagesSuccess, onError: onGetMessagesError);
     userPresenceSubscriptionFn = wsClientService.subscribe('/users/${widget.peer.fullPhoneNumber}/status', (frame) async {
@@ -942,7 +942,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     if (clearData) {
       messages.clear();
       pageNumber = 1;
-      widget.onFetchedFirstPage(result);
+      // widget.onFetchedFirstPage(result);
     }
 
 
