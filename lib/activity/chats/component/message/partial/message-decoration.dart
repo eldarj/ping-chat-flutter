@@ -22,7 +22,7 @@ BoxDecoration peerTextBoxDecoration(pinned, { displayBubble = true }) => BoxDeco
   //   color: Color.fromRGBO(230, 230, 230, 1),
   // ),
   borderRadius: BorderRadius.only(
-      bottomLeft: Radius.circular(displayBubble ? MESSAGE_BUBBLE_RADIUS : 2),
+      bottomLeft: Radius.circular(displayBubble ? MESSAGE_BUBBLE_RADIUS : 5),
       topRight: Radius.circular(MESSAGE_BUBBLE_RADIUS),
       bottomRight: Radius.circular(MESSAGE_BUBBLE_RADIUS)),
   boxShadow: [BoxShadow(color: Colors.black12,
@@ -40,7 +40,7 @@ BoxDecoration myTextBoxDecoration(pinned, { myMessageBackground, displayBubble =
   borderRadius: BorderRadius.only(
       topLeft: Radius.circular(MESSAGE_BUBBLE_RADIUS),
       bottomLeft: Radius.circular(MESSAGE_BUBBLE_RADIUS),
-      bottomRight: Radius.circular(displayBubble ? MESSAGE_BUBBLE_RADIUS : 2)),
+      bottomRight: Radius.circular(displayBubble ? MESSAGE_BUBBLE_RADIUS : 5)),
   boxShadow: [BoxShadow(color: Colors.black12,
     offset: Offset.fromDirection(1, 0.7),
     blurRadius: 0, spreadRadius: 0,

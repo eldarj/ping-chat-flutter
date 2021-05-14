@@ -62,7 +62,9 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   int userId;
   String userProfileImagePath;
 
-  List<MessageDto> chats = new List();
+  List<MessageDto> chats = [];
+  Map<int, Map> messagesPagePerContact = {};
+
   int totalChatsLoaded = 0;
 
   bool isLoadingOnScroll = false;
@@ -539,6 +541,10 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         onTap: () async {
           await Future.delayed(Duration(milliseconds: 250));
           NavigatorUtil.push(context, ChatActivity(
+              onFetchedFirstPage: (result) {
+                messagesPagePerContact[contactBindingId] = result;
+              },
+              firstMessagesPage: messagesPagePerContact[contactBindingId],
               myContactName: myContactName, peer: contact, peerContactName: peerContactName,
               statusLabel: statusLabel, contactBindingId: contactBindingId));
         },
@@ -730,7 +736,11 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
     dynamic result = response.decode();
 
-    return {'chats': result['page'], 'totalElements': result['totalElements']};
+    return {
+      'chats': result['page'],
+      'totalElements': result['totalElements'],
+      'messagesPagePerContact': result['additionalData']
+    };
   }
 
   void onGetChatDataSuccess(result) async {
@@ -742,7 +752,10 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     }
 
     fetchedChats.forEach((element) {
-      chats.add(MessageDto.fromJson(element));
+      MessageDto message = MessageDto.fromJson(element);
+
+      chats.add(message);
+      messagesPagePerContact[message.contactBindingId] = result['messagesPagePerContact'][message.contactBindingId.toString()];
     });
 
     scaffold.removeCurrentSnackBar();

@@ -975,7 +975,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       displayContactNameButtonLoader = true;
     });
 
-    String url = '/api/contacts/${contact.id}/name';
+    String url = '/api/contacts/${contact.id}/name?contactBindingId=${contact.contactBindingId}';
 
     http.Response response = await HttpClientService.post(url, body: contactNameController.text);
 

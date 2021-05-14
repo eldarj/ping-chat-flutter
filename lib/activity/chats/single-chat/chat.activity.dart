@@ -77,11 +77,16 @@ class ChatActivity extends StatefulWidget {
 
   final bool wasContactActivityPrevious;
 
+  final Map firstMessagesPage;
+
+  final Function onFetchedFirstPage;
+
   String statusLabel;
 
   ChatActivity({Key key, this.myContactName, this.peer,
     this.peerContactName, this.statusLabel, this.contactBindingId,
-    this.wasContactActivityPrevious = false,
+    this.wasContactActivityPrevious = false, this.firstMessagesPage,
+    this.onFetchedFirstPage,
   }): messageSendingService = new MessageSendingService(peer, peerContactName, myContactName, contactBindingId), super(key: key);
 
   @override
@@ -92,29 +97,26 @@ class ChatActivityState extends BaseState<ChatActivity> {
   static const String CHAT_ACTIVITY_DOWNLOADER_PORT_ID = "CHAT_ACTIVITY_DOWNLOADER_PORT_KEY";
   static const String STREAMS_LISTENER_ID = "ChatActivityListener";
 
-  final TextEditingController textController = TextEditingController();
   final FocusNode textFocusNode = new FocusNode();
+  final TextEditingController textController = TextEditingController();
 
   bool displayLoader = true;
   bool displaySendButton = false;
-  bool displayScrollLoader = false;
+  bool displayScrollLoader = true;
   bool displayStickers = false;
   bool displayGifs = false;
 
-  Color myChatBubbleColor;
   int userId;
   int userSentNodeId;
+  Color myChatBubbleColor;
 
   String contactName;
   ContactDto contact;
 
-  List<MessageDto> messages = new List();
+  List<MessageDto> messages = [];
   int totalMessages = 0;
   int pageNumber = 1;
   int pageSize = 50;
-
-  // bool previousWasPeerMessage;
-  // DateTime previousMessageDate;
 
   Function userPresenceSubscriptionFn;
 
@@ -135,9 +137,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
   ScrollController chatListController = new ScrollController();
 
   bool isPinButtonLoading = false;
+
   StateSetter messageActionsSetState;
 
-ChatActivityState({ this.contactName });
+  ChatActivityState({ this.contactName });
 
   onInit() async {
     CURRENT_OPEN_CONTACT_BINDING_ID = widget.contactBindingId;
@@ -165,7 +168,15 @@ ChatActivityState({ this.contactName });
       sendPresenceEvent(presenceEvent);
     }
 
-    doGetMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
+    if (widget.firstMessagesPage != null) {
+      onGetMessagesSuccess({
+        'messages': widget.firstMessagesPage['page'],
+        'totalElements': widget.firstMessagesPage['totalElements'],
+        'isContactAdded': widget.firstMessagesPage['additionalData']['isContactAdded']
+      });
+    }
+
+    doGetMessages(clearData: true).then(onGetMessagesSuccess, onError: onGetMessagesError);
     userPresenceSubscriptionFn = wsClientService.subscribe('/users/${widget.peer.fullPhoneNumber}/status', (frame) async {
       PresenceEvent presenceEvent = PresenceEvent.fromJson(json.decode(frame.body));
 
@@ -708,7 +719,7 @@ ChatActivityState({ this.contactName });
                 controller: chatListController,
                 itemCount: messages == null ? 0 : messages.length,
                 itemBuilder: (context, index) {
-                  return buildSingleMessage(messages[index],
+                  return buildSingleMessage(index, messages[index],
                       isFirstMessage: index == messages.length - 1,
                       isLastMessage: index == 0);
                 },
@@ -740,22 +751,26 @@ ChatActivityState({ this.contactName });
     return widget;
   }
 
-  Widget buildSingleMessage(MessageDto message, {isLastMessage, isFirstMessage = false}) {
-    // bool displayTimestamp = true;
+  Widget buildSingleMessage(int index, MessageDto message, {isLastMessage, isFirstMessage = false}) {
+    bool chained = true;
     bool isPeerMessage = userId != message.sender.id;
+    bool isPinnedMessage = message.pinned != null && message.pinned;
     DateTime thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
+
+
 
     // if ((message.pinned == null || !message.pinned)
     //     && (message.edited == null || !message.edited)
     //     && previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
     //     && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage
     //     && !isLastMessage) {
-    //   displayTimestamp = false;
+    //   chained = false;
     // }
     //
-    //  previousWasPeerMessage = isPeerMessage;
+    // previousWasPeerMessage = isPeerMessage;
     // previousMessageDate = thisMessageDate;
 
+    chained = !isLastMessage && message.sender.id == messages[index - 1].sender.id;
     message.widgetKey = new GlobalKey();
 
     if (isPeerMessage) {
@@ -765,7 +780,8 @@ ChatActivityState({ this.contactName });
             left: 5, right: 5,
             bottom: isLastMessage ? 20 : 0),
         message: message,
-        // displayTimestamp: displayTimestamp,
+        chained: chained,
+        isPinnedMessage: isPinnedMessage,
         picturesPath: picturesPath,
         onMessageTapDown: () => onMessageTapDown(message)
       );
@@ -777,7 +793,8 @@ ChatActivityState({ this.contactName });
             left: 5, right: 5,
             bottom: isLastMessage ? 20 : 0),
         message: message,
-        // displayTimestamp: displayTimestamp,
+        chained: chained,
+        isPinnedMessage: isPinnedMessage,
         picturesPath: picturesPath,
         myChatBubbleColor: myChatBubbleColor,
         onMessageTapDown: () => onMessageTapDown(message)
@@ -903,12 +920,7 @@ ChatActivityState({ this.contactName });
     }
   }
 
-  Future doGetMessages({page = 1, clearRides = false, favouritesOnly = false}) async {
-    if (clearRides) {
-      messages.clear();
-      pageNumber = 1;
-    }
-
+  Future doGetMessages({page = 1, clearData = false, favouritesOnly = false}) async {
     String url = '/api/messages'
         '?pageNumber=' + (page - 1).toString() +
         '&pageSize=' + pageSize.toString() +
@@ -922,6 +934,13 @@ ChatActivityState({ this.contactName });
     }
 
     dynamic result = response.decode();
+
+    if (clearData) {
+      messages.clear();
+      pageNumber = 1;
+      widget.onFetchedFirstPage(result);
+    }
+
 
     return {
       'messages': result['page'],
@@ -1000,7 +1019,7 @@ ChatActivityState({ this.contactName });
         isError = false;
       });
 
-      doGetMessages(clearRides: true).then(onGetMessagesSuccess, onError: onGetMessagesError);
+      doGetMessages(clearData: true).then(onGetMessagesSuccess, onError: onGetMessagesError);
     }));
   }
 

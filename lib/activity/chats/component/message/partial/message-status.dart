@@ -37,7 +37,7 @@ class MessagePinnedLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.only(top: 2.5, bottom: 2.5, left: 5, right: 5),
+        padding: EdgeInsets.only(top: 3, bottom: 1, left: 5, right: 5),
         child: Row(
           children: [
             Text('Pinned', style: TextStyle(

@@ -203,7 +203,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                       setState(() {
                         displayLoader = true;
                       });
-                      doGetContacts(clearRides: true, favouritesOnly: index == 1)
+                      doGetContacts(clearData: true, favouritesOnly: index == 1)
                           .then(onGetContactsSuccess, onError: onGetContactsError);
                     },
                     indicatorColor: CompanyColor.blueDark,
@@ -275,7 +275,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
             isError = false;
           });
 
-          doGetContacts(clearRides: true).then(onGetContactsSuccess, onError: onGetContactsError);
+          doGetContacts(clearData: true).then(onGetContactsSuccess, onError: onGetContactsError);
         });
       }
     }
@@ -499,8 +499,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
     }
   }
 
-  Future<dynamic> doGetContacts({page = 1, clearRides = false, favouritesOnly = false}) async {
-    if (clearRides) {
+  Future<dynamic> doGetContacts({page = 1, clearData = false, favouritesOnly = false}) async {
+    if (clearData) {
       contacts.clear();
       pageNumber = 1;
     }
@@ -557,7 +557,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
       });
 
 
-      doGetContacts(clearRides: true).then(onGetContactsSuccess, onError: onGetContactsError);
+      doGetContacts(clearData: true).then(onGetContactsSuccess, onError: onGetContactsError);
     }));
   }
 

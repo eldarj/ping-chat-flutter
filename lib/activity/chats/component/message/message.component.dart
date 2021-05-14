@@ -28,11 +28,13 @@ import 'package:open_file/open_file.dart';
 class MessageComponent extends StatefulWidget {
   final MessageDto message;
 
-  // final bool displayTimestamp;
+  final bool chained;
 
   final EdgeInsets margin;
 
   final String picturesPath;
+
+  final bool isPinnedMessage;
 
   final bool pinnedStyle;
 
@@ -42,9 +44,10 @@ class MessageComponent extends StatefulWidget {
 
   const MessageComponent({Key key,
     this.message,
-    // this.displayTimestamp,
+    this.chained,
     this.margin,
     this.picturesPath,
+    this.isPinnedMessage = false,
     this.pinnedStyle = false,
     this.myChatBubbleColor,
     this.onMessageTapDown
@@ -97,8 +100,7 @@ class MessageComponentState extends State<MessageComponent> {
       child: Container(
         margin: widget.margin,
         child: Container(
-          // margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.displayTimestamp ? 20 : 0),
-          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: 20),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 0 : 5),
           child: Column(crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 buildMessagePinDetails(),
@@ -111,7 +113,7 @@ class MessageComponentState extends State<MessageComponent> {
   }
 
   buildMessagePinDetails() {
-    return widget.pinnedStyle && widget.message.pinned ? Container(
+    return widget.pinnedStyle && widget.isPinnedMessage ? Container(
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
           borderRadius: BorderRadius.circular(10),
@@ -126,7 +128,7 @@ class MessageComponentState extends State<MessageComponent> {
   }
 
   buildPinnedLabel() {
-    return widget.message.pinned != null && widget.message.pinned ? Row(
+    return widget.isPinnedMessage ? Row(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -205,15 +207,14 @@ class MessageComponentState extends State<MessageComponent> {
   buildMessageContent() {
     Widget _messageWidget;
 
-    var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
+    var displayPinnedBorder = widget.isPinnedMessage && !widget.pinnedStyle;
 
     MessageTheme messageTheme = CompanyColor.messageThemes[widget.myChatBubbleColor];
 
     BoxDecoration messageDecoration = myTextBoxDecoration(
         displayPinnedBorder,
         myMessageBackground: messageTheme.bubbleColor,
-        // displayBubble: widget.displayTimestamp
-        displayBubble: true
+        displayBubble: widget.isPinnedMessage || !widget.chained
     );
 
 
@@ -267,29 +268,30 @@ class MessageComponentState extends State<MessageComponent> {
 
     if (widget.message.replyMessage != null) {
       w = Container(
-        padding: EdgeInsets.only(left: 5, top: 5), // TODO: Check reply UI
-        decoration: BoxDecoration(
-          color: Color.fromRGBO(255, 255, 255, 0.5),
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
-              topRight: Radius.circular(MESSAGE_REPLY_RADIUS),
-              bottomLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
-              bottomRight: Radius.circular(MESSAGE_BUBBLE_RADIUS)
-          ),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            ReplyComponent(
-              isPeerMessage: false,
-              message: widget.message,
-              picturesPath: widget.picturesPath,
+          padding: EdgeInsets.only(left: 5, top: 5), // TODO: Check reply UI
+          decoration: BoxDecoration(
+            color: Color.fromRGBO(255, 255, 255, 0.5),
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
+                topRight: Radius.circular(MESSAGE_REPLY_RADIUS),
+                bottomLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
+                bottomRight: Radius.circular(MESSAGE_BUBBLE_RADIUS)
             ),
-            Container(
-                decoration: messageDecoration,
-                constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
-                child: _messageWidget)
-          ]
-        )
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ReplyComponent(
+                  isPeerMessage: false,
+                  message: widget.message,
+                  picturesPath: widget.picturesPath,
+                ),
+                Container(
+                    decoration: messageDecoration,
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    // TODO: Check max height
+                    child: _messageWidget)
+              ]
+          )
       );
     } else {
       w = Container(

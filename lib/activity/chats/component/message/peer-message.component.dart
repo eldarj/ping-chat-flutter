@@ -29,11 +29,13 @@ import 'package:open_file/open_file.dart';
 class PeerMessageComponent extends StatefulWidget {
   final MessageDto message;
 
-  // final bool displayTimestamp;
+  final bool chained;
 
   final EdgeInsets margin;
 
   final String picturesPath;
+
+  final bool isPinnedMessage;
 
   final bool pinnedStyle;
 
@@ -41,9 +43,10 @@ class PeerMessageComponent extends StatefulWidget {
 
   const PeerMessageComponent({Key key,
     this.message,
-    // this.displayTimestamp,
+    this.chained,
     this.margin,
     this.picturesPath,
+    this.isPinnedMessage = false,
     this.pinnedStyle = false,
     this.onMessageTapDown
   }) : super(key: key);
@@ -95,8 +98,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       child: Container(
         margin: widget.margin,
         child: Container(
-          // margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.displayTimestamp ? 20 : 0),
-          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: 20),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 0 : 5),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 buildMessagePinDetails(),
@@ -109,7 +111,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
   }
 
   buildMessagePinDetails() {
-    return widget.pinnedStyle && widget.message.pinned ? Container(
+    return widget.pinnedStyle && widget.isPinnedMessage ? Container(
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
           borderRadius: BorderRadius.circular(10),
@@ -124,7 +126,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
   }
 
   buildPinnedLabel() {
-    return widget.message.pinned != null && widget.message.pinned ? Row(
+    return widget.isPinnedMessage ? Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -203,12 +205,11 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
   buildMessageContent() {
     Widget _messageWidget;
 
-    var displayPinnedBorder = widget.message.pinned != null && widget.message.pinned && !widget.pinnedStyle;
+    var displayPinnedBorder = widget.isPinnedMessage && !widget.pinnedStyle;
 
     BoxDecoration messageDecoration = peerTextBoxDecoration(
         displayPinnedBorder,
-      // displayBubble: widget.displayTimestamp
-        displayBubble: true
+        displayBubble: widget.isPinnedMessage || !widget.chained
     );
 
     if (widget.message.deleted) {
