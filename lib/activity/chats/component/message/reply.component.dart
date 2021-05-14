@@ -136,7 +136,8 @@ class ReplyComponentState extends State<ReplyComponent> {
                   bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
                   bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
               ),
-              child: MessageImage(filePath, false, false, 0.0, () {}, borderRadius: 0)),
+              child: MessageImage(filePath, false, false, 0.0, () {},
+                  isPeerMessage: widget.isPeerMessage)),
         ),
       );
       padding = EdgeInsets.all(0);
@@ -151,7 +152,8 @@ class ReplyComponentState extends State<ReplyComponent> {
         opacity: 0.8,
         child: Container(
           constraints: BoxConstraints(maxWidth: 120),
-          child: MessageImage(filePath, false, false, 0.0, () {}, borderRadius: 0, text: widget.message.replyMessage.text),
+          child: MessageImage(filePath, false, false, 0.0, () {},
+              text: widget.message.replyMessage.text, isPeerMessage: widget.isPeerMessage),
         ),
       );
 
@@ -160,7 +162,7 @@ class ReplyComponentState extends State<ReplyComponent> {
         opacity: 0.8,
         child: Container(
             width: 75, height: 50,
-            child: MessageSticker(widget.message.replyMessage.text)),
+            child: MessageSticker(stickerCode: widget.message.replyMessage.text, displayStatusIcon: false)),
       );
 
     } else if (widget.message.replyMessage.messageType == 'GIF') {
@@ -173,7 +175,7 @@ class ReplyComponentState extends State<ReplyComponent> {
                     bottomLeft: Radius.circular(widget.isPeerMessage ? 0 : 10),
                     bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
                 ),
-                child: MessageGif(widget.message.replyMessage.text))),
+                child: MessageGif(url: widget.message.replyMessage.text, displayStatusIcon: false))),
       );
 
     } else {

@@ -718,11 +718,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 reverse: true,
                 controller: chatListController,
                 itemCount: messages == null ? 0 : messages.length,
-                itemBuilder: (context, index) {
-                  return buildSingleMessage(index, messages[index],
-                      isFirstMessage: index == messages.length - 1,
-                      isLastMessage: index == 0);
-                },
+                itemBuilder: (context, index) => buildSingleMessage(
+                    index,
+                    messages[index],
+                    isFirstMessage: index == messages.length - 1,
+                    isLastMessage: index == 0
+                ),
               ),
             ),
           ),
@@ -752,25 +753,27 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   Widget buildSingleMessage(int index, MessageDto message, {isLastMessage, isFirstMessage = false}) {
-    bool chained = true;
+    bool nextIsSticker = false;
+    bool chained = false;
+
     bool isPeerMessage = userId != message.sender.id;
     bool isPinnedMessage = message.pinned != null && message.pinned;
+
+    if (!isLastMessage) {
+      nextIsSticker = message.messageType == 'TEXT_MESSAGE' && messages[index - 1].messageType == 'STICKER';
+      chained = message.sender.id == messages[index - 1].sender.id && !nextIsSticker;
+    }
+
     DateTime thisMessageDate = DateTime.fromMillisecondsSinceEpoch(message.sentTimestamp);
+    bool displayTimestamp = true;
 
+    if (chained) {
+      DateTime previousMessageDate = DateTime.fromMillisecondsSinceEpoch(messages[index - 1].sentTimestamp);
+      int messagesTimeDiff = thisMessageDate.minute - previousMessageDate.minute;
 
+      displayTimestamp = messagesTimeDiff.abs() > 5;
+    }
 
-    // if ((message.pinned == null || !message.pinned)
-    //     && (message.edited == null || !message.edited)
-    //     && previousMessageDate != null && thisMessageDate.minute == previousMessageDate.minute
-    //     && previousWasPeerMessage != null && previousWasPeerMessage == isPeerMessage
-    //     && !isLastMessage) {
-    //   chained = false;
-    // }
-    //
-    // previousWasPeerMessage = isPeerMessage;
-    // previousMessageDate = thisMessageDate;
-
-    chained = !isLastMessage && message.sender.id == messages[index - 1].sender.id;
     message.widgetKey = new GlobalKey();
 
     if (isPeerMessage) {
@@ -794,6 +797,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
             bottom: isLastMessage ? 20 : 0),
         message: message,
         chained: chained,
+        displayTimestamp: displayTimestamp,
         isPinnedMessage: isPinnedMessage,
         picturesPath: picturesPath,
         myChatBubbleColor: myChatBubbleColor,

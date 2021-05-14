@@ -42,6 +42,8 @@ class MessageComponent extends StatefulWidget {
 
   final Function onMessageTapDown;
 
+  final bool displayTimestamp;
+
   const MessageComponent({Key key,
     this.message,
     this.chained,
@@ -50,7 +52,8 @@ class MessageComponent extends StatefulWidget {
     this.isPinnedMessage = false,
     this.pinnedStyle = false,
     this.myChatBubbleColor,
-    this.onMessageTapDown
+    this.onMessageTapDown,
+    this.displayTimestamp = true
   }) : super(key: key);
 
   @override
@@ -211,7 +214,9 @@ class MessageComponentState extends State<MessageComponent> {
 
     MessageTheme messageTheme = CompanyColor.messageThemes[widget.myChatBubbleColor];
 
-    BoxDecoration messageDecoration = myTextBoxDecoration(
+    EdgeInsets _margin = EdgeInsets.all(0);
+
+    BoxDecoration _messageDecoration = myTextBoxDecoration(
         displayPinnedBorder,
         myMessageBackground: messageTheme.bubbleColor,
         displayBubble: widget.isPinnedMessage || !widget.chained
@@ -235,31 +240,31 @@ class MessageComponentState extends State<MessageComponent> {
           widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
 
     } else if (widget.message.messageType == 'IMAGE') {
-      print('MESSAGE IMAGE');
       String filePath = widget.message.filePath;
 
+      _messageDecoration = imageDecoration(widget.message.pinned);
       _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc);
-      messageDecoration = imageDecoration(widget.message.pinned);
+          widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained);
 
     } else if (widget.message.messageType == 'STICKER') {
-      _messageWidget = MessageSticker(widget.message.text);
-      messageDecoration = stickerBoxDecoration();
+      _messageDecoration = stickerBoxDecoration();
+      _messageWidget = MessageSticker(stickerCode: widget.message.text, message: widget.message,
+          messageTheme: messageTheme, displayTimestamp: widget.displayTimestamp);
 
     } else if (widget.message.messageType == 'GIF') {
-      _messageWidget = MessageGif(widget.message.text);
-      messageDecoration = gifBoxDecoration(widget.message.pinned);
+      _margin = EdgeInsets.only(bottom: 2.5);
+      _messageDecoration = gifBoxDecoration(widget.message.pinned);
+      _messageWidget = MessageGif(url: widget.message.text, message: widget.message, messageTheme: messageTheme);
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       String filePath = widget.message.filePath;
 
+      _messageDecoration = imageDecoration(widget.message.pinned, myMessageBackground: widget.myChatBubbleColor);
       _messageWidget = MessageImage(
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
-          textColor: messageTheme.textColor,
+          textColor: messageTheme.textColor, chained: widget.chained,
       );
-      messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: false,
-          myMessageBackground: widget.myChatBubbleColor);
     } else {
       _messageWidget = MessageText(widget.message, messageTheme: messageTheme);
     }
@@ -286,7 +291,7 @@ class MessageComponentState extends State<MessageComponent> {
                   picturesPath: widget.picturesPath,
                 ),
                 Container(
-                    decoration: messageDecoration,
+                    decoration: _messageDecoration,
                     constraints: BoxConstraints(maxWidth: maxWidth),
                     // TODO: Check max height
                     child: _messageWidget)
@@ -295,7 +300,8 @@ class MessageComponentState extends State<MessageComponent> {
       );
     } else {
       w = Container(
-          decoration: messageDecoration,
+          margin: _margin,
+          decoration: _messageDecoration,
           constraints: BoxConstraints(maxWidth: maxWidth), // TODO: Check max height
           child: _messageWidget);
     }

@@ -41,7 +41,7 @@ class MessagePinnedLabel extends StatelessWidget {
         child: Row(
           children: [
             Text('Pinned', style: TextStyle(
-                fontSize: 11, color: Colors.grey.shade800)),
+                fontSize: 11, color: Colors.grey.shade500)),
             Container(
                 child: Icon(Icons.album_outlined, size: 8, color: CompanyColor.blueDark)),
           ],
@@ -71,7 +71,7 @@ class MessageStatusIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext _context) {
-    Color iconColor = this.iconColor ?? Colors.grey.shade800;
+    Color iconColor = this.iconColor ?? Colors.grey.shade500;
     Color seenIconColor = this.seenIconColor ?? Colors.green;
 
     final double iconSize = 11;

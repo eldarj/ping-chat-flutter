@@ -3,13 +3,13 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-decoration.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-status.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/other/date-time.util.dart';
 
 const MESSAGE_PADDING = EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15);
 
@@ -82,54 +82,142 @@ class MessageText extends StatelessWidget {
 }
 
 class MessageGif extends StatelessWidget {
-  const MessageGif(this.url, {Key key}) : super(key: key);
+  final String url;
 
-  final dynamic url;
+  final MessageDto message;
+
+  final MessageTheme messageTheme;
+
+  final bool displayStatusIcon;
+
+  const MessageGif({
+    Key key,
+    this.url,
+    this.message,
+    this.messageTheme,
+    this.displayStatusIcon = true
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext _context) {
-    double size = DEVICE_MEDIA_SIZE.width / 1.25;
-    return Stack(
-      alignment: Alignment.bottomLeft,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-              constraints: BoxConstraints(
-                maxWidth: size, minWidth: 200,
-              ),
-              child: CachedNetworkImage(
-                fit: BoxFit.cover,
-                imageUrl: url,
-              )
-          ),
-        ),
-        Container(
-            decoration: BoxDecoration(
-              color: Color.fromRGBO(255, 255, 255, 1),
-              borderRadius: BorderRadius.circular(20),
+    Color gifLabelColor = Colors.grey.shade300;
+    Color seenIconColor = Colors.green;
+
+    if (this.messageTheme != null) {
+      seenIconColor = this.messageTheme.seenIconColor;
+    }
+
+    Widget statusIcon = Container();
+
+    if (displayStatusIcon) {
+      statusIcon = MessageStatusIcon(
+        message.sent, message.received, message.seen,
+        displayStatusIcon: true, displayPlaceholderCheckMark: message.displayCheckMark,
+        iconColor: gifLabelColor, seenIconColor: seenIconColor,
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: 200,
+        color: Colors.black,
+        padding: EdgeInsets.only(bottom: 2.5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Container(
+                width: 200,
+                child: CachedNetworkImage(
+                  fit: BoxFit.cover,
+                  imageUrl: url,
+                )
             ),
-            margin: EdgeInsets.only(left: 5, bottom: 2.5),
-            padding: EdgeInsets.only(left: 5, right: 5, bottom: 2),
-            child: Text('Giphy', style: TextStyle(
-                fontSize: 9, color: Colors.grey.shade500,
-                decoration: TextDecoration.underline
-            ))),
-      ],
+            Container(
+              padding: EdgeInsets.only(left: 10, right: 12.5, top: 2.5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.asset('static/graphic/logo/giphy-logo.png', height: 10),
+                  Row(children: [
+                    Container(
+                        padding: EdgeInsets.only(right: 2.5),
+                        margin: EdgeInsets.only(bottom: 1),
+                        child: statusIcon),
+                    MessageTimestampLabel(message.sentTimestamp, gifLabelColor, edited: message.edited)
+                  ])
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class MessageSticker extends StatelessWidget {
-  const MessageSticker(this.text, {Key key}) : super(key: key);
+  final String stickerCode;
 
-  final dynamic text;
+  final MessageDto message;
+
+  final MessageTheme messageTheme;
+
+  final bool displayStatusIcon;
+
+  final bool displayTimestamp;
+
+  const MessageSticker({
+    Key key,
+    this.stickerCode,
+    this.message,
+    this.messageTheme,
+    this.displayStatusIcon = true,
+    this.displayTimestamp = true
+  }) : super(key: key);
+
 
   @override
   Widget build(BuildContext _context) {
+    Color stickerLabelColor = Colors.grey.shade500;
+    Color seenIconColor = Colors.green;
+
+    if (this.messageTheme != null) {
+      seenIconColor = this.messageTheme.seenIconColor;
+    }
+
+    Widget statusIcon = Container();
+
+    if (displayStatusIcon) {
+      statusIcon = MessageStatusIcon(
+        message.sent, message.received, message.seen,
+        displayStatusIcon: true, displayPlaceholderCheckMark: message.displayCheckMark,
+        iconColor: stickerLabelColor, seenIconColor: seenIconColor,
+      );
+    }
+
     double size = DEVICE_MEDIA_SIZE.width / 3;
-    return Container(
-        child: Image.asset('static/graphic/sticker/' + text, height: size, width: size)
+
+    return Stack(
+      alignment: Alignment.bottomRight,
+      children: [
+        Container(
+            child: Image.asset('static/graphic/sticker/' + stickerCode, height: size, width: size)
+        ),
+        Container(
+          padding: EdgeInsets.only(left: 5, right: 5, top: 2.5),
+          child: !displayTimestamp ? Container() : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                  padding: EdgeInsets.only(right: 2.5),
+                  margin: EdgeInsets.only(bottom: 1),
+                  child: statusIcon),
+              MessageTimestampLabel(message.sentTimestamp, stickerLabelColor, edited: message.edited)
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -166,9 +254,11 @@ class MessageImage extends StatelessWidget {
 
   final String text;
 
-  final double borderRadius;
-
   final Color textColor;
+
+  final bool isPeerMessage;
+
+  final bool chained;
 
   MessageImage(
       this.filePath,
@@ -179,8 +269,9 @@ class MessageImage extends StatelessWidget {
       {
         Key key,
         this.text,
-        this.borderRadius = 10,
-        this.textColor
+        this.textColor,
+        this.chained = false,
+        this.isPeerMessage = false,
       }
   ) : super(key: key);
 
@@ -225,7 +316,12 @@ class MessageImage extends StatelessWidget {
         child: Stack(alignment: Alignment.center,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(borderRadius),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
+                topRight: Radius.circular(!isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
+                bottomLeft: Radius.circular(chained && isPeerMessage ? 5 : IMAGE_BUBBLE_RADIUS),
+                bottomRight: Radius.circular(chained && !isPeerMessage ? 5 : IMAGE_BUBBLE_RADIUS),
+              ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 colorFilteredImage,
                 !isUploading && text != null ? Container(

@@ -233,15 +233,15 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       _messageWidget = MessageImage(filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc);
-      messageDecoration = imageDecoration(widget.message.pinned);
+          widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained, isPeerMessage: true);
+      messageDecoration = peerImageDecoration(widget.message.pinned);
 
     } else if (widget.message.messageType == 'STICKER') {
-      _messageWidget = MessageSticker(widget.message.text);
+      _messageWidget = MessageSticker(stickerCode: widget.message.text, displayStatusIcon: false);
       messageDecoration = stickerBoxDecoration();
 
     } else if (widget.message.messageType == 'GIF') {
-      _messageWidget = MessageGif(widget.message.text);
+      _messageWidget = MessageGif(url: widget.message.text, message: widget.message, displayStatusIcon: false);
       messageDecoration = gifBoxDecoration(widget.message.pinned);
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
@@ -250,8 +250,9 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       _messageWidget = MessageImage(
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
+          chained: widget.chained, isPeerMessage: true
       );
-      messageDecoration = imageDecoration(widget.message.pinned, isPeerMessage: true);
+      messageDecoration = peerImageDecoration(widget.message.pinned);
     } else {
       _messageWidget = MessageText(widget.message, displayStatusIcon: false);
     }
