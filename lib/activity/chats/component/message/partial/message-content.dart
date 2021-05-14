@@ -179,7 +179,7 @@ class MessageImage extends StatelessWidget {
       {
         Key key,
         this.text,
-        this.borderRadius = 15,
+        this.borderRadius = 10,
         this.textColor
       }
   ) : super(key: key);
