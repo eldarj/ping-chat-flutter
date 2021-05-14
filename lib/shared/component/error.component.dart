@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 class ErrorComponent {
   static Widget build({
+    displayErrorImage = false,
     icon = Icons.error_outline,
     text = 'Something went wrong',
     actionLabel = 'Try again',
-    actionOnPressed
+    actionOnPressed,
   }) {
     return Center(
       child: Container(
@@ -14,8 +15,11 @@ class ErrorComponent {
         child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                  child: Icon(icon, color: Colors.grey, size: 60)),
+              displayErrorImage ? Opacity(
+                  opacity: 0.8,
+                  child: Image.asset('static/graphic/sticker/panda7.png', width: 150, height: 150)) : Container(
+                child: Icon(icon, color: Colors.grey, size: 60)
+              ),
               Container(
                   margin: EdgeInsets.only(bottom: 20, top: 10),
                   child: Text(

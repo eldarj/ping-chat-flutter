@@ -432,14 +432,18 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           ),
         );
       } else {
-        widget = ErrorComponent.build(actionOnPressed: () async {
-          setState(() {
-            displayLoader = true;
-            isError = false;
-          });
+        widget = ErrorComponent.build(
+            displayErrorImage: true,
+            text: 'We couldn\'t load your chats, please try again.',
+            actionOnPressed: () async {
+              setState(() {
+                displayLoader = true;
+                isError = false;
+              });
 
-          doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
-        });
+              doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
+            },
+        );
       }
     }
 
@@ -773,15 +777,5 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       isLoadingOnScroll = false;
       isError = true;
     });
-
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () async {
-      setState(() {
-        displayLoader = true;
-        isError = false;
-      });
-
-      doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
-    }));
   }
 }

@@ -1,13 +1,11 @@
-
-
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String RECENT_STICKERS_SHARED_PREFS_KEY = 'RECENT_STICKERS_SHARED_PREFS_KEY';
+
 class StickerService {
-  Future<Map> loadRecent() async {
+  Future<List> loadRecent() async {
     List stickerList = [];
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -17,15 +15,10 @@ class StickerService {
       stickerList = json.decode(stickerJson);
     }
 
-    Map map = {
-      0: stickerList.take(5),
-      1: stickerList.skip(5).take(5)
-    };
-
-    return map;
+    return stickerList;
   }
 
-  Future<Map> addRecent(stickerName) async {
+  Future<List> addRecent(stickerName) async {
     List stickerList;
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -47,9 +40,6 @@ class StickerService {
     stickerJson = json.encode(stickerList);
     await prefs.setString(RECENT_STICKERS_SHARED_PREFS_KEY, stickerJson);
 
-    return {
-      0: stickerList.take(5),
-      1: stickerList.skip(5).take(5)
-    };
+    return stickerList;
   }
 }

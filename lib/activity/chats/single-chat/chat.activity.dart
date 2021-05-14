@@ -568,91 +568,99 @@ class ChatActivityState extends BaseState<ChatActivity> {
         drawer: NavigationDrawerComponent(),
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
-          return Container(
-            color: Colors.white,
-            child: Column(children: [
-              Flexible(
-                child: Stack(alignment: Alignment.topCenter, children: [
-                  contact != null && contact.backgroundImagePath != null ? Positioned.fill(
-                      child: Opacity(
-                        opacity: 1,
-                        child: CachedNetworkImage(
-                            fit: BoxFit.cover,
-                            imageUrl: API_BASE_URL + '/files/chats/' + contact.backgroundImagePath),
-                      )) : Container(),
-                  buildMessagesList(),
-                  buildAddToContactSection(),
-                  displayScrollLoader ? SizedOverflowBox(
-                      size: Size(100, 0),
-                      child: Container(
-                          padding: EdgeInsets.only(top: 50),
+          return Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                color: Colors.white,
+                child: Column(children: [
+                  Flexible(
+                    child: Stack(alignment: Alignment.topCenter, children: [
+                      contact != null && contact.backgroundImagePath != null ? Positioned.fill(
+                          child: Opacity(
+                            opacity: 1,
+                            child: CachedNetworkImage(
+                                fit: BoxFit.cover,
+                                imageUrl: API_BASE_URL + '/files/chats/' + contact.backgroundImagePath),
+                          )) : Container(),
+                      buildMessagesList(),
+                      buildAddToContactSection(),
+                      displayScrollLoader ? SizedOverflowBox(
+                          size: Size(100, 0),
                           child: Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(color: Colors.grey.shade300),
-                                  borderRadius: BorderRadius.circular(50)
-                              ),
-                              padding: EdgeInsets.all(10),
-                              child: Spinner(size: 20)))) : Container(),
+                              padding: EdgeInsets.only(top: 50),
+                              child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(color: Colors.grey.shade300),
+                                      borderRadius: BorderRadius.circular(50)
+                                  ),
+                                  padding: EdgeInsets.all(10),
+                                  child: Spinner(size: 20)))) : Container(),
+                    ]),
+                  ),
+                  SingleChatInputRow(
+                    userId: userId,
+                    peerId: widget.peer.id,
+                    userSentNodeId: userSentNodeId,
+                    picturesPath: picturesPath,
+                    inputTextController: textController,
+                    inputTextFocusNode: textFocusNode,
+                    displayStickers: displayStickers,
+                    displayGifs: displayGifs,
+                    displaySendButton: displaySendButton,
+                    messageSendingService: widget.messageSendingService,
+                    doSendMessage: doSendMessage,
+                    onOpenShareBottomSheet: onOpenShareBottomSheet,
+                    onOpenStickerBar: onOpenStickerBar,
+                    onOpenGifPicker: onOpenGifPicker,
+                    onProgress: (message, progress) {
+                      setState(() {
+                        message.uploadProgress = progress / 100;
+                      });
+                    },
+                    isEditing: isEditing,
+                    onCancelEdit: () {
+                      setState(() {
+                        isEditing = false;
+                        editingMessage = null;
+                        textController.text = '';
+                      });
+                    },
+                    onSubmitEdit: () {
+                      doSendEditMessage(editingMessage, textController.text);
+
+                      MessageDto message = messages.firstWhere((element) => element.id == editingMessage.id, orElse: () => null);
+                      if (message != null) {
+                        message.text = textController.text;
+                        message.edited = true;
+                      }
+
+                      setState(() {
+                        isEditing = false;
+                        editingMessage = null;
+                        textController.text = '';
+                      });
+                    },
+                    isReplying: isReplying,
+                    replyWidget: replyWidget,
+                    onCancelReply: () {
+                      setState(() {
+                        isReplying = false;
+                        replyWidget = Container();
+                        replyMessage = null;
+                      });
+                    },
+                    onSubmitReply: doSendReply
+                  ),
                 ]),
               ),
-              SingleChatInputRow(
-                userId: userId,
-                peerId: widget.peer.id,
-                userSentNodeId: userSentNodeId,
-                picturesPath: picturesPath,
-                inputTextController: textController,
-                inputTextFocusNode: textFocusNode,
-                displayStickers: displayStickers,
-                displayGifs: displayGifs,
-                displaySendButton: displaySendButton,
-                messageSendingService: widget.messageSendingService,
-                doSendMessage: doSendMessage,
-                onOpenShareBottomSheet: onOpenShareBottomSheet,
-                onOpenStickerBar: onOpenStickerBar,
-                onOpenGifPicker: onOpenGifPicker,
-                onProgress: (message, progress) {
-                  setState(() {
-                    message.uploadProgress = progress / 100;
-                  });
-                },
-                isEditing: isEditing,
-                onCancelEdit: () {
-                  setState(() {
-                    isEditing = false;
-                    editingMessage = null;
-                    textController.text = '';
-                  });
-                },
-                onSubmitEdit: () {
-                  doSendEditMessage(editingMessage, textController.text);
-
-                  MessageDto message = messages.firstWhere((element) => element.id == editingMessage.id, orElse: () => null);
-                  if (message != null) {
-                    message.text = textController.text;
-                    message.edited = true;
-                  }
-
-                  setState(() {
-                    isEditing = false;
-                    editingMessage = null;
-                    textController.text = '';
-                  });
-                },
-                isReplying: isReplying,
-                replyWidget: replyWidget,
-                onCancelReply: () {
-                  setState(() {
-                    isReplying = false;
-                    replyWidget = Container();
-                    replyMessage = null;
-                  });
-                },
-                onSubmitReply: doSendReply
-              ),
-              displayStickers ? StickerBar(sendFunc: doSendEmoji) : Container(),
-              displayGifs ? GifBar(sendFunc: doSendGif) : Container(),
-            ]),
+              displayGifs ? GifBar(sendFunc: doSendGif, onClose: closeGifPicker) : Container(),
+              displayStickers ? StickerBar(
+                  sendFunc: doSendEmoji,
+                  onClose: closeStickerBar,
+              ) : Container(),
+            ],
           );
         })
     );
@@ -807,20 +815,28 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   onOpenStickerBar() {
+    FocusScope.of(context).requestFocus(new FocusNode());
     setState(() {
-      displayStickers = !displayStickers;
-      if (displayStickers) {
-        FocusScope.of(context).requestFocus(new FocusNode());
-      }
+      displayStickers = true;
+    });
+  }
+
+  closeStickerBar() {
+    setState(() {
+      displayStickers = false;
     });
   }
 
   onOpenGifPicker() async {
+    FocusScope.of(context).requestFocus(new FocusNode());
     setState(() {
-      displayGifs = !displayGifs;
-      if (displayGifs) {
-        FocusScope.of(context).requestFocus(new FocusNode());
-      }
+      displayGifs = true;
+    });
+  }
+
+  closeGifPicker() {
+    setState(() {
+      displayGifs = false;
     });
   }
 

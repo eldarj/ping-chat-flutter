@@ -217,73 +217,81 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        buildTopDetailsSection(),
-        Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [Shadows.topShadow()],
-            ),
-            width: DEVICE_MEDIA_SIZE.width, height: 110,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
-                  alignment: Alignment.bottomLeft,
-                  children: [
-                    Container(
-                      height: 55,
-                      child: Row(children: [
-                        Material(
-                          color: Colors.white,
-                          child: buildStickerButton()
-                        ),
-                        Container(
-                          height: 55,
-                          constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
-                          child: TextField(
-                            textAlignVertical: TextAlignVertical.center,
-                            textInputAction: TextInputAction.newline,
-                            textCapitalization: TextCapitalization.sentences,
-                            minLines: 1,
-                            maxLines: 2,
-                            onSubmitted: (value) {
-                              widget.inputTextController.text += "asd"; //TODO: Remove
-                            },
-                            style: TextStyle(fontSize: 15.0),
-                            controller: widget.inputTextController,
-                            focusNode: widget.inputTextFocusNode,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Type a message',
-                              hintStyle: TextStyle(color: Colors.grey),
+    Widget w;
+
+    if (false) {
+      w = Container();
+    } else {
+      w = Column(
+        children: [
+          buildTopDetailsSection(),
+          Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [Shadows.topShadow()],
+              ),
+              width: DEVICE_MEDIA_SIZE.width, height: 110,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    alignment: Alignment.bottomLeft,
+                    children: [
+                      Container(
+                        height: 55,
+                        child: Row(children: [
+                          Material(
+                              color: Colors.white,
+                              child: buildStickerButton()
+                          ),
+                          Container(
+                            height: 55,
+                            constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
+                            child: TextField(
+                              textAlignVertical: TextAlignVertical.center,
+                              textInputAction: TextInputAction.newline,
+                              textCapitalization: TextCapitalization.sentences,
+                              minLines: 1,
+                              maxLines: 2,
+                              onSubmitted: (value) {
+                                widget.inputTextController.text += "asd"; //TODO: Remove
+                              },
+                              style: TextStyle(fontSize: 15.0),
+                              controller: widget.inputTextController,
+                              focusNode: widget.inputTextFocusNode,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Type a message',
+                                hintStyle: TextStyle(color: Colors.grey),
+                              ),
                             ),
                           ),
-                        ),
-                        buildAttachmentButton(),
-                      ]),
-                    ),
-                    widget.isEditing
-                        ? buildEditButton() : widget.isReplying
-                        ? buildReplyButton() : widget.displaySendButton
-                        ? buildSendButton()
-                        : buildRecordingRow()
-                  ],
-                ),
-                Container(
-                  child: Row(
-                    children: [
-                      Material(
-                          color: Colors.white,
-                          child: buildGifButton()
+                          buildAttachmentButton(),
+                        ]),
                       ),
-                    ]
+                      widget.isEditing
+                          ? buildEditButton() : widget.isReplying
+                          ? buildReplyButton() : widget.displaySendButton
+                          ? buildSendButton()
+                          : buildRecordingRow()
+                    ],
                   ),
-                ),
-              ],
-            )),
-      ],
-    );
+                  Container(
+                    child: Row(
+                        children: [
+                          Material(
+                              color: Colors.white,
+                              child: buildGifButton()
+                          ),
+                        ]
+                    ),
+                  ),
+                ],
+              )),
+        ],
+      );
+    }
+
+    return w;
   }
 
   buildEditButton() {
@@ -439,9 +447,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
       );
     } else {
       w = IconButton(
-        icon: !widget.displayStickers
-            ? Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark)
-            : Icon(Icons.keyboard_arrow_down, color: CompanyColor.blueDark),
+        icon: Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark),
         onPressed: widget.onOpenStickerBar,
         color: CompanyColor.blueDark,
       );

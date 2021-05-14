@@ -23,7 +23,7 @@ class GiphyClientService {
   GiphyClientService._internal() {
     _giphyEndpoint = "https://api.giphy.com/v1/gifs/search"
         "?api_key=846OBurQopjXvDr2eCxHwFntcrkDU3Wk"
-        "&limit=20"
+        "&limit=21"
         "&q=";
   }
 
@@ -44,7 +44,10 @@ class GiphyClientService {
 
       data.forEach((element) {
         try {
-          gifUrls.add(element['images']['fixed_width_small']['url']);
+          var gif = element['images']['fixed_width_small']['url'];
+          if (gif != null) {
+            gifUrls.add(gif);
+          }
         } catch (ignored) {
         }
       });

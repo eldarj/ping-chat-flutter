@@ -2,9 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/main.dart';
-import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/service/gif/giphy.client.service.dart';
-import 'package:flutterping/service/persistence/sticker.prefs.service.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -12,7 +10,9 @@ import 'package:flutterping/shared/var/global.var.dart';
 class GifBar extends StatefulWidget {
   final Function(String) sendFunc;
 
-  const GifBar({Key key, this.sendFunc}) : super(key: key);
+  final Function onClose;
+
+  const GifBar({Key key, this.sendFunc, this.onClose}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => GifBarState();
@@ -25,19 +25,25 @@ class GifBarState extends State<GifBar> {
 
   List<String> gifs = giphyClientService.getRecentGifs();
 
+
+  init() async {
+    if (gifs.length == 0) {
+      gifs = await giphyClientService.getGifs("puppy");
+    }
+  }
+
   @override
   initState() {
     super.initState();
+    init();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: DEVICE_MEDIA_SIZE.width,
-      height: DEVICE_MEDIA_SIZE.height / 3,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      height: DEVICE_MEDIA_SIZE.height / 2,
+      color: Colors.white,
       child: Column(
         children: [
           buildSearchBar(),
@@ -47,21 +53,42 @@ class GifBarState extends State<GifBar> {
     );
   }
 
-  buildSearchBar() {
+  Widget buildSearchBar() {
     return Container(
-        margin: EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 5),
-        child: TextField(
-          controller: searchController,
-          textInputAction: TextInputAction.search,
-          keyboardType: TextInputType.text,
-          onSubmitted: onSearchGifs,
-          decoration: InputDecoration(
-              hintText: '',
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade200, width: 0.75)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: CompanyColor.blueDark, width: 0.75)),
-              prefixIcon: Icon(Icons.search),
-              labelText: 'Search GIFs',
-              contentPadding: EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 15)),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [Shadows.topShadow()]
+        ),
+        child: Row(
+          children: [
+            Flexible(
+              child: TextField(
+                controller: searchController,
+                textInputAction: TextInputAction.search,
+                keyboardType: TextInputType.text,
+                onSubmitted: onSearchGifs,
+                decoration: InputDecoration(
+                    hintText: 'Search gifs',
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade200, width: 0.75)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: CompanyColor.blueDark, width: 0.75)),
+                    prefixIcon: Icon(Icons.search),
+                    labelText: '',
+                    contentPadding: EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 15)),
+              )
+            ),
+            Material(
+              color: Colors.white,
+              child: InkWell(
+                onTap: widget.onClose,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      CloseButton(onPressed: widget.onClose)
+                    ]),
+              ),
+            )
+          ],
         ));
   }
 
@@ -71,11 +98,10 @@ class GifBarState extends State<GifBar> {
     if (!displayLoader) {
       if (gifs.length > 0) {
         w = Container(
-          padding: EdgeInsets.only(left: 10, right: 10),
           child: GridView.builder(
               itemCount: gifs.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: 2),
+                  crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: 3),
               itemBuilder: (context, index) => GestureDetector(
                   onTap: () {
                     widget.sendFunc.call(gifs[index]);
@@ -91,7 +117,7 @@ class GifBarState extends State<GifBar> {
 
       } else {
         w = Container(
-          child: Text('No gifs to display')
+          child: Text('No gifs to display', style: TextStyle(color: Colors.grey.shade400))
         );
       }
     }

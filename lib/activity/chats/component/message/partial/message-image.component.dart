@@ -141,7 +141,7 @@ class MessageImage extends StatelessWidget {
     }
 
     return Container(
-      margin: EdgeInsets.only(right: 10, left: 10, bottom: 5),
+      margin: EdgeInsets.only(right: 5, left: 5, bottom: 5),
       padding: EdgeInsets.only(left: 5, top: 3.5, bottom: 3.5, right: 10),
       decoration: BoxDecoration(
           color: Color.fromRGBO(0, 0, 0, 0.17),

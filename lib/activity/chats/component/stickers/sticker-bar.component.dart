@@ -8,7 +8,13 @@ import 'package:flutterping/shared/var/global.var.dart';
 class StickerBar extends StatefulWidget {
   final Function(String) sendFunc;
 
-  const StickerBar({Key key, this.sendFunc}) : super(key: key);
+  final Function onClose;
+
+  const StickerBar({
+    Key key,
+    this.sendFunc,
+    this.onClose
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => StickerBarState();
@@ -19,29 +25,29 @@ class StickerBarState extends State<StickerBar> {
 
   int selectedIndex = 1;
 
-  Map recentStickers;
-
   bool loadingRecent = true;
 
-  Map stickersMap = {
+  List recentStickers;
+
+  Map stickersMap2 = {
     0: {},
-    1: {
-      0: ['panda1.png','panda2.png','panda3.png','panda4.png','panda5.png'],
-      1: ['panda6.png','panda7.png','panda8.png','panda9.png','panda10.png'],
-      2: ['panda11.png','panda12.png','panda13.png','panda14.png'],
-    },
-    2: {
-      0: ['mimi1.gif', 'mimi2.gif', 'mimi4.gif', 'mimi5.gif', 'mimi6.gif'],
-      1: ['mimi7.gif', 'mimi8.gif', 'mimi9.gif']
-    },
-    3: {
-      0: ['stitch1.png','stitch2.png','stitch3.png','stitch4.png','stitch5.png',],
-      1: ['stitch6.png','stitch8.png','stitch11.png','stitch10.png',],
-    },
-    4: {
-      0: ['emoti-1.png','emoti-2.png','emoti-3.png','emoti-4.png','emoti-5.png'],
-      1: ['emoti-8.png', 'emoti-7.png', 'emoti-6.png', 'fit-1.png']
-    }
+    1: [
+      'panda1.png','panda2.png','panda3.png','panda4.png','panda5.png',
+      'panda6.png','panda7.png','panda8.png','panda9.png','panda10.png',
+      'panda11.png','panda12.png','panda13.png','panda14.png'
+    ],
+    2: [
+      'mimi1.gif', 'mimi2.gif', 'mimi4.gif', 'mimi5.gif', 'mimi6.gif',
+      'mimi7.gif', 'mimi8.gif', 'mimi9.gif'
+    ],
+    3: [
+      'stitch1.png','stitch2.png','stitch3.png','stitch4.png','stitch5.png',
+      'stitch6.png','stitch8.png','stitch11.png','stitch10.png'
+    ],
+    4: [
+      'emoti-1.png','emoti-2.png','emoti-3.png','emoti-4.png','emoti-5.png',
+      'emoti-8.png', 'emoti-7.png', 'emoti-6.png', 'fit-1.png'
+    ]
   };
 
   loadRecentStickers() async {
@@ -59,37 +65,64 @@ class StickerBarState extends State<StickerBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        buildStickerGrid(),
-        buildToolbar()
-      ],
+    return Container(
+      color: Colors.white,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          buildCloseButton(),
+          buildStickerGrid(),
+          buildToolbar()
+        ],
+      ),
     );
   }
 
-  buildToolbar() {
+  Widget buildCloseButton() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [Shadows.topShadow()]
+      ),
+      child: Material(
+        color: Colors.white,
+        child: InkWell(
+          onTap: widget.onClose,
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                CloseButton(onPressed: widget.onClose)
+              ]),
+        ),
+      ),
+    );
+  }
+
+  Widget buildToolbar() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white),
       ),
       child: Row(children: [
         buildToolbarButton(index: 0, icon: Icons.access_time),
         buildToolbarButton(index: 1, image: 'panda0.ico', size: 30),
         buildToolbarButton(index: 2, image: 'mimi0.jpg', size: 45),
-        buildToolbarButton(index: 3, image: 'stitch1.png', size: 55),
+        buildToolbarButton(index: 3, image: 'stitch1.png', size: 50),
         buildToolbarButton(index: 4, icon: Icons.sentiment_very_satisfied),
       ]),
     );
   }
 
   Widget buildToolbarButton({index, icon, image, double size}) {
-    var ch;
+    Widget w;
+
     if (icon != null) {
-      ch = Icon(icon);
+      w = Icon(icon);
     } else {
-      ch = Image.asset('static/graphic/sticker/' + image);
+      w = Image.asset('static/graphic/sticker/' + image);
     }
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -97,56 +130,60 @@ class StickerBarState extends State<StickerBar> {
         });
       },
       child: Container(
-          width: 70, height: 55,
+          width: 70,
+          height: 55,
           alignment: Alignment.center,
           decoration: BoxDecoration(
               border: Border.all(color: selectedIndex == index ? CompanyColor.bluePrimary : Colors.grey.shade200)
           ),
           child: Container(
-              width: size, height: size,
-              child: ch
+              width: size,
+              height: size,
+              child: w
           )
       ),
     );
   }
 
-  buildStickerGrid() {
+  Widget buildStickerGrid() {
+    Widget w;
+
     if (selectedIndex == 0) {
-      return !loadingRecent ? _buildStickers(recentStickers)
-          : Container(margin: EdgeInsets.all(20), child: Spinner());
+      if (loadingRecent) {
+        w = Container(margin: EdgeInsets.all(20), child: Spinner());
+      } else {
+        w = _buildStickerGrid(recentStickers);
+      }
     } else {
-      return _buildStickers(stickersMap[selectedIndex]);
+      w = _buildStickerGrid(stickersMap2[selectedIndex]);
     }
+
+    return w;
   }
 
-  _buildStickers(stickers) {
-    double stickerSize = (MediaQuery.of(context).size.width / 5) - 15;
+  Widget _buildStickerGrid(List stickers) {
+    Widget w = Center(child: Text('No stickers to display', style: TextStyle(color: Colors.grey.shade400)));
+
+    if (stickers.length > 0) {
+      w = GridView.builder(
+        itemCount: stickers.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisSpacing: 2, mainAxisSpacing: 2, crossAxisCount: 5),
+        itemBuilder: (context, index) => GestureDetector(
+          onTap: () async {
+            recentStickers = await stickerService.addRecent(stickers[index]);
+            widget.sendFunc(stickers[index]);
+          },
+          child: Container(
+              child: Image.asset('static/graphic/sticker/' + stickers[index])),
+        ),
+      );
+    }
+
 
     return Container(
-      child: stickers.length > 0 ? ListView(
-        children: [
-          ...stickers.entries.map((mapEntry) {
-            return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-              ...mapEntry.value.map((stickerName) {
-                return GestureDetector(
-                  onTap: () async {
-                    recentStickers = await stickerService.addRecent(stickerName);
-                    widget.sendFunc(stickerName);
-                  },
-                  child: Container(
-                      width: stickerSize, height: stickerSize,
-                      margin: EdgeInsets.all(5),
-                      child: Image.asset('static/graphic/sticker/' + stickerName)),
-                );
-              }).toList()
-            ]);
-          }).toList()
-        ],
-      ) : Text('No stickers to display', style: TextStyle(color: Colors.grey.shade400)),
-      decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.grey.shade200, width: 0.5))),
-      padding: EdgeInsets.only(left: 5, right: 5, top: 0, bottom: 0),
       height: 180.0,
+      child: w,
     );
   }
 }
