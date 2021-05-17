@@ -822,7 +822,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         chained: chained,
         isPinnedMessage: isPinnedMessage,
         picturesPath: picturesPath,
-        onMessageTapDown: () => onMessageTapDown(message)
+        onMessageTapDown: () => onMessageTapDown(message, isPeerMessage: true)
       );
 
     } else {
@@ -1280,36 +1280,59 @@ class ChatActivityState extends BaseState<ChatActivity> {
     ]);
   }
 
+  Widget buildPeerTextActions(message) {
+    return Wrap(children: [
+      buildReplyTile(message),
+      buildCopyTile(message),
+      buildPinTile(message),
+    ]);
+  }
+
+  Widget buildPeerActions(message) {
+    return Wrap(children: [
+      buildReplyTile(message),
+      buildPinTile(message),
+    ]);
+  }
+
   // Message tap actions widgets
-  void onMessageTapDown(message) async {
+  void onMessageTapDown(message, { isPeerMessage = false }) async {
     FocusScope.of(ROOT_CONTEXT).requestFocus(new FocusNode());
 
     Function actionsWidget;
 
-    switch (message.messageType) {
-      case 'RECORDING':
-        actionsWidget = buildMediaMessageActions;
-        break;
-      case 'MEDIA':
-        actionsWidget = buildMediaMessageActions;
-        break;
-      case 'FILE':
-        actionsWidget = buildMediaMessageActions;
-        break;
-      case 'IMAGE':
-        actionsWidget = buildImageMessageActions;
-        break;
-      case 'MAP_LOCATION':
-        actionsWidget = buildMapMessageActions;
-        break;
-      case 'STICKER':
-        actionsWidget = buildStickerMessageActions;
-        break;
-      case 'GIF':
-        actionsWidget = buildGifMessageActions;
-        break;
-      default:
-        actionsWidget = buildTextMessageActions;
+    if (isPeerMessage) {
+      if (message.messageType == 'TEXT_MESSAGE') {
+        actionsWidget = buildPeerTextActions;
+      } else {
+        actionsWidget = buildPeerActions;
+      }
+    } else {
+      switch (message.messageType) {
+        case 'RECORDING':
+          actionsWidget = buildMediaMessageActions;
+          break;
+        case 'MEDIA':
+          actionsWidget = buildMediaMessageActions;
+          break;
+        case 'FILE':
+          actionsWidget = buildMediaMessageActions;
+          break;
+        case 'IMAGE':
+          actionsWidget = buildImageMessageActions;
+          break;
+        case 'MAP_LOCATION':
+          actionsWidget = buildMapMessageActions;
+          break;
+        case 'STICKER':
+          actionsWidget = buildStickerMessageActions;
+          break;
+        case 'GIF':
+          actionsWidget = buildGifMessageActions;
+          break;
+        default:
+          actionsWidget = buildTextMessageActions;
+      }
     }
 
     showModalBottomSheet(context: context, builder: (BuildContext context) {
