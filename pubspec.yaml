@@ -97,6 +97,13 @@ flutter:
     - static/graphic/client/
     - static/graphic/flag/
     - static/graphic/sticker/
+    - static/graphic/sticker/stitch/
+    - static/graphic/sticker/words/
+    - static/graphic/sticker/panda/
+    - static/graphic/sticker/owl/
+    - static/graphic/sticker/homer/
+    - static/graphic/sticker/coffee/
+    - static/graphic/sticker/akio/
     - static/sound/
 
   # An image asset can refer to one or more resolution-specific "variants", see

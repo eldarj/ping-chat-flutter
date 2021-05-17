@@ -19,7 +19,7 @@ import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/action-button.component.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
-import 'package:flutterping/shared/component/error.component.dart';
+import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';

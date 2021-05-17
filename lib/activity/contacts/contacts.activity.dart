@@ -16,7 +16,7 @@ import 'package:flutterping/service/contact/contact.service.dart';
 import 'package:flutterping/service/profile/profile.publisher.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
-import 'package:flutterping/shared/component/error.component.dart';
+import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';

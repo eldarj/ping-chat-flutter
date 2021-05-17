@@ -41,6 +41,8 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';import 'package:fl
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/info/error.component.dart';
+import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -65,9 +67,15 @@ class PinnedMessagesActivity extends StatefulWidget {
 
   final ContactDto contact;
 
-  PinnedMessagesActivity({
-    Key key, this.peer, this.contact
-  }) :  super(key: key);
+  final MessageTheme myMessageTheme;
+
+  PinnedMessagesActivity(
+      this.myMessageTheme,
+      {
+        Key key,
+        this.peer,
+        this.contact
+      }) :  super(key: key);
 
   @override
   State<StatefulWidget> createState() => PinnedMessagesActivityState();
@@ -136,7 +144,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
     Widget widget = Center(child: Spinner());
 
     if (!displayLoader) {
-      if (messages != null && messages.length > 0) {
+      if (messages != null && messages.length == 0) {
         widget = Container(
           color: CompanyColor.backgroundGrey,
           child: ListView.builder(
@@ -149,18 +157,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
           ),
         );
       } else {
-        widget = Center(
-          child: Container(
-            margin: EdgeInsets.all(25),
-            padding: EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: Color.fromRGBO(255, 255, 255, 0.8),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Text('No pinned messages to display',
-                style: TextStyle(color: Colors.grey)),
-          ),
-        );
+        widget = InfoComponent.noData2(context);
       }
     }
 
@@ -179,26 +176,56 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
         margin: EdgeInsets.only(left: 5, right: 5),
         message: message,
         picturesPath: picturesPath,
-        pinnedStyle: true,
       );
     } else {
       messageWidget = MessageComponent(
+        widget.myMessageTheme,
         key: new Key(widgetKey),
         margin: EdgeInsets.only(left: 5, right: 5),
         message: message,
         picturesPath: picturesPath,
-        pinnedStyle: true, // TODO: Unpin handler
+        // TODO: Unpin handler
       );
     }
 
     return Container(
-      padding: EdgeInsets.only(bottom: 15, top: 15),
       margin: EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [Shadows.bottomShadow()]
       ),
-      child: messageWidget,
+      child: Column(
+          children: [
+            buildMessagePinDetails(message.pinnedTimestamp),
+            messageWidget
+          ]),
+    );
+  }
+
+  buildMessagePinDetails(pinnedTimestamp) {
+    return Container(
+        margin: EdgeInsets.only(bottom: 5),
+        padding: EdgeInsets.symmetric(vertical: 5,horizontal: 15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Pinned on ${DateTimeUtil.convertTimestampToDate(pinnedTimestamp)}', style: TextStyle(
+              color: Colors.grey.shade400,
+            )),
+            TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(backgroundColor: Colors.grey.shade200),
+                child: Row(
+                  children: [
+                    Text('Unpin', style: TextStyle(color: Colors.grey.shade600)),
+                  ],
+                ))
+          ],
+        )
     );
   }
 

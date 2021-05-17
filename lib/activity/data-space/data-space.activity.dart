@@ -18,7 +18,7 @@ import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/component/error.component.dart';
+import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';

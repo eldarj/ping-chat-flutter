@@ -108,7 +108,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   int userId;
   int userSentNodeId;
-  Color myChatBubbleColor;
+  MessageTheme myMessageTheme;
 
   String contactName;
   ContactDto contact;
@@ -142,18 +142,24 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   ChatActivityState({ this.contactName });
 
+  setMessageTheme(ClientDto user) {
+    var chatBubbleColor;
+    if (user.userSettings != null && user.userSettings.chatBubbleColorHex != null) {
+      chatBubbleColor = CompanyColor.fromHexString(user.userSettings.chatBubbleColorHex);
+    } else {
+      chatBubbleColor = CompanyColor.myMessageBackground;
+    }
+
+    myMessageTheme = CompanyColor.messageThemes[chatBubbleColor];
+  }
+
   onInit() async {
     CURRENT_OPEN_CONTACT_BINDING_ID = widget.contactBindingId;
 
     picturesPath = await new StorageIOService().getPicturesPath();
 
     var user = await UserService.getUser();
-
-    if (user.userSettings != null && user.userSettings.chatBubbleColorHex != null) {
-      myChatBubbleColor = CompanyColor.fromHexString(user.userSettings.chatBubbleColorHex);
-    } else {
-      myChatBubbleColor = CompanyColor.myMessageBackground;
-    }
+    setMessageTheme(user);
 
     userId = user.id;
     userSentNodeId = user.sentNodeId;
@@ -547,22 +553,25 @@ class ChatActivityState extends BaseState<ChatActivity> {
                     },
                   )
               ),
-              displayDeleteLoader ? Container(width: 48, child: Align(child: Spinner(size: 20))) : ChatSettingsMenu(
-                  userId: userId,
-                  myContactName: widget.myContactName,
-                  statusLabel: widget.statusLabel,
-                  peer: widget.peer,
-                  picturesPath: picturesPath,
-                  peerContactName: contactName,
-                  contactBindingId: widget.contactBindingId,
-                  contact: contact,
-                  onDeleteContact: () {
-                    doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
-                  },
-                  onDeleteMessages: () {
-                    doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
-                  },
-              )
+              displayDeleteLoader
+                  ? Container(width: 48, child: Align(child: Spinner(size: 20)))
+                  : ChatSettingsMenu(
+                      myMessageTheme,
+                      userId: userId,
+                      myContactName: widget.myContactName,
+                      statusLabel: widget.statusLabel,
+                      peer: widget.peer,
+                      picturesPath: picturesPath,
+                      peerContactName: contactName,
+                      contactBindingId: widget.contactBindingId,
+                      contact: contact,
+                      onDeleteContact: () {
+                        doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                      },
+                      onDeleteMessages: () {
+                        doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                      },
+                  )
             ]
         ),
         drawer: NavigationDrawerComponent(),
@@ -799,6 +808,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     } else {
       return MessageComponent(
+        myMessageTheme,
         key: message.widgetKey,
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
             left: 5, right: 5,
@@ -808,7 +818,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
         displayTimestamp: displayTimestamp,
         isPinnedMessage: isPinnedMessage,
         picturesPath: picturesPath,
-        myChatBubbleColor: myChatBubbleColor,
         onMessageTapDown: () => onMessageTapDown(message)
       );
     }

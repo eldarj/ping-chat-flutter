@@ -41,17 +41,14 @@ class PeerMessageComponent extends StatefulWidget {
 
   final bool isPinnedMessage;
 
-  final bool pinnedStyle;
-
   final Function onMessageTapDown;
 
   const PeerMessageComponent({Key key,
     this.message,
-    this.chained,
     this.margin,
     this.picturesPath,
+    this.chained = false,
     this.isPinnedMessage = false,
-    this.pinnedStyle = false,
     this.onMessageTapDown
   }) : super(key: key);
 
@@ -105,28 +102,12 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
           margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 0 : 5),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                buildMessagePinDetails(),
                 buildMessageContent(),
                 buildPinnedLabel(),
               ]),
         ),
       ),
     );
-  }
-
-  buildMessagePinDetails() {
-    return widget.pinnedStyle && widget.isPinnedMessage ? Container(
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade100),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-        margin: EdgeInsets.only(bottom: 5),
-        child: Text('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
-          color: CompanyColor.blueDark,
-        ))
-    ) : Container();
   }
 
   buildPinnedLabel() {
@@ -209,10 +190,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
   buildMessageContent() {
     Widget _messageWidget;
 
-    var displayPinnedBorder = widget.isPinnedMessage && !widget.pinnedStyle;
-
     BoxDecoration _messageDecoration = peerTextBoxDecoration(
-        displayPinnedBorder,
         displayBubble: widget.isPinnedMessage || !widget.chained
     );
 

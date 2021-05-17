@@ -25,7 +25,7 @@ import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
-import 'package:flutterping/shared/component/error.component.dart';
+import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';

@@ -40,25 +40,24 @@ class MessageComponent extends StatefulWidget {
 
   final bool isPinnedMessage;
 
-  final bool pinnedStyle;
-
-  final Color myChatBubbleColor;
+  final MessageTheme messageTheme;
 
   final Function onMessageTapDown;
 
   final bool displayTimestamp;
 
-  const MessageComponent({Key key,
-    this.message,
-    this.chained,
-    this.margin,
-    this.picturesPath,
-    this.isPinnedMessage = false,
-    this.pinnedStyle = false,
-    this.myChatBubbleColor,
-    this.onMessageTapDown,
-    this.displayTimestamp = true
-  }) : super(key: key);
+  const MessageComponent(
+      this.messageTheme,
+      {
+        Key key,
+        this.message,
+        this.margin,
+        this.picturesPath,
+        this.chained = false,
+        this.isPinnedMessage = false,
+        this.onMessageTapDown,
+        this.displayTimestamp = true
+      }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => MessageComponentState();
@@ -110,28 +109,12 @@ class MessageComponentState extends State<MessageComponent> {
           margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 0 : 5),
           child: Column(crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                buildMessagePinDetails(),
                 buildMessageContent(),
                 buildPinnedLabel(),
               ]),
         ),
       ),
     );
-  }
-
-  buildMessagePinDetails() {
-    return widget.pinnedStyle && widget.isPinnedMessage ? Container(
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade100),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-        margin: EdgeInsets.only(bottom: 5),
-        child: Text('Pinned on ${DateTimeUtil.convertTimestampToDate(widget.message.pinnedTimestamp)}', style: TextStyle(
-          color: CompanyColor.blueDark,
-        ))
-    ) : Container();
   }
 
   buildPinnedLabel() {
@@ -214,16 +197,10 @@ class MessageComponentState extends State<MessageComponent> {
   buildMessageContent() {
     Widget _messageWidget;
 
-    var displayPinnedBorder = widget.isPinnedMessage && !widget.pinnedStyle;
-
-    MessageTheme messageTheme = CompanyColor.messageThemes[widget.myChatBubbleColor];
-
     BoxDecoration _messageDecoration = myTextBoxDecoration(
-        displayPinnedBorder,
-        myMessageBackground: messageTheme.bubbleColor,
+        myMessageBackground: widget.messageTheme.bubbleColor,
         displayBubble: widget.isPinnedMessage || !widget.chained
     );
-
 
     if (widget.message.deleted) {
       print('MESSAGE DELETED');
@@ -251,27 +228,27 @@ class MessageComponentState extends State<MessageComponent> {
     } else if (widget.message.messageType == 'STICKER') {
       _messageDecoration = stickerBoxDecoration();
       _messageWidget = MessageSticker(stickerCode: widget.message.text, message: widget.message,
-          messageTheme: messageTheme, displayTimestamp: widget.displayTimestamp);
+          messageTheme: widget.messageTheme, displayTimestamp: widget.displayTimestamp);
 
     } else if (widget.message.messageType == 'GIF') {
       _messageDecoration = gifBoxDecoration(widget.message.pinned);
       _messageWidget = MessageGif(
-          url: widget.message.text, message: widget.message, messageTheme: messageTheme,
+          url: widget.message.text, message: widget.message, messageTheme: widget.messageTheme,
       );
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       String filePath = widget.message.filePath;
 
-      _messageDecoration = imageDecoration(widget.message.pinned, myMessageBackground: widget.myChatBubbleColor);
+      _messageDecoration = imageDecoration(widget.message.pinned, myMessageBackground: widget.messageTheme);
       _messageWidget = MessageImage(
           widget.message,
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
-          textColor: messageTheme.textColor, chained: widget.chained,
-          messageTheme: messageTheme, displayText: true,
+          textColor: widget.messageTheme.textColor, chained: widget.chained,
+          messageTheme: widget.messageTheme, displayText: true,
       );
     } else {
-      _messageWidget = MessageText(widget.message, messageTheme: messageTheme);
+      _messageWidget = MessageText(widget.message, messageTheme: widget.messageTheme);
     }
 
     Widget w;

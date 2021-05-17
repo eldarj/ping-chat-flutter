@@ -31,7 +31,7 @@ BoxDecoration peerImageDecoration(pinned, {displayBubble = true, myMessageBackgr
     ]
 );
 
-BoxDecoration peerTextBoxDecoration(pinned, { displayBubble = true }) => BoxDecoration(
+BoxDecoration peerTextBoxDecoration({ displayBubble = true }) => BoxDecoration(
   color: Color.fromRGBO(243, 243, 245, 1),
   borderRadius: BorderRadius.only(
       bottomLeft: Radius.circular(displayBubble ? MESSAGE_BUBBLE_RADIUS : 5),
@@ -39,7 +39,7 @@ BoxDecoration peerTextBoxDecoration(pinned, { displayBubble = true }) => BoxDeco
       bottomRight: Radius.circular(MESSAGE_BUBBLE_RADIUS)),
 );
 
-BoxDecoration myTextBoxDecoration(pinned, { myMessageBackground, displayBubble = true }) => BoxDecoration(
+BoxDecoration myTextBoxDecoration({ myMessageBackground, displayBubble = true }) => BoxDecoration(
   color: myMessageBackground ?? CompanyColor.myMessageBackground,
   borderRadius: BorderRadius.only(
       topLeft: Radius.circular(MESSAGE_BUBBLE_RADIUS),

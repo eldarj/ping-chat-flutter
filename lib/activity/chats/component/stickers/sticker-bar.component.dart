@@ -25,6 +25,8 @@ class StickerBarState extends State<StickerBar> {
 
   int selectedIndex = 1;
 
+  ScrollController toolbarScrollController = new ScrollController();
+
   bool loadingRecent = true;
 
   List recentStickers;
@@ -32,22 +34,43 @@ class StickerBarState extends State<StickerBar> {
   Map stickersMap2 = {
     0: {},
     1: [
-      'panda1.png','panda2.png','panda3.png','panda4.png','panda5.png',
-      'panda6.png','panda7.png','panda8.png','panda9.png','panda10.png',
-      'panda11.png','panda12.png','panda13.png','panda14.png'
+      'panda/panda1.png','panda/panda2.png','panda/panda3.png','panda/panda4.png','panda/panda5.png',
+      'panda/panda6.png','panda/panda7.png','panda/panda8.png','panda/panda9.png','panda/panda10.png',
+      'panda/panda11.png','panda/panda12.png','panda/panda13.png','panda/panda14.png'
     ],
     2: [
-      'mimi1.gif', 'mimi2.gif', 'mimi4.gif', 'mimi5.gif', 'mimi6.gif',
-      'mimi7.gif', 'mimi8.gif', 'mimi9.gif'
+      'stitch/stitch001.webp', 'stitch/stitch002.webp', 'stitch/stitch003.webp', 'stitch/stitch004.webp',
+      'stitch/stitch005.webp', 'stitch/stitch006.webp', 'stitch/stitch007.webp', 'stitch/stitch008.webp',
+      'stitch/stitch009.webp', 'stitch/stitch010.webp'
     ],
     3: [
-      'stitch1.png','stitch2.png','stitch3.png','stitch4.png','stitch5.png',
-      'stitch6.png','stitch8.png','stitch11.png','stitch10.png'
+      'owl/FreeOwl_002.webp', 'owl/FreeOwl_003.webp', 'owl/FreeOwl_004.webp', 'owl/FreeOwl_007.webp',
+      'owl/FreeOwl_008.webp', 'owl/FreeOwl_009.webp', 'owl/FreeOwl_013.webp', 'owl/FreeOwl_014.webp',
+      'owl/FreeOwl_016.webp', 'owl/FreeOwl_017.webp', 'owl/FreeOwl_022.webp', 'owl/FreeOwl_025.webp',
+      'owl/FreeOwl_026.webp', 'owl/FreeOwl_028.webp', 'owl/FreeOwl_039.webp'
     ],
     4: [
-      'emoti-1.png','emoti-2.png','emoti-3.png','emoti-4.png','emoti-5.png',
-      'emoti-8.png', 'emoti-7.png', 'emoti-6.png', 'fit-1.png'
-    ]
+      'akio/akio001.webp', 'akio/akio002.webp', 'akio/akio003.webp', 'akio/akio004.webp',
+      'akio/akio005.webp', 'akio/akio007.webp', 'akio/akio008.webp', 'akio/akio009.webp',
+      'akio/akio010.webp', 'akio/akio011.webp'
+    ],
+    5: [
+      'homer/homer001.webp', 'homer/homer002.webp', 'homer/homer003.webp', 'homer/homer004.webp',
+      'homer/homer005.webp', 'homer/homer006.webp', 'homer/homer007.webp', 'homer/homer008.webp',
+      'homer/homer009.webp', 'homer/homer010.webp', 'homer/homer011.webp', 'homer/homer012.webp',
+      'homer/homer013.webp'
+    ],
+    6: [
+      'coffee/coffee_001.webp', 'coffee/coffee_002.webp', 'coffee/coffee_003.webp', 'coffee/coffee_004.webp',
+      'coffee/coffee_005.webp', 'coffee/coffee_006.webp', 'coffee/coffee_007.webp', 'coffee/coffee_008.webp',
+      'coffee/coffee_009.webp', 'coffee/coffee_010.webp', 'coffee/coffee_011.webp', 'coffee/coffee_012.webp',
+      'coffee/coffee_013.webp', 'coffee/coffee_014.webp', 'coffee/coffee_015.webp'
+    ],
+    7: [
+      'words/busy.webp', 'words/coffee-time.webp', 'words/cool.webp', 'words/game-over.webp', 'words/hi.webp',
+      'words/like.webp', 'words/nom-nom.webp', 'words/ok.webp', 'words/omg.webp', 'words/party-time.webp',
+      'words/please.webp', 'words/stop.webp', 'words/what.webp', 'words/why.webp'
+    ],
   };
 
   loadRecentStickers() async {
@@ -81,36 +104,64 @@ class StickerBarState extends State<StickerBar> {
   Widget buildCloseButton() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [Shadows.topShadow()]
+          color: Colors.white,
+          border: Border.all(color: Colors.grey.shade50),
+          boxShadow: [Shadows.topShadow(color: Colors.black12)]
       ),
-      child: Material(
-        color: Colors.white,
-        child: InkWell(
-          onTap: widget.onClose,
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CloseButton(onPressed: widget.onClose)
-              ]),
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+              padding: EdgeInsets.all(15),
+              child: Row(
+                children: [
+                  Icon(Icons.sentiment_very_satisfied, color: Colors.grey.shade500, size: 20),
+                  Container(
+                      padding: EdgeInsets.only(left: 5),
+                      child: Text('Stickers', style: TextStyle(color: Colors.grey.shade500))),
+                ],
+              )),
+          Material(
+            color: Colors.white,
+            child: InkWell(
+              onTap: widget.onClose,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CloseButton(onPressed: widget.onClose)
+                  ]),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget buildToolbar() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.white),
+      height: 55,
+      color: Colors.white,
+      child: Scrollbar(
+        isAlwaysShown: true,
+        controller: toolbarScrollController,
+        thickness: 1.5,
+        child: Container(
+          margin: EdgeInsets.only(bottom: 1),
+          child: ListView(
+              scrollDirection: Axis.horizontal,
+              controller: toolbarScrollController,
+              children: [
+                buildToolbarButton(index: 0, icon: Icons.access_time),
+                buildToolbarButton(index: 1, image: 'panda/panda2.png', size: 45),
+                buildToolbarButton(index: 2, image: 'stitch/stitch002.webp', size: 40),
+                buildToolbarButton(index: 3, image: 'owl/FreeOwl_002.webp', size: 40),
+                buildToolbarButton(index: 4, image: 'akio/akio001.webp', size: 40),
+                buildToolbarButton(index: 5, image: 'homer/homer003.webp', size: 40),
+                buildToolbarButton(index: 6, image: 'coffee/coffee_001.webp', size: 40),
+                buildToolbarButton(index: 7, image: 'words/like.webp', size: 40),
+              ]),
+        ),
       ),
-      child: Row(children: [
-        buildToolbarButton(index: 0, icon: Icons.access_time),
-        buildToolbarButton(index: 1, image: 'panda0.ico', size: 30),
-        buildToolbarButton(index: 2, image: 'mimi0.jpg', size: 45),
-        buildToolbarButton(index: 3, image: 'stitch1.png', size: 50),
-        buildToolbarButton(index: 4, icon: Icons.sentiment_very_satisfied),
-      ]),
     );
   }
 
@@ -129,12 +180,14 @@ class StickerBarState extends State<StickerBar> {
           selectedIndex = index;
         });
       },
-      child: Container(
+      child: AnimatedContainer(
+          duration: Duration(milliseconds: 250),
           width: 70,
-          height: 55,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-              border: Border.all(color: selectedIndex == index ? CompanyColor.bluePrimary : Colors.grey.shade200)
+              border: Border.all(
+                  width: selectedIndex == index ? 1 : 0.5,
+                  color: selectedIndex == index ? CompanyColor.bluePrimary : Colors.grey.shade200)
           ),
           child: Container(
               width: size,
@@ -168,13 +221,14 @@ class StickerBarState extends State<StickerBar> {
       w = GridView.builder(
         itemCount: stickers.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisSpacing: 2, mainAxisSpacing: 2, crossAxisCount: 5),
+            crossAxisSpacing: 0, mainAxisSpacing: 0, crossAxisCount: 5),
         itemBuilder: (context, index) => GestureDetector(
           onTap: () async {
             recentStickers = await stickerService.addRecent(stickers[index]);
             widget.sendFunc(stickers[index]);
           },
           child: Container(
+              padding: EdgeInsets.all(10),
               child: Image.asset('static/graphic/sticker/' + stickers[index])),
         ),
       );

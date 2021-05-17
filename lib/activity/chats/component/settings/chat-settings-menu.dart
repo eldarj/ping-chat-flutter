@@ -5,6 +5,7 @@ import 'package:flutterping/activity/contacts/single/single-contact.activity.dar
 import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 
 class ChatSettingsMenu extends StatelessWidget {
@@ -27,9 +28,23 @@ class ChatSettingsMenu extends StatelessWidget {
   final Function onDeleteContact;
   final Function onDeleteMessages;
 
-  const ChatSettingsMenu({Key key, this.peer, this.peerContactName, this.contactBindingId, this.picturesPath, this.myContactName, this.statusLabel, this.userId,
-    this.onDeleteContact, this.onDeleteMessages, this.contact
-  }) : super(key: key);
+  final MessageTheme myMessageTheme;
+
+  const ChatSettingsMenu(
+      this.myMessageTheme,
+      {
+        Key key,
+        this.peer,
+        this.peerContactName,
+        this.contact,
+        this.contactBindingId,
+        this.statusLabel,
+        this.picturesPath,
+        this.myContactName,
+        this.userId,
+        this.onDeleteContact,
+        this.onDeleteMessages,
+      }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +77,7 @@ class ChatSettingsMenu extends StatelessWidget {
 
         } else if (choice == 'pinned_messages') {
           NavigatorUtil.push(context, PinnedMessagesActivity(
-            peer: peer, contact: contact,
+            myMessageTheme, peer: peer, contact: contact,
           ));
         }
       },

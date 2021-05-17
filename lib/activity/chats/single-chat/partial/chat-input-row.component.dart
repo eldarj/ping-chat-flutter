@@ -219,35 +219,39 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
   Widget build(BuildContext context) {
     Widget w;
 
-    if (false) {
+    if (false) { // TODO: Fix
       w = Container();
     } else {
       w = Column(
         children: [
           buildTopDetailsSection(),
           Container(
+              height: 90,
+              width: DEVICE_MEDIA_SIZE.width,
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [Shadows.topShadow()],
               ),
-              width: DEVICE_MEDIA_SIZE.width, height: 110,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              child: Stack(
+                alignment: Alignment.centerRight,
                 children: [
-                  Stack(
-                    alignment: Alignment.bottomLeft,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        height: 55,
+                        height: 45,
                         child: Row(children: [
                           Material(
                               color: Colors.white,
-                              child: buildStickerButton()
+                              child: buildCancelButton()
                           ),
                           Container(
-                            height: 55,
-                            constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width - 160), // TODO: Dynamic width
+                            height: 45,
+                            constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width), // TODO: Dynamic width
+                            padding: EdgeInsets.only(left: 15),
                             child: TextField(
-                              textAlignVertical: TextAlignVertical.center,
+                              cursorHeight: 18,
+                              textAlignVertical: TextAlignVertical.top,
                               textInputAction: TextInputAction.newline,
                               textCapitalization: TextCapitalization.sentences,
                               minLines: 1,
@@ -265,26 +269,35 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                               ),
                             ),
                           ),
-                          buildAttachmentButton(),
                         ]),
                       ),
-                      widget.isEditing
-                          ? buildEditButton() : widget.isReplying
-                          ? buildReplyButton() : widget.displaySendButton
-                          ? buildSendButton()
-                          : buildRecordingRow()
+                      Container(
+                        height: 45,
+                        child: Row(
+                            children: [
+                              buildActionButton(
+                                  icon: Icons.sentiment_very_satisfied,
+                                  onPressed: widget.onOpenStickerBar
+                              ),
+                              buildActionButton(
+                                  widget: Container(
+                                      child: Icon(Icons.gif_outlined, color: Colors.grey.shade500)),
+                                  onPressed: widget.onOpenGifPicker
+                              ),
+                              buildActionButton(
+                                  icon: Icons.attachment_sharp,
+                                  onPressed: widget.onOpenShareBottomSheet
+                              ),
+                            ]
+                        ),
+                      )
                     ],
                   ),
-                  Container(
-                    child: Row(
-                        children: [
-                          Material(
-                              color: Colors.white,
-                              child: buildGifButton()
-                          ),
-                        ]
-                    ),
-                  ),
+                  widget.isEditing
+                      ? buildEditButton() : widget.isReplying
+                      ? buildReplyButton() : widget.displaySendButton
+                      ? buildSendButton()
+                      : buildRecordingRow()
                 ],
               )),
         ],
@@ -292,6 +305,23 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     }
 
     return w;
+  }
+
+  buildActionButton({ icon, widget, onPressed }) {
+    return Container(
+      width: 60,
+      child: Material(
+        color: Colors.white,
+        child: IconButton(
+          iconSize: 30,
+          icon: icon != null
+              ? Icon(icon, color: Colors.grey.shade500, size: 21)
+              : widget,
+          onPressed: onPressed,
+          color: CompanyColor.blueDark,
+        ),
+      ),
+    );
   }
 
   buildEditButton() {
@@ -346,14 +376,14 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     return Container(
       width: DEVICE_MEDIA_SIZE.width,
       child: Stack(
-        alignment: Alignment.bottomRight,
+        alignment: Alignment.centerRight,
         children: [
           IgnorePointer(
             ignoring: !isRecording,
             child: FadeTransition(
               opacity: _fadeInAnimation,
               child: Container(
-                height: 55,
+                height: 85,
                 color: Colors.white,
                 padding: EdgeInsets.only(left: 20),
                 child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -386,48 +416,62 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
   }
 
   buildSendRecordingButton() {
-    return AnimatedContainer(
-        duration: Duration(milliseconds: 250),
-        curve: Curves.fastOutSlowIn,
-        margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
-        height: 45, width: 45,
-        decoration: BoxDecoration(
-            color: isRecording ? Colors.white : CompanyColor.blueDark,
-            borderRadius: BorderRadius.circular(50),
-            border: Border.all(color: isRecording ? Colors.white : CompanyColor.blueDark,
-                style: BorderStyle.solid, width: isRecording ? 2 : 0),
-            boxShadow: [
-              BoxShadow(
-                  color: isRecording ? Color.fromRGBO(255, 0, 0, 0.2) : CompanyColor.bluePrimary,
-                  blurRadius: 0, spreadRadius: isRecording ? 40 : 0)
-            ]
-        ),
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              if (isRecording) {
-                sendRecording();
-              } else {
-                startRecording(context);
-              }
-            });
-          },
-          onLongPress: () {
-            if (!isRecording) {
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            if (isRecording) {
+              sendRecording();
+            } else {
               startRecording(context);
             }
-          },
-          child: Container(
-            margin: EdgeInsets.only(left: isRecording ? 2.5 : 0),
-            child: Icon(isRecording ? Icons.send : Icons.mic,
-                size: isRecording ? 26 : 30,
-                color: isRecording ? CompanyColor.blueDark : Colors.white),
+          });
+        },
+        onLongPress: () {
+          if (!isRecording) {
+            startRecording(context);
+          }
+        },
+        child: Container(
+          height: 85,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                  duration: Duration(milliseconds: 250),
+                  curve: Curves.fastOutSlowIn,
+                  margin: EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+                  height: 45, width: 45,
+                  constraints: BoxConstraints(
+                    maxHeight: 45, maxWidth: 45
+                  ),
+                  decoration: BoxDecoration(
+                      color: isRecording ? Colors.white : CompanyColor.blueDark,
+                      borderRadius: BorderRadius.circular(50),
+                      border: Border.all(color: isRecording ? Colors.white : CompanyColor.blueDark,
+                          style: BorderStyle.solid, width: isRecording ? 2 : 0),
+                      boxShadow: [
+                        BoxShadow(
+                            color: isRecording ? Color.fromRGBO(255, 0, 0, 0.2) : CompanyColor.bluePrimary,
+                            blurRadius: 0, spreadRadius: isRecording ? 40 : 0)
+                      ]
+                  ),
+                  child: Container(
+                    margin: EdgeInsets.only(left: isRecording ? 2.5 : 0),
+                    child: Icon(isRecording ? Icons.send : Icons.mic,
+                        size: isRecording ? 26 : 30,
+                        color: isRecording ? CompanyColor.blueDark : Colors.white),
+                  )),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
-  buildStickerButton() {
-    Widget w;
+  buildCancelButton() {
+    Widget w = Container();
 
     if (widget.isEditing) {
       w = IconButton(
@@ -445,65 +489,46 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
             widget.onCancelReply.call();
           }
       );
-    } else {
-      w = IconButton(
-        icon: Icon(Icons.sentiment_very_satisfied, color: CompanyColor.blueDark),
-        onPressed: widget.onOpenStickerBar,
-        color: CompanyColor.blueDark,
-      );
     }
 
     return w;
-  }
-
-  buildGifButton() {
-    Widget w;
-
-    if (widget.displayGifs) {
-      w = IconButton(icon: Icon(Icons.close, color: CompanyColor.blueDark),
-          onPressed: widget.onOpenGifPicker);
-    } else {
-      w = IconButton(icon: Icon(Icons.gif_outlined, color: CompanyColor.blueDark),
-          onPressed: widget.onOpenGifPicker);
-    }
-
-    return w;
-  }
-
-  buildAttachmentButton() {
-    return !widget.isEditing && !widget.isReplying ? Material(
-      color: Colors.grey.shade50,
-      shape: CircleBorder(),
-      child: IconButton(
-        icon: Icon(Icons.attachment_rounded),
-        onPressed: () async {
-          widget.onOpenShareBottomSheet.call();
-        },
-        color: CompanyColor.blueDark,
-      ),
-    ) : Container();
   }
 
   buildSendButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Container(
-            margin: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
-            height: 45, width: 45,
-            decoration: BoxDecoration(
-              color: CompanyColor.blueDark,
-              borderRadius: BorderRadius.circular(50),
-            ),
+        Material(
+          color: Colors.white,
+          child: InkWell(
+            onTap: () {
+              widget.doSendMessage.call();
+            },
             child: Container(
-              margin: EdgeInsets.only(left: 2.5),
-              child: IconButton(
-                icon: Icon(Icons.send),
-                iconSize: 26,
-                onPressed: widget.doSendMessage,
-                color: Colors.white,
-              ),
-            )
+                height: 85,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 45,
+                      height: 45,
+                      margin: EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+                      constraints: BoxConstraints(
+                          maxHeight: 45, maxWidth: 45
+                      ),
+                      decoration: BoxDecoration(
+                        color: CompanyColor.blueDark,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: Container(
+                        margin: EdgeInsets.only(left: 2.5),
+                        child: Icon(Icons.send, size: 26, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                )
+            ),
+          ),
         ),
       ],
     );
