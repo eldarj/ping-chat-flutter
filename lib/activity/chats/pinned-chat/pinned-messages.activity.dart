@@ -41,7 +41,6 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';import 'package:fl
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
-import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
@@ -157,7 +156,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
           ),
         );
       } else {
-        widget = InfoComponent.noData2(context);
+        widget = InfoComponent.noDataStitch();
       }
     }
 

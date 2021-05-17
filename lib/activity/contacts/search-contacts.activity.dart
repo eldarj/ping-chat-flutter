@@ -12,10 +12,10 @@ import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
@@ -158,7 +158,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                 : Container(),
             Container(
                 color: Colors.white,
-                margin: EdgeInsets.only(left: 5, right: 5),
+                margin: EdgeInsets.only(left: 2.5, right: 2.5),
                 child: TextField(
                   controller: searchController,
                   textInputAction: TextInputAction.search,
@@ -194,7 +194,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
         );
       }
     } else {
-      widget = ErrorComponent.build();
+      widget = Expanded(child: InfoComponent.errorPanda());
     }
 
     return widget;

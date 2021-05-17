@@ -13,10 +13,10 @@ import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/service/profile/profile.publisher.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
-import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -95,7 +95,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
             ])
         );
       } else {
-        widget = ErrorComponent.build(actionOnPressed: () async {
+        widget = InfoComponent.errorHomer(message: "Couldn't load your profile, please try again", onButtonPressed: () async {
           scaffold.removeCurrentSnackBar();
           setState(() {
             displayLoader = true;

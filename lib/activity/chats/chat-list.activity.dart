@@ -25,10 +25,10 @@ import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
-import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -432,17 +432,15 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
           ),
         );
       } else {
-        widget = ErrorComponent.build(
-            displayErrorImage: true,
-            text: 'We couldn\'t load your chats, please try again.',
-            actionOnPressed: () async {
-              setState(() {
-                displayLoader = true;
-                isError = false;
-              });
+        widget = InfoComponent.errorPanda(
+          onButtonPressed: () async {
+            setState(() {
+              displayLoader = true;
+              isError = false;
+            });
 
-              doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
-            },
+            doGetChatData(clearChats: true).then(onGetChatDataSuccess, onError: onGetChatDataError);
+          }
         );
       }
     }

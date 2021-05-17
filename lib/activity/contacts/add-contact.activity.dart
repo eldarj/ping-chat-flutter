@@ -95,13 +95,14 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
         children: [
           Row(
             children: [
-              Container(margin: EdgeInsets.only(left: 20, right: 10),
-                  width: 45, height: 45,
+              Container(
+                  padding: EdgeInsets.all(10),
+                  margin: EdgeInsets.only(left: 7.5, right: 10),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50.0),
-                      color: Colors.grey.shade400
+                      color: Colors.grey.shade100
                   ),
-                  child: Icon(Icons.person_add_alt_1, color: Colors.grey.shade300, size: 20)),
+                  child: Icon(Icons.person_add_alt_1, color: Colors.grey.shade700, size: 20)),
               Container(child: Text('Add a new contact', style: TextStyle(color: Colors.grey.shade700))),
             ],
           ),

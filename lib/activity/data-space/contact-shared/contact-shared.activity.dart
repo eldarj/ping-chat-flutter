@@ -10,8 +10,8 @@ import 'package:flutterping/service/data-space/data-space-delete.publisher.dart'
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
-import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
@@ -178,7 +178,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
           );
         }
       } else {
-        w = ErrorComponent.build(actionOnPressed: () async {
+        w = InfoComponent.errorPanda(onButtonPressed: () async {
           setState(() {
             displayLoader = true;
             isError = false;

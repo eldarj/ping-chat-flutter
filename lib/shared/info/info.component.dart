@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 
 class InfoComponent extends StatelessWidget {
   final String text;
@@ -9,14 +10,17 @@ class InfoComponent extends StatelessWidget {
   final Function onButtonPressed;
   final String buttonLabel;
 
+  final bool transparent;
+
   const InfoComponent(
+      this.text,
       {
         Key key,
-        this.text,
         this.imagePath,
         this.icon,
         this.buttonLabel,
         this.onButtonPressed,
+        this.transparent = true
       }) : super(key: key);
 
   @override
@@ -39,16 +43,26 @@ class InfoComponent extends StatelessWidget {
         child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              iconWidget,
+              ColorFiltered(
+                  colorFilter: ColorFilter.mode(
+                    Color.fromRGBO(255, 255, 255, transparent ? 0.5 : 0),
+                    BlendMode.srcATop,
+                  ),
+                  child: iconWidget),
               Container(
-                  margin: EdgeInsets.only(bottom: 20, top: 10),
+                  margin: EdgeInsets.only(bottom: 20, top: 20),
                   child: Text(
                     text,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey),
                   )),
-              onButtonPressed != null ? FlatButton(color: Colors.red.shade400,
+              onButtonPressed != null ? TextButton(
                   onPressed: onButtonPressed,
+                  style: TextButton.styleFrom(
+                      elevation: 1,
+                      minimumSize: Size(90, 40),
+                      backgroundColor: CompanyColor.accentGreenDark
+                  ),
                   child: Text(buttonLabel, style: TextStyle(color: Colors.white))
               ) : Container()
             ]),
@@ -56,19 +70,48 @@ class InfoComponent extends StatelessWidget {
     );
   }
 
-  static error(context, { onButtonPressed, buttonLabel }) {
-    return InfoComponent(
-      text: 'Something went wrong',
+  static errorPanda({ onButtonPressed, message = 'Something went wrong, please try again', buttonLabel = 'Try again' }) {
+    return InfoComponent(message,
       imagePath: 'static/graphic/sticker/panda/panda7.png',
       onButtonPressed: onButtonPressed,
-      buttonLabel: buttonLabel ?? 'Try again',
-    ).build(context);
+      buttonLabel: buttonLabel,
+      transparent: false,
+    );
   }
 
-  static noData2(context) {
-    return InfoComponent(
-      text: 'No data to display',
-      imagePath: 'static/graphic/sticker/panda/panda7.png',
+  static errorDonut({ onButtonPressed, message = 'Something went wrong, please try again', buttonLabel = 'Try again' }) {
+    return InfoComponent(message,
+      imagePath: 'static/graphic/sticker/coffee/coffee_014.webp',
+      onButtonPressed: onButtonPressed,
+      buttonLabel: buttonLabel,
+      transparent: true,
+    );
+  }
+
+  static errorHomer({ onButtonPressed, message = 'Something went wrong, please try again', buttonLabel = 'Try again' }) {
+    return InfoComponent(message,
+      imagePath: 'static/graphic/sticker/homer/homer012.webp',
+      onButtonPressed: onButtonPressed,
+      buttonLabel: buttonLabel,
+      transparent: true,
+    );
+  }
+
+  static noDataHomer() {
+    return InfoComponent('No data to display',
+      imagePath: 'static/graphic/sticker/homer/homer012.webp',
+    );
+  }
+
+  static noDataOwl() {
+    return InfoComponent('No data to display',
+      imagePath: 'static/graphic/sticker/owl/FreeOwl_022.webp',
+    );
+  }
+
+  static noDataStitch() {
+    return InfoComponent('No data to display',
+      imagePath: 'static/graphic/sticker/stitch/stitch006.webp',
     );
   }
 }

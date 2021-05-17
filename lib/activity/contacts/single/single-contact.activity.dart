@@ -19,12 +19,12 @@ import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/action-button.component.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
-import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
+import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -263,15 +263,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
             ])
         );
       } else {
-        _w = ErrorComponent.build(actionOnPressed: () async {
-          scaffold.removeCurrentSnackBar();
-          setState(() {
-            displayLoader = true;
-            isError = false;
-          });
-
-          // doGetProfileData().then(onGetProfileDataSuccess, onError: onGetProfileDataError);
-        });
+        _w = InfoComponent.errorHomer();
       }
     }
 

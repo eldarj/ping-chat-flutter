@@ -16,10 +16,10 @@ import 'package:flutterping/service/contact/contact.service.dart';
 import 'package:flutterping/service/profile/profile.publisher.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
-import 'package:flutterping/shared/info/error.component.dart';
 import 'package:flutterping/shared/component/gradient-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
@@ -269,14 +269,16 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
           ),
         );
       } else {
-        widget = ErrorComponent.build(actionOnPressed: () async {
-          setState(() {
-            displayLoader = true;
-            isError = false;
-          });
+        widget = InfoComponent.errorDonut(
+          onButtonPressed: () async {
+            setState(() {
+              displayLoader = true;
+              isError = false;
+            });
 
-          doGetContacts(clearData: true).then(onGetContactsSuccess, onError: onGetContactsError);
-        });
+            doGetContacts(clearData: true).then(onGetContactsSuccess, onError: onGetContactsError);
+          }
+        );
       }
     }
 
