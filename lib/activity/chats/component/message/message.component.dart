@@ -128,16 +128,28 @@ class MessageComponentState extends State<MessageComponent> {
   }
 
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
-    // TODO: Add status label
+    Color titleColor = Colors.grey.shade800;
+    Color descColor = Colors.grey.shade500;
+    Color iconColor = CompanyColor.accentGreenLight;
 
-    var titleColor = Colors.white;
-    var descColor = Colors.grey.shade600;
-    var iconColor = CompanyColor.accentGreenLight;
+    Color statusLabelColor = Colors.grey.shade500;
+    Color seenIconColor = Colors.green;
+
     if (widget.messageTheme != null) {
       titleColor = widget.messageTheme.textColor;
       descColor = widget.messageTheme.descriptionColor;
       iconColor = widget.messageTheme.iconColor;
+
+      statusLabelColor = widget.messageTheme.statusLabelColor;
+      seenIconColor = widget.messageTheme.seenIconColor;
     }
+
+
+    Widget statusIcon = MessageStatusIcon(
+      message.sent, message.received, message.seen,
+      displayPlaceholderCheckMark: message.displayCheckMark,
+      iconColor: statusLabelColor, seenIconColor: seenIconColor,
+    );
 
     String desc = message.fileSizeFormatted();
     String title = message.fileName;
@@ -170,36 +182,55 @@ class MessageComponentState extends State<MessageComponent> {
     }
 
     return Container(
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.only(left: 10, top: 10, bottom: 10, right: 15),
         constraints: BoxConstraints(maxWidth: maxWidth, minWidth: maxWidth),
-        child: Row(
+        child: Stack(
+          alignment: Alignment.bottomRight,
           children: [
-            Container(
-              margin: EdgeInsets.only(right: 10),
-              child: isUploading ? GestureDetector(onTap: stopUploadFunc, child: Container(
-                  width: 50, height: 50, child: UploadProgressIndicator(size: 50, progress: uploadProgress))) :
-              isDownloadingFile ? Container(height: 50, width: 50,
-                  alignment: Alignment.center,
-                  child: Spinner()) :
-              Container(
-                  width: 50, height: 50,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50),
-                      color: iconColor
+            Row(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(right: 10),
+                  child: isUploading ? GestureDetector(onTap: stopUploadFunc, child: Container(
+                      width: 50, height: 50, child: UploadProgressIndicator(size: 50, progress: uploadProgress))) :
+                  isDownloadingFile ? Container(height: 50, width: 50,
+                      alignment: Alignment.center,
+                      child: Spinner()) :
+                  Container(
+                      width: 50, height: 50,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: iconColor
+                      ),
+                      child: iconWidget
                   ),
-                  child: iconWidget
-              ),
+                ),
+                Flexible(
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(title, style: TextStyle(color: titleColor)),
+                          Text(desc, style: TextStyle(color: descColor, fontSize: 12)),
+                        ]),
+                  ),
+                )
+              ],
             ),
             Container(
-              width: maxWidth - 100,
-              alignment: Alignment.centerLeft,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(title, style: TextStyle(color: titleColor)),
-                    Text(desc, style: TextStyle(color: descColor, fontSize: 12)),
-                  ]),
+              margin: EdgeInsets.only(top: 1.5),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                      padding: EdgeInsets.only(right: 2.5),
+                      margin: EdgeInsets.only(bottom: 1),
+                      child: statusIcon),
+                  MessageTimestampLabel(message.sentTimestamp, statusLabelColor, edited: message.edited)
+                ],
+              ),
             )
           ],
         ));
