@@ -490,188 +490,207 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: BaseAppBar.getBackAppBar(getScaffoldContext, centerTitle: false,
-            titleWidget: InkWell(
-              onTap: () async {
-                await Future.delayed(Duration(milliseconds: 250));
-                if (widget.wasContactActivityPrevious) {
-                  Navigator.of(context).pop();
-                } else {
-                  NavigatorUtil.push(context, SingleContactActivity(
-                    myContactName: contactName,
-                    statusLabel: widget.statusLabel,
-                    peer: widget.peer,
-                    userId: userId,
-                    contactName: contactName,
-                    contactBindingId: widget.contactBindingId,
-                    contactPhoneNumber: widget.peer.fullPhoneNumber,
-                    favorite: false,
-                    isContactAdded: isContactAdded,
-                    wasChatActivityPrevious: true,
-                  ));
-                }
-              },
-              child: Container(
-                padding: EdgeInsets.only(left: 5, right: 25),
-                child: Row(
-                  children: [
-                    RoundProfileImageComponent(url: widget.peer?.profileImagePath,
-                        height: 45, width: 45, borderRadius: 45, margin: 0),
-                    Container(
-                      margin: EdgeInsets.only(left: 10),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(contactName),
-                        widget.statusLabel != ''
-                          ? Text(widget.statusLabel, style: TextStyle(
-                            fontSize: 12, color: Colors.grey))
-                          : Container()
-                      ]),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              Padding(
-                  padding: EdgeInsets.only(right: 20.0),
-                  child: GestureDetector(
-                    child: Icon(Icons.call, size: 20),
-                    onTap: () {
-                      NavigatorUtil.replace(context, new CallScreenWidget(
-                        target: widget.peer.fullPhoneNumber,
-                        contactName: contactName,
-                        fullPhoneNumber: widget.peer.fullPhoneNumber,
-                        profileImageWidget: widget.peer?.profileImagePath != null ? CachedNetworkImage(
-                          imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                              margin: EdgeInsets.all(15),
-                              child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
-                        ) : null,
-                        direction: 'OUTGOING',
-                      ));
-                    },
-                  )
-              ),
-              displayDeleteLoader
-                  ? Container(width: 48, child: Align(child: Spinner(size: 20)))
-                  : ChatSettingsMenu(
-                      myMessageTheme,
-                      userId: userId,
-                      myContactName: widget.myContactName,
+    return WillPopScope(
+      onWillPop: () async {
+        if (displayStickers) {
+          setState(() {
+            displayStickers = false;
+          });
+          return false;
+        }
+
+        if (displayGifs) {
+          setState(() {
+            displayGifs = false;
+          });
+          return false;
+        }
+
+        return true;
+      },
+      child: Scaffold(
+          appBar: BaseAppBar.getBackAppBar(getScaffoldContext, centerTitle: false,
+              titleWidget: InkWell(
+                onTap: () async {
+                  await Future.delayed(Duration(milliseconds: 250));
+                  if (widget.wasContactActivityPrevious) {
+                    Navigator.of(context).pop();
+                  } else {
+                    NavigatorUtil.push(context, SingleContactActivity(
+                      myContactName: contactName,
                       statusLabel: widget.statusLabel,
                       peer: widget.peer,
-                      picturesPath: picturesPath,
-                      peerContactName: contactName,
+                      userId: userId,
+                      contactName: contactName,
                       contactBindingId: widget.contactBindingId,
-                      contact: contact,
-                      onDeleteContact: () {
-                        doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
-                      },
-                      onDeleteMessages: () {
-                        doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
-                      },
-                  )
-            ]
-        ),
-        drawer: NavigationDrawerComponent(),
-        body: Builder(builder: (context) {
-          scaffold = Scaffold.of(context);
-          return Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              Container(
-                color: Colors.white,
-                child: Column(children: [
-                  Flexible(
-                    child: Stack(alignment: Alignment.topCenter, children: [
-                      contact != null && contact.backgroundImagePath != null ? Positioned.fill(
-                          child: Opacity(
-                            opacity: 1,
-                            child: CachedNetworkImage(
-                                fit: BoxFit.cover,
-                                imageUrl: API_BASE_URL + '/files/chats/' + contact.backgroundImagePath),
-                          )) : Container(),
-                      buildMessagesList(),
-                      buildAddToContactSection(),
-                      displayScrollLoader ? SizedOverflowBox(
-                          size: Size(100, 0),
-                          child: Container(
-                              padding: EdgeInsets.only(top: 50),
-                              child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(color: Colors.grey.shade300),
-                                      borderRadius: BorderRadius.circular(50)
-                                  ),
-                                  padding: EdgeInsets.all(10),
-                                  child: Spinner(size: 20)))) : Container(),
-                    ]),
+                      contactPhoneNumber: widget.peer.fullPhoneNumber,
+                      favorite: false,
+                      isContactAdded: isContactAdded,
+                      wasChatActivityPrevious: true,
+                    ));
+                  }
+                },
+                child: Container(
+                  padding: EdgeInsets.only(left: 5, right: 25),
+                  child: Row(
+                    children: [
+                      RoundProfileImageComponent(url: widget.peer?.profileImagePath,
+                          height: 45, width: 45, borderRadius: 45, margin: 0),
+                      Container(
+                        margin: EdgeInsets.only(left: 10),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(contactName),
+                          widget.statusLabel != ''
+                            ? Text(widget.statusLabel, style: TextStyle(
+                              fontSize: 12, color: Colors.grey))
+                            : Container()
+                        ]),
+                      ),
+                    ],
                   ),
-                  SingleChatInputRow(
-                    userId: userId,
-                    peerId: widget.peer.id,
-                    userSentNodeId: userSentNodeId,
-                    picturesPath: picturesPath,
-                    inputTextController: textController,
-                    inputTextFocusNode: textFocusNode,
-                    displayStickers: displayStickers,
-                    displayGifs: displayGifs,
-                    displaySendButton: displaySendButton,
-                    messageSendingService: widget.messageSendingService,
-                    doSendMessage: doSendMessage,
-                    onOpenShareBottomSheet: onOpenShareBottomSheet,
-                    onOpenStickerBar: onOpenStickerBar,
-                    onOpenGifPicker: onOpenGifPicker,
-                    onProgress: (message, progress) {
-                      setState(() {
-                        message.uploadProgress = progress / 100;
-                      });
-                    },
-                    isEditing: isEditing,
-                    onCancelEdit: () {
-                      setState(() {
-                        isEditing = false;
-                        editingMessage = null;
-                        textController.text = '';
-                      });
-                    },
-                    onSubmitEdit: () {
-                      doSendEditMessage(editingMessage, textController.text);
-
-                      MessageDto message = messages.firstWhere((element) => element.id == editingMessage.id, orElse: () => null);
-                      if (message != null) {
-                        message.text = textController.text;
-                        message.edited = true;
-                      }
-
-                      setState(() {
-                        isEditing = false;
-                        editingMessage = null;
-                        textController.text = '';
-                      });
-                    },
-                    isReplying: isReplying,
-                    replyWidget: replyWidget,
-                    onCancelReply: () {
-                      setState(() {
-                        isReplying = false;
-                        replyWidget = Container();
-                        replyMessage = null;
-                      });
-                    },
-                    onSubmitReply: doSendReply
-                  ),
-                ]),
+                ),
               ),
-              displayGifs ? GifBar(sendFunc: doSendGif, onClose: closeGifPicker) : Container(),
-              displayStickers ? StickerBar(
-                  sendFunc: doSendEmoji,
-                  onClose: closeStickerBar,
-              ) : Container(),
-            ],
-          );
-        })
+              actions: [
+                Padding(
+                    padding: EdgeInsets.only(right: 20.0),
+                    child: GestureDetector(
+                      child: Icon(Icons.call, size: 20),
+                      onTap: () {
+                        NavigatorUtil.replace(context, new CallScreenWidget(
+                          target: widget.peer.fullPhoneNumber,
+                          contactName: contactName,
+                          fullPhoneNumber: widget.peer.fullPhoneNumber,
+                          profileImageWidget: widget.peer?.profileImagePath != null ? CachedNetworkImage(
+                            imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                                margin: EdgeInsets.all(15),
+                                child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
+                          ) : null,
+                          direction: 'OUTGOING',
+                        ));
+                      },
+                    )
+                ),
+                displayDeleteLoader
+                    ? Container(width: 48, child: Align(child: Spinner(size: 20)))
+                    : ChatSettingsMenu(
+                        myMessageTheme,
+                        userId: userId,
+                        myContactName: widget.myContactName,
+                        statusLabel: widget.statusLabel,
+                        peer: widget.peer,
+                        picturesPath: picturesPath,
+                        peerContactName: contactName,
+                        contactBindingId: widget.contactBindingId,
+                        contact: contact,
+                        onDeleteContact: () {
+                          doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                        },
+                        onDeleteMessages: () {
+                          doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                        },
+                    )
+              ]
+          ),
+          drawer: NavigationDrawerComponent(),
+          body: Builder(builder: (context) {
+            scaffold = Scaffold.of(context);
+            return Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                Container(
+                  color: Colors.white,
+                  child: Column(children: [
+                    Flexible(
+                      child: Stack(alignment: Alignment.topCenter, children: [
+                        contact != null && contact.backgroundImagePath != null ? Positioned.fill(
+                            child: Opacity(
+                              opacity: 1,
+                              child: CachedNetworkImage(
+                                  fit: BoxFit.cover,
+                                  imageUrl: API_BASE_URL + '/files/chats/' + contact.backgroundImagePath),
+                            )) : Container(),
+                        buildMessagesList(),
+                        buildAddToContactSection(),
+                        displayScrollLoader ? SizedOverflowBox(
+                            size: Size(100, 0),
+                            child: Container(
+                                padding: EdgeInsets.only(top: 50),
+                                child: Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border.all(color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(50)
+                                    ),
+                                    padding: EdgeInsets.all(10),
+                                    child: Spinner(size: 20)))) : Container(),
+                      ]),
+                    ),
+                    SingleChatInputRow(
+                      userId: userId,
+                      peerId: widget.peer.id,
+                      userSentNodeId: userSentNodeId,
+                      picturesPath: picturesPath,
+                      inputTextController: textController,
+                      inputTextFocusNode: textFocusNode,
+                      displayStickers: displayStickers,
+                      displayGifs: displayGifs,
+                      displaySendButton: displaySendButton,
+                      messageSendingService: widget.messageSendingService,
+                      doSendMessage: doSendMessage,
+                      onOpenShareBottomSheet: onOpenShareBottomSheet,
+                      onOpenStickerBar: onOpenStickerBar,
+                      onOpenGifPicker: onOpenGifPicker,
+                      onProgress: (message, progress) {
+                        setState(() {
+                          message.uploadProgress = progress / 100;
+                        });
+                      },
+                      isEditing: isEditing,
+                      onCancelEdit: () {
+                        setState(() {
+                          isEditing = false;
+                          editingMessage = null;
+                          textController.text = '';
+                        });
+                      },
+                      onSubmitEdit: () {
+                        doSendEditMessage(editingMessage, textController.text);
+
+                        MessageDto message = messages.firstWhere((element) => element.id == editingMessage.id, orElse: () => null);
+                        if (message != null) {
+                          message.text = textController.text;
+                          message.edited = true;
+                        }
+
+                        setState(() {
+                          isEditing = false;
+                          editingMessage = null;
+                          textController.text = '';
+                        });
+                      },
+                      isReplying: isReplying,
+                      replyWidget: replyWidget,
+                      onCancelReply: () {
+                        setState(() {
+                          isReplying = false;
+                          replyWidget = Container();
+                          replyMessage = null;
+                        });
+                      },
+                      onSubmitReply: doSendReply
+                    ),
+                  ]),
+                ),
+                displayGifs ? GifBar(sendFunc: doSendGif, onClose: closeGifPicker) : Container(),
+                displayStickers ? StickerBar(
+                    sendFunc: doSendEmoji,
+                    onClose: closeStickerBar,
+                ) : Container(),
+              ],
+            );
+          })
+      ),
     );
   }
 

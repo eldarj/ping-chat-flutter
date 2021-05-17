@@ -222,85 +222,87 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     if (false) { // TODO: Fix
       w = Container();
     } else {
-      w = Column(
-        children: [
-          buildTopDetailsSection(),
-          Container(
-              height: 90,
-              width: DEVICE_MEDIA_SIZE.width,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [Shadows.topShadow()],
-              ),
-              child: Stack(
-                alignment: Alignment.centerRight,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 45,
-                        child: Row(children: [
-                          Material(
-                              color: Colors.white,
-                              child: buildCancelButton()
-                          ),
-                          Container(
-                            height: 45,
-                            constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width), // TODO: Dynamic width
-                            padding: EdgeInsets.only(left: 15),
-                            child: TextField(
-                              cursorHeight: 18,
-                              textAlignVertical: TextAlignVertical.top,
-                              textInputAction: TextInputAction.newline,
-                              textCapitalization: TextCapitalization.sentences,
-                              minLines: 1,
-                              maxLines: 2,
-                              onSubmitted: (value) {
-                                widget.inputTextController.text += "asd"; //TODO: Remove
-                              },
-                              style: TextStyle(fontSize: 15.0),
-                              controller: widget.inputTextController,
-                              focusNode: widget.inputTextFocusNode,
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: 'Type a message',
-                                hintStyle: TextStyle(color: Colors.grey),
+      w = Center(
+        child: Column(
+          children: [
+            buildTopDetailsSection(),
+            Container(
+                height: 90,
+                width: DEVICE_MEDIA_SIZE.width,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [Shadows.topShadow()],
+                ),
+                child: Stack(
+                  alignment: Alignment.centerRight,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 45,
+                          child: Row(children: [
+                            Material(
+                                color: Colors.white,
+                                child: buildCancelButton()
+                            ),
+                            Container(
+                              height: 45,
+                              constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width), // TODO: Dynamic width
+                              padding: EdgeInsets.only(left: 15),
+                              child: TextField(
+                                cursorHeight: 18,
+                                textAlignVertical: TextAlignVertical.top,
+                                textInputAction: TextInputAction.newline,
+                                textCapitalization: TextCapitalization.sentences,
+                                minLines: 1,
+                                maxLines: 2,
+                                onSubmitted: (value) {
+                                  widget.inputTextController.text += "asd"; //TODO: Remove
+                                },
+                                style: TextStyle(fontSize: 15.0),
+                                controller: widget.inputTextController,
+                                focusNode: widget.inputTextFocusNode,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Type a message',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                ),
                               ),
                             ),
-                          ),
-                        ]),
-                      ),
-                      Container(
-                        height: 45,
-                        child: Row(
-                            children: [
-                              buildActionButton(
-                                  icon: Icons.sentiment_very_satisfied,
-                                  onPressed: widget.onOpenStickerBar
-                              ),
-                              buildActionButton(
-                                  widget: Container(
-                                      child: Icon(Icons.gif_outlined, color: Colors.grey.shade500)),
-                                  onPressed: widget.onOpenGifPicker
-                              ),
-                              buildActionButton(
-                                  icon: Icons.attachment_sharp,
-                                  onPressed: widget.onOpenShareBottomSheet
-                              ),
-                            ]
+                          ]),
                         ),
-                      )
-                    ],
-                  ),
-                  widget.isEditing
-                      ? buildEditButton() : widget.isReplying
-                      ? buildReplyButton() : widget.displaySendButton
-                      ? buildSendButton()
-                      : buildRecordingRow()
-                ],
-              )),
-        ],
+                        Container(
+                          height: 45,
+                          child: Row(
+                              children: [
+                                buildActionButton(
+                                    icon: Icons.sentiment_very_satisfied,
+                                    onPressed: widget.onOpenStickerBar
+                                ),
+                                buildActionButton(
+                                    widget: Container(
+                                        child: Icon(Icons.gif_outlined, color: Colors.grey.shade500)),
+                                    onPressed: widget.onOpenGifPicker
+                                ),
+                                buildActionButton(
+                                    icon: Icons.attachment_sharp,
+                                    onPressed: widget.onOpenShareBottomSheet
+                                ),
+                              ]
+                          ),
+                        )
+                      ],
+                    ),
+                    widget.isEditing
+                        ? buildEditButton() : widget.isReplying
+                        ? buildReplyButton() : widget.displaySendButton
+                        ? buildSendButton()
+                        : buildRecordingRow()
+                  ],
+                )),
+          ],
+        ),
       );
     }
 

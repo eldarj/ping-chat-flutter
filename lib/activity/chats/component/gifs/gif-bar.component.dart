@@ -101,15 +101,18 @@ class GifBarState extends State<GifBar> {
           child: GridView.builder(
               itemCount: gifs.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisSpacing: 10, mainAxisSpacing: 10, crossAxisCount: 3),
+                  crossAxisSpacing: 0, mainAxisSpacing: 0, crossAxisCount: 3),
               itemBuilder: (context, index) => GestureDetector(
                   onTap: () {
                     widget.sendFunc.call(gifs[index]);
                   },
-                  child: CachedNetworkImage(
-                    imageUrl: gifs[index],
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => ActivityLoader.shimmer(child: Container(color: Colors.white)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: CachedNetworkImage(
+                      imageUrl: gifs[index],
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => ActivityLoader.shimmer(child: Container(color: Colors.white)),
+                    ),
                   )
               )
           ),
