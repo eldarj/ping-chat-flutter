@@ -56,11 +56,6 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tus_client/tus_client.dart';
 
-void downloadCallback(String id, DownloadTaskStatus status, int progress) {
-  final SendPort send = IsolateNameServer.lookupPortByName('CHAT_ACTIVITY_DOWNLOADER_PORT_KEY');
-  send.send([id, status]);
-}
-
 class PinnedMessagesActivity extends StatefulWidget {
   final ClientDto peer;
 
@@ -143,7 +138,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
     Widget widget = Center(child: Spinner());
 
     if (!displayLoader) {
-      if (messages != null && messages.length == 0) {
+      if (messages != null && messages.length > 0) {
         widget = Container(
           color: CompanyColor.backgroundGrey,
           child: ListView.builder(
@@ -183,26 +178,32 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
         margin: EdgeInsets.only(left: 5, right: 5),
         message: message,
         picturesPath: picturesPath,
-        // TODO: Unpin handler
       );
     }
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.only(bottom: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [Shadows.bottomShadow()]
+    return IgnorePointer(
+      ignoring: message.pinLoading,
+      child: AnimatedOpacity(
+        opacity: message.pinLoading ? 0.5 : 1,
+        duration: Duration(milliseconds: 500),
+        child: Container(
+          margin: EdgeInsets.only(bottom: 10),
+          padding: EdgeInsets.only(bottom: 15),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [Shadows.bottomShadow()]
+          ),
+          child: Column(
+              children: [
+                buildMessagePinDetails(message),
+                messageWidget
+              ]),
+        ),
       ),
-      child: Column(
-          children: [
-            buildMessagePinDetails(message.pinnedTimestamp),
-            messageWidget
-          ]),
     );
   }
 
-  buildMessagePinDetails(pinnedTimestamp) {
+  buildMessagePinDetails(message) {
     return Container(
         margin: EdgeInsets.only(bottom: 5),
         padding: EdgeInsets.symmetric(vertical: 5,horizontal: 15),
@@ -212,15 +213,17 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Pinned on ${DateTimeUtil.convertTimestampToDate(pinnedTimestamp)}', style: TextStyle(
+            Text('Pinned on ${DateTimeUtil.convertTimestampToDate(message.pinnedTimestamp)}', style: TextStyle(
               color: Colors.grey.shade400,
             )),
             TextButton(
-                onPressed: () {},
+                onPressed: message.pinLoading ? null : () {
+                  doUpdatePinStatus(message).then(onPinSuccess, onError: onPinError);
+                },
                 style: TextButton.styleFrom(backgroundColor: Colors.grey.shade200),
                 child: Row(
                   children: [
-                    Text('Unpin', style: TextStyle(color: Colors.grey.shade600)),
+                    message.pinLoading ? Spinner(size: 20) : Text('Unpin', style: TextStyle(color: Colors.grey.shade600)),
                   ],
                 ))
           ],
@@ -271,6 +274,34 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
 
       doGetPinnedMessages().then(onGetMessagesSuccess, onError: onGetMessagesError);
     }));
+  }
+
+  // Pin message
+  Future<MessageDto> doUpdatePinStatus(MessageDto message) async {
+    setState(() {
+      message.pinLoading = true;
+    });
+
+    String url = '/api/messages/${message.id}/pin';
+
+    message.pinned = false;
+    http.Response response = await HttpClientService.post(url, body: !message.pinned);
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    await Future.delayed(Duration(seconds: 1));
+
+    return message;
+  }
+
+  onPinSuccess(message) {
+    messagePinPublisher.emitPinUpdate(message.id, false);
+  }
+
+  onPinError(error) {
+    // print(error);
   }
 }
 

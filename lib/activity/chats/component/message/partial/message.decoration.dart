@@ -5,11 +5,11 @@ const double MESSAGE_BUBBLE_RADIUS = 15;
 const double MESSAGE_REPLY_RADIUS = 10;
 const double IMAGE_BUBBLE_RADIUS = 10;
 
-BoxDecoration imageDecoration(pinned, myMessageBackground, {displayBubble = true}) => BoxDecoration(
+BoxDecoration imageDecoration(pinned, myMessageBackground) => BoxDecoration(
   color: myMessageBackground ?? CompanyColor.myMessageBackground,
   borderRadius: BorderRadius.only(
       bottomLeft: Radius.circular(IMAGE_BUBBLE_RADIUS),
-      bottomRight: Radius.circular(displayBubble ? IMAGE_BUBBLE_RADIUS : 5),
+      bottomRight: Radius.circular(IMAGE_BUBBLE_RADIUS),
       topLeft: Radius.circular(IMAGE_BUBBLE_RADIUS),
       topRight: Radius.circular(0),
   ),
@@ -18,10 +18,10 @@ BoxDecoration imageDecoration(pinned, myMessageBackground, {displayBubble = true
   ]
 );
 
-BoxDecoration peerImageDecoration(pinned, {displayBubble = true, myMessageBackground}) => BoxDecoration(
+BoxDecoration peerImageDecoration(pinned) => BoxDecoration(
     color: Color.fromRGBO(239, 239, 239, 1),
     borderRadius: BorderRadius.only(
-      bottomLeft: Radius.circular(displayBubble ? IMAGE_BUBBLE_RADIUS : 5),
+      bottomLeft: Radius.circular(IMAGE_BUBBLE_RADIUS),
       bottomRight: Radius.circular(IMAGE_BUBBLE_RADIUS),
       topLeft: Radius.circular(0),
       topRight: Radius.circular(IMAGE_BUBBLE_RADIUS),

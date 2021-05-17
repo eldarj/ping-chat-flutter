@@ -24,8 +24,8 @@ class CompanyColor {
   static Map<Color, MessageTheme> messageThemes = {
     CompanyColor.myMessageBackground: MessageTheme(CompanyColor.myMessageBackground, Colors.green, textColor: Colors.grey.shade800, statusLabelColor: Colors.grey.shade500, descriptionColor: Colors.grey.shade500, iconColor: CompanyColor.accentGreenLight),
     CompanyColor.blueDark: MessageTheme(CompanyColor.blueDark, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: Color.fromRGBO(21, 146, 177, 1)),
-    Colors.indigoAccent: MessageTheme(Colors.indigoAccent, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade300, descriptionColor: Colors.grey.shade300, iconColor: Colors.indigo),
-    Colors.deepOrange: MessageTheme(Colors.deepOrange, Color.fromRGBO(255, 200, 0, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: Colors.red),
+    Color(0xff536dfe): MessageTheme(Colors.indigoAccent, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade300, descriptionColor: Colors.grey.shade300, iconColor: Colors.indigo),
+    Color(0xffff5722): MessageTheme(Colors.deepOrange, Color.fromRGBO(255, 200, 0, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: Colors.red),
     CompanyColor.accentGreenDark: MessageTheme(CompanyColor.accentGreenDark, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: CompanyColor.accentGreenDarker),
     CompanyColor.accentPurpleLight: MessageTheme(CompanyColor.accentPurpleLight, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: CompanyColor.accentPurple),
     CompanyColor.accentPurple: MessageTheme(CompanyColor.accentPurple, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: CompanyColor.accentPurpleLight)
@@ -60,14 +60,14 @@ class CompanyColor {
   static Color myMessageBorder = Color.fromRGBO(230, 245, 230, 1);
 
   static String toHexString(Color color) {
-    return '#FF${color.value.toRadixString(16).substring(2, 8)}';
+    return '#ff${color.value.toRadixString(16).substring(2, 8)}';
   }
 
   static Color fromHexString(String hex) {
     hex = hex.toUpperCase().replaceAll("#", "");
 
     if (hex.length == 6) {
-      hex = "FF" + hex;
+      hex = "ff" + hex;
     }
 
     return Color(int.parse(hex, radix: 16));

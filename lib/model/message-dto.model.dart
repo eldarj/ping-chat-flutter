@@ -68,6 +68,8 @@ class MessageDto {
 
   int pinnedTimestamp;
 
+  bool pinLoading = false;
+
   bool edited = false;
 
   ReplyDto replyMessage;
