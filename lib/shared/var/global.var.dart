@@ -6,33 +6,41 @@ class MessageTheme {
   Color statusLabelColor;
   Color seenIconColor;
 
+  Color descriptionColor;
+  Color iconColor;
+
   MessageTheme(this.bubbleColor, this.seenIconColor, {
     this.textColor = Colors.white,
+    this.iconColor = Colors.white,
+    descriptionColor,
     statusLabelColor
   }) {
+    this.descriptionColor = descriptionColor ?? Colors.grey.shade600;
     this.statusLabelColor = statusLabelColor ?? Colors.grey.shade100;
   }
 }
 
 class CompanyColor {
   static Map<Color, MessageTheme> messageThemes = {
-    CompanyColor.myMessageBackground: MessageTheme(CompanyColor.myMessageBackground, Colors.green, textColor: Colors.grey.shade800, statusLabelColor: Colors.grey.shade500),
-    CompanyColor.blueDark: MessageTheme(CompanyColor.blueDark, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100),
-    Colors.indigoAccent: MessageTheme(Colors.indigoAccent, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade300),
-    Colors.deepOrange: MessageTheme(Colors.deepOrange, Color.fromRGBO(255, 200, 0, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100),
-    CompanyColor.accentGreenDark: MessageTheme(CompanyColor.accentGreenDark, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100),
-    CompanyColor.accentPurpleLight: MessageTheme(CompanyColor.accentPurpleLight, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100),
-    CompanyColor.accentPurple: MessageTheme(CompanyColor.accentPurple, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100)
+    CompanyColor.myMessageBackground: MessageTheme(CompanyColor.myMessageBackground, Colors.green, textColor: Colors.grey.shade800, statusLabelColor: Colors.grey.shade500, descriptionColor: Colors.grey.shade500, iconColor: CompanyColor.accentGreenLight),
+    CompanyColor.blueDark: MessageTheme(CompanyColor.blueDark, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: Color.fromRGBO(21, 146, 177, 1)),
+    Colors.indigoAccent: MessageTheme(Colors.indigoAccent, Color.fromRGBO(28, 236, 257, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade300, descriptionColor: Colors.grey.shade300, iconColor: Colors.indigo),
+    Colors.deepOrange: MessageTheme(Colors.deepOrange, Color.fromRGBO(255, 200, 0, 1), textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: Colors.red),
+    CompanyColor.accentGreenDark: MessageTheme(CompanyColor.accentGreenDark, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: CompanyColor.accentGreenDarker),
+    CompanyColor.accentPurpleLight: MessageTheme(CompanyColor.accentPurpleLight, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: CompanyColor.accentPurple),
+    CompanyColor.accentPurple: MessageTheme(CompanyColor.accentPurple, Colors.green, textColor: Colors.white, statusLabelColor: Colors.grey.shade100, descriptionColor: Colors.grey.shade300, iconColor: CompanyColor.accentPurpleLight)
   };
 
   static Color blueLight = Color.fromRGBO(162, 226, 243, 1); // #A2ECF3
   static Color blueAccent = Color.fromRGBO(37, 218, 227, 1); // #25E4E3
   static Color bluePrimary = Color.fromRGBO(38, 197, 221, 1); // #26CFDD
   static const Color blueDark = Color.fromRGBO(28, 166, 197, 1); //// #63CFD9
+  static const Color blueDarker = Color.fromRGBO(21, 146, 177, 1); //// #63CFD9
 
   static Color accentGreenLight = Color(0xff1bb29f);
   static Color accentGreen = Color.fromRGBO(0, 102, 116, 1);
   static Color accentGreenDark = Color.fromRGBO(47, 72, 88, 1);
+  static Color accentGreenDarker = Color.fromRGBO(27, 52, 64, 1);
 
   static Color accentPurpleLight = Color.fromRGBO(97, 82, 157, 1);
   static Color accentPurple = Color.fromRGBO(79, 69, 110, 1);

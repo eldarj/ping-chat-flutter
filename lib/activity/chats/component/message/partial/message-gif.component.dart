@@ -58,7 +58,6 @@ class MessageGif extends StatelessWidget {
       child: Container(
         width: 200,
         color: Colors.white,
-        padding: EdgeInsets.only(bottom: 2.5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [

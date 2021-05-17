@@ -106,7 +106,7 @@ class MessageComponentState extends State<MessageComponent> {
       child: Container(
         margin: widget.margin,
         child: Container(
-          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 0 : 5),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 5 : 5),
           child: Column(crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 buildMessageContent(),
@@ -128,6 +128,17 @@ class MessageComponentState extends State<MessageComponent> {
   }
 
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
+    // TODO: Add status label
+
+    var titleColor = Colors.white;
+    var descColor = Colors.grey.shade600;
+    var iconColor = CompanyColor.accentGreenLight;
+    if (widget.messageTheme != null) {
+      titleColor = widget.messageTheme.textColor;
+      descColor = widget.messageTheme.descriptionColor;
+      iconColor = widget.messageTheme.iconColor;
+    }
+
     String desc = message.fileSizeFormatted();
     String title = message.fileName;
 
@@ -174,7 +185,7 @@ class MessageComponentState extends State<MessageComponent> {
                   width: 50, height: 50,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
-                      color: CompanyColor.accentGreenLight
+                      color: iconColor
                   ),
                   child: iconWidget
               ),
@@ -186,8 +197,8 @@ class MessageComponentState extends State<MessageComponent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(title),
-                    Text(desc, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                    Text(title, style: TextStyle(color: titleColor)),
+                    Text(desc, style: TextStyle(color: descColor, fontSize: 12)),
                   ]),
             )
           ],
@@ -221,9 +232,9 @@ class MessageComponentState extends State<MessageComponent> {
     } else if (widget.message.messageType == 'IMAGE') {
       String filePath = widget.message.filePath;
 
-      _messageDecoration = imageDecoration(widget.message.pinned);
+      _messageDecoration = imageDecoration(widget.message.pinned, widget.messageTheme.bubbleColor);
       _messageWidget = MessageImage(widget.message, filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained);
+          widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained, messageTheme: widget.messageTheme);
 
     } else if (widget.message.messageType == 'STICKER') {
       _messageDecoration = stickerBoxDecoration();
@@ -239,7 +250,7 @@ class MessageComponentState extends State<MessageComponent> {
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       String filePath = widget.message.filePath;
 
-      _messageDecoration = imageDecoration(widget.message.pinned, myMessageBackground: widget.messageTheme);
+      _messageDecoration = imageDecoration(widget.message.pinned, widget.messageTheme.bubbleColor);
       _messageWidget = MessageImage(
           widget.message,
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,

@@ -5,7 +5,7 @@ const double MESSAGE_BUBBLE_RADIUS = 15;
 const double MESSAGE_REPLY_RADIUS = 10;
 const double IMAGE_BUBBLE_RADIUS = 10;
 
-BoxDecoration imageDecoration(pinned, {displayBubble = true, myMessageBackground}) => BoxDecoration(
+BoxDecoration imageDecoration(pinned, myMessageBackground, {displayBubble = true}) => BoxDecoration(
   color: myMessageBackground ?? CompanyColor.myMessageBackground,
   borderRadius: BorderRadius.only(
       bottomLeft: Radius.circular(IMAGE_BUBBLE_RADIUS),
