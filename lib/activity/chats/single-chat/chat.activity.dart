@@ -207,7 +207,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
           senderPhoneNumber: message.sender.countryCode.dialCode + message.sender.phoneNumber)]);
     });
 
-    wsClientService.editedmessagePub.addListener(STREAMS_LISTENER_ID, (MessageDto editedMessage) async {
+    wsClientService.editedMessagePub.addListener(STREAMS_LISTENER_ID, (MessageDto editedMessage) async {
       var message = messages.firstWhere((element) => element.id == editedMessage.id, orElse: () => null);
       if (message != null) {
         setState(() {
@@ -462,7 +462,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     if (wsClientService != null) {
       wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
-      wsClientService.editedmessagePub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.editedMessagePub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
@@ -662,12 +662,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
                       },
                       onSubmitEdit: () {
                         doSendEditMessage(editingMessage, textController.text);
-
-                        MessageDto message = messages.firstWhere((element) => element.id == editingMessage.id, orElse: () => null);
-                        if (message != null) {
-                          message.text = textController.text;
-                          message.edited = true;
-                        }
 
                         setState(() {
                           isEditing = false;

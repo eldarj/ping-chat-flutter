@@ -46,7 +46,7 @@ class MessageSendingService {
 
   MessageDto sendEdit(MessageDto message, text) {
     message.text = text;
-    wsClientService.sendingMessagesPub.sendEvent(message, '/messages/edit');
+    wsClientService.editedMessagePub.sendEvent(message, '/messages/edit');
 
     return message;
   }
