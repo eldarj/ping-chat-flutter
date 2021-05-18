@@ -393,9 +393,15 @@ class ChatActivityState extends BaseState<ChatActivity> {
             );
             break;
           default:
-            replyWidget = Text(message.text,
-                overflow: TextOverflow.ellipsis, maxLines: 1,
-                style: TextStyle(color: Colors.grey.shade500));
+            replyWidget = Row(
+              children: [
+                Container(
+                  child: Text(message.text,
+                      overflow: TextOverflow.ellipsis, maxLines: 1,
+                      style: TextStyle(color: Colors.grey.shade500)),
+                ),
+              ],
+            );
         }
       });
     });

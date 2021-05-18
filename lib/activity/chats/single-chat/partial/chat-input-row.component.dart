@@ -509,18 +509,32 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     if (widget.isEditing) {
       w = Container(
           alignment: Alignment.centerLeft,
-          padding: EdgeInsets.only(top: 5, bottom: 5, left: 12.5),
+          padding: EdgeInsets.only(top: 5, bottom: 5, left: 0),
           margin: EdgeInsets.only(bottom: 1),
           decoration: BoxDecoration(
               color: Colors.grey.shade50,
               boxShadow: [Shadows.topShadow()]
           ),
-          child: Text('EDIT', style: TextStyle(
-              color: CompanyColor.blueDark,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.4
-          ))
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                child: Material(
+                    color: Colors.transparent,
+                    child: buildCancelButton()
+                ),
+              ),
+              Container(
+                width: DEVICE_MEDIA_SIZE.width - 80,
+                child: Text('EDIT MESSAGE', style: TextStyle(
+                    color: CompanyColor.blueDark,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.4
+                )),
+              ),
+            ],
+          )
       );
     } else if (widget.isReplying) {
       w = Container(
@@ -533,9 +547,12 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
           ),
           child: Row(
             children: [
-              Material(
-                  color: Colors.transparent,
-                  child: buildCancelButton()
+              Container(
+                width: 50,
+                child: Material(
+                    color: Colors.transparent,
+                    child: buildCancelButton()
+                ),
               ),
               Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -545,8 +562,12 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.4
                   )),
-                  widget.replyWidget
-                ],
+                  Container(
+                    width: DEVICE_MEDIA_SIZE.width - 80,
+                    child: Text('Hey mate how are you doing, is everything fine? I heard from your sis we went out the other night and she said you are moving out',
+                        overflow: TextOverflow.ellipsis, maxLines: 1,
+                        style: TextStyle(color: Colors.grey.shade500)),
+                  )                ],
               ),
             ],
           )
