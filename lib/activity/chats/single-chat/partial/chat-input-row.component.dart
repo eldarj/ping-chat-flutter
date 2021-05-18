@@ -520,8 +520,6 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     if (widget.isEditing) {
       w = Container(
           alignment: Alignment.centerLeft,
-          padding: EdgeInsets.only(top: 5, bottom: 5, left: 0),
-          margin: EdgeInsets.only(bottom: 1),
           decoration: BoxDecoration(
               color: Colors.grey.shade50,
               boxShadow: [Shadows.topShadow()]
@@ -550,8 +548,6 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     } else if (widget.isReplying) {
       w = Container(
           alignment: Alignment.centerLeft,
-          padding: EdgeInsets.only(top: 5, bottom: 5, left: 0),
-          margin: EdgeInsets.only(bottom: 1),
           decoration: BoxDecoration(
             color: Colors.grey.shade50,
             boxShadow: [Shadows.topShadow()]

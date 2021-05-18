@@ -335,6 +335,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     messageEditPublisher.onEditEvent(STREAMS_LISTENER_ID, (EditEvent editEvent) {
+      FocusScope.of(context).requestFocus(textFocusNode);
+
       setState(() {
         isEditing = true;
         editingMessage = editEvent.message;
@@ -343,6 +345,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     messageReplyPublisher.onReplyEvent(STREAMS_LISTENER_ID, (MessageDto message) {
+      FocusScope.of(context).requestFocus(textFocusNode);
+
       setState(() {
         isReplying = true;
         replyMessage = message;
@@ -729,7 +733,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
                         });
                       },
                       isEditing: isEditing,
-                      onCancelEdit: () {
+                      onCancelEdit: () async {
+                        FocusScope.of(context).unfocus();
+
                         setState(() {
                           isEditing = false;
                           editingMessage = null;
@@ -738,6 +744,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                       },
                       onSubmitEdit: () {
                         doSendEditMessage(editingMessage, textController.text);
+                        FocusScope.of(context).unfocus();
 
                         setState(() {
                           isEditing = false;
@@ -748,6 +755,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
                       isReplying: isReplying,
                       replyWidget: replyWidget,
                       onCancelReply: () {
+                        FocusScope.of(context).unfocus();
+
                         setState(() {
                           isReplying = false;
                           replyWidget = Container();
@@ -1015,6 +1024,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   doSendReply() {
+    FocusScope.of(context).unfocus();
+
     if (textController.text.length > 0) {
       widget.messageSendingService.sendReply(textController.text, replyMessage);
     }
