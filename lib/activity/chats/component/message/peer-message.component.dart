@@ -67,12 +67,15 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
   String recordingCurrentPosition = '00:00';
 
+  int recordingCurrentPositionSeconds = 0;
+
   @override
   void initState() {
     super.initState();
     AudioPlayer.logEnabled = false;
     audioPlayer.onAudioPositionChanged.listen((Duration  p) {
       setState(() {
+        recordingCurrentPositionSeconds = p.inSeconds;
         recordingCurrentPosition = p.format();
       });
     });
@@ -127,13 +130,26 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
     IconData icon = message.messageType == 'MEDIA' ? Icons.ondemand_video : Icons.file_copy_outlined;
     Widget iconWidget = Icon(icon, color: Colors.grey.shade100, size: 20);
 
+    int durationInSeconds;
+    Widget progressIndicator;
+
     if (message.messageType == 'RECORDING') {
       title = 'Recording';
       IconData icon = message.isRecordingPlaying ? Icons.pause : Icons.mic_none;
+      if (!message.isRecordingPlaying) {
+        recordingCurrentPositionSeconds = 0;
+      }
 
       if (message.recordingDuration != null) {
+        var time = message.recordingDuration.split(":");
+        String seconds = time[1];
+        String minutes = time[0];
+        durationInSeconds = int.parse(minutes) * 60 + int.parse(seconds);
+
         title += ' (${message.recordingDuration})';
       }
+
+      progressIndicator = buildProgressIndicator(durationInSeconds - 1);
 
       iconWidget = Stack(
         alignment: Alignment.center,
@@ -179,12 +195,35 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(title),
+                    Container(
+                        height: 15,
+                        child: message.isRecordingPlaying
+                            ? progressIndicator
+                            : Text(title)
+                    ),
                     Text(desc, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                   ]),
             )
           ],
         ));
+  }
+
+  buildProgressIndicator(totalDurationInSeconds) {
+    var maxWidth = DEVICE_MEDIA_SIZE.width - 240;
+    var currentWidth = (recordingCurrentPositionSeconds / totalDurationInSeconds) * (maxWidth);
+
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        Container(
+            width: maxWidth, height: 0.5, color: Colors.white
+        ),
+        AnimatedContainer(
+            duration: Duration(seconds: 1),
+            width: currentWidth, height: 2, color: CompanyColor.blueDark
+        ),
+      ],
+    );
   }
 
   buildMessageContent() {

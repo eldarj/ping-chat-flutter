@@ -74,12 +74,15 @@ class MessageComponentState extends State<MessageComponent> {
 
   String recordingCurrentPosition = '00:00';
 
+  int recordingCurrentPositionMillis = 0;
+
   @override
   void initState() {
     super.initState();
     AudioPlayer.logEnabled = false;
     audioPlayer.onAudioPositionChanged.listen((Duration  p) {
       setState(() {
+        recordingCurrentPositionMillis = p.inMilliseconds;
         recordingCurrentPosition = p.format();
       });
     });
@@ -157,13 +160,26 @@ class MessageComponentState extends State<MessageComponent> {
     IconData icon = message.messageType == 'MEDIA' ? Icons.ondemand_video : Icons.file_copy_outlined;
     Widget iconWidget = Icon(icon, color: Colors.grey.shade100, size: 20);
 
+    int durationInMillis;
+    Widget progressIndicator;
+
     if (message.messageType == 'RECORDING') {
       title = 'Recording';
       IconData icon = message.isRecordingPlaying ? Icons.pause : Icons.mic_none;
+      if (!message.isRecordingPlaying) {
+        recordingCurrentPositionMillis = 0;
+      }
 
       if (message.recordingDuration != null) {
+        var time = message.recordingDuration.split(":");
+        String seconds = time[1];
+        String minutes = time[0];
+        durationInMillis = (int.parse(minutes) * 60 + int.parse(seconds)) * 1000;
+
         title += ' (${message.recordingDuration})';
       }
+
+      progressIndicator = buildProgressIndicator(durationInMillis - 1000, statusLabelColor, iconColor);
 
       iconWidget = Stack(
         alignment: Alignment.center,
@@ -212,7 +228,12 @@ class MessageComponentState extends State<MessageComponent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(title, style: TextStyle(color: titleColor)),
+                          Container(
+                            height: 15,
+                            child: message.isRecordingPlaying
+                                ? progressIndicator
+                                : Text(title, style: TextStyle(color: titleColor))
+                          ),
                           Text(desc, style: TextStyle(color: descColor, fontSize: 12)),
                         ]),
                   ),
@@ -234,6 +255,24 @@ class MessageComponentState extends State<MessageComponent> {
             )
           ],
         ));
+  }
+
+  buildProgressIndicator(durationInMillis, loaderColor, progressColor) {
+    var maxWidth = DEVICE_MEDIA_SIZE.width - 240;
+    var currentWidth = (recordingCurrentPositionMillis / durationInMillis) * (maxWidth);
+
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        Container(
+            width: maxWidth, height: 0.5, color: loaderColor
+        ),
+        AnimatedContainer(
+            duration: Duration(seconds: 1),
+            width: currentWidth, height: 2, color: progressColor
+        ),
+      ],
+    );
   }
 
   buildMessageContent() {
