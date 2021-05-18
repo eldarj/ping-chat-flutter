@@ -107,6 +107,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool displayLoader = true;
   bool displaySendButton = false;
   bool displayScrollLoader = false;
+  bool displayScrollToBottom = false;
+
   bool displayStickers = false;
   bool displayGifs = false;
 
@@ -655,6 +657,37 @@ class ChatActivityState extends BaseState<ChatActivity> {
                                     ),
                                     padding: EdgeInsets.all(10),
                                     child: Spinner(size: 20)))) : Container(),
+                        AnimatedOpacity(
+                            duration: Duration(milliseconds: 500),
+                            opacity: displayScrollToBottom ? 1 : 0,
+                            child: Container(
+                              alignment: Alignment.bottomRight,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 40, height: 40,
+                                    margin: EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(color: CompanyColor.blueDark, width: 1.5),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: IconButton(
+                                      color: CompanyColor.blueDark,
+                                      onPressed: () {
+                                        displayScrollToBottom = false;
+                                        chatListController.jumpTo(0);
+                                        setState(() {});
+                                      },
+                                      iconSize: 20,
+                                      icon: Icon(Icons.arrow_downward_sharp),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                        ),
                         Container(
                             alignment: Alignment.bottomLeft,
                             child: AnimatedOpacity(
@@ -779,6 +812,24 @@ class ChatActivityState extends BaseState<ChatActivity> {
       if (messages != null && messages.length > 0) {
         widget = NotificationListener<ScrollNotification>(
           onNotification: (ScrollNotification scrollInfo) {
+
+            bool displayChange = false;
+            if (!displayScrollToBottom && scrollInfo.metrics.pixels > 100) {
+              displayScrollToBottom = true;
+              displayChange = true;
+            } else if (displayScrollToBottom && scrollInfo.metrics.pixels < 100) {
+              displayScrollToBottom = false;
+              displayChange = true;
+            }
+
+            if (displayChange) {
+              Future.delayed(Duration(seconds: 1), () {
+                setState(() {
+                  //
+                });
+              });
+            }
+
             if (!displayScrollLoader) {
               if (scrollInfo is UserScrollNotification) {
                 UserScrollNotification userScrollNotification = scrollInfo as UserScrollNotification;
