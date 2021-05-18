@@ -72,9 +72,9 @@ class ReplyComponentState extends State<ReplyComponent> {
       onTap: resolveMessageTapHandler(),
       child: Container(
         margin: EdgeInsets.only(bottom: 2.5),
-        padding: EdgeInsets.only(bottom: 5, top: 5),
+        padding: EdgeInsets.only(top: 1.5),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: Color.fromRGBO(246, 246, 246, 0.9),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
             topRight: Radius.circular(MESSAGE_REPLY_RADIUS),
@@ -131,6 +131,7 @@ class ReplyComponentState extends State<ReplyComponent> {
           ? widget.picturesPath + '/' + widget.message.replyMessage.fileName
           : widget.message.replyMessage.filePath;
 
+      padding = EdgeInsets.all(0);
       _messageWidget = Opacity(
         opacity: 0.8,
         child: Container(
@@ -141,13 +142,14 @@ class ReplyComponentState extends State<ReplyComponent> {
                   bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
               ),
               child: MessageImage(
-                  widget.message,
-                  filePath, false, false, 0.0, () {},
-                  text: widget.message.replyMessage.text,
-                  isPeerMessage: widget.isPeerMessage)),
+                widget.message,
+                filePath, false, false, 0.0, () {},
+                text: widget.message.replyMessage.text,
+                isPeerMessage: widget.isPeerMessage,
+                isReply: true,
+              )),
         ),
       );
-      padding = EdgeInsets.all(0);
 
     } else if (widget.message.replyMessage.messageType == 'MAP_LOCATION') {
       String filePath = widget.isPeerMessage
@@ -163,6 +165,7 @@ class ReplyComponentState extends State<ReplyComponent> {
             widget.message,
             filePath, false, false, 0.0, () {}, displayText: true,
             text: widget.message.replyMessage.text, isPeerMessage: widget.isPeerMessage,
+            isReply: true,
           ),
         ),
       );
@@ -172,10 +175,15 @@ class ReplyComponentState extends State<ReplyComponent> {
         opacity: 0.8,
         child: Container(
             width: 75, height: 50,
-            child: MessageSticker(stickerCode: widget.message.replyMessage.text, displayStatusIcon: false)),
+            child: MessageSticker(
+                stickerCode: widget.message.replyMessage.text,
+                message: widget.message,
+                displayTimestamp: false,
+                displayStatusIcon: false)),
       );
 
     } else if (widget.message.replyMessage.messageType == 'GIF') {
+      padding = EdgeInsets.all(0);
       _messageWidget = Opacity(
         opacity: 0.8,
         child: Container(
@@ -186,8 +194,10 @@ class ReplyComponentState extends State<ReplyComponent> {
                     bottomRight: Radius.circular(widget.isPeerMessage ? 10 : 0)
                 ),
                 child: MessageGif(
-                    url: widget.message.replyMessage.text, displayStatusIcon: false,
-                    isPeerMessage: widget.isPeerMessage
+                  url: widget.message.replyMessage.text,
+                  isPeerMessage: widget.isPeerMessage,
+                  displayStatusIcon: false,
+                  isReply: true,
                 )
             )),
       );
@@ -239,6 +249,7 @@ class ReplyComponentState extends State<ReplyComponent> {
     }
 
     return Container(
+        padding: EdgeInsets.only(bottom: 5),
         constraints: BoxConstraints(maxWidth: maxWidth, minWidth: maxWidth),
         child: Row(
           children: [

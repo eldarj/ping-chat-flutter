@@ -20,6 +20,8 @@ class MessageGif extends StatelessWidget {
 
   final bool isPeerMessage;
 
+  final bool isReply;
+
   const MessageGif({
     Key key,
     this.url,
@@ -27,11 +29,48 @@ class MessageGif extends StatelessWidget {
     this.messageTheme,
     this.displayStatusIcon = true,
     this.isPeerMessage = false,
+    this.isReply = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext _context) {
-    Color gifLabelColor = Colors.grey.shade500;
+    var borderRadius;
+
+    if (isReply) {
+      borderRadius = BorderRadius.zero;
+    } else {
+      borderRadius = BorderRadius.only(
+        topLeft: Radius.circular(isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
+        topRight: Radius.circular(!isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
+        bottomLeft: Radius.circular(IMAGE_BUBBLE_RADIUS),
+        bottomRight: Radius.circular(IMAGE_BUBBLE_RADIUS),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: Container(
+        width: 200,
+        color: Colors.white,
+        child: Stack(
+          alignment: Alignment.bottomLeft,
+          children: [
+            Container(
+                width: 200,
+                child: CachedNetworkImage(
+                  fit: BoxFit.cover,
+                  imageUrl: url,
+                )
+            ),
+            this.isReply ? Container() : buildStatusLabel(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildStatusLabel() {
+    Color gifLabelColor = Colors.white;
     Color seenIconColor = Colors.green;
 
     if (this.messageTheme != null) {
@@ -48,44 +87,33 @@ class MessageGif extends StatelessWidget {
       );
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
-        topRight: Radius.circular(!isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
-        bottomLeft: Radius.circular(IMAGE_BUBBLE_RADIUS),
-        bottomRight: Radius.circular(IMAGE_BUBBLE_RADIUS),
-      ),
-      child: Container(
-        width: 200,
-        color: Colors.white,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Container(
-                width: 200,
-                child: CachedNetworkImage(
-                  fit: BoxFit.cover,
-                  imageUrl: url,
-                )
-            ),
-            Container(
-              padding: EdgeInsets.only(left: 10, right: 12.5, top: 2.5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Image.asset('static/graphic/logo/giphy-logo.png', height: 7),
-                  Row(children: [
-                    Container(
-                        padding: EdgeInsets.only(right: 2.5),
-                        margin: EdgeInsets.only(bottom: 1),
-                        child: statusIcon),
-                    MessageTimestampLabel(message.sentTimestamp, gifLabelColor, edited: message.edited)
-                  ])
-                ],
+    return Container(
+      margin: EdgeInsets.only(right: 5, left: 5, bottom: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+              padding: EdgeInsets.only(left: 5, top: 3.5, bottom: 3.5, right: 5),
+              decoration: BoxDecoration(
+                color: Color.fromRGBO(0, 0, 0, 0.17),
+                borderRadius: BorderRadius.circular(10),
               ),
+              child: Text('Giphy', style: TextStyle(decoration: TextDecoration.underline, color: gifLabelColor, fontSize: 12))),
+          Container(
+            padding: EdgeInsets.only(left: 5, top: 3.5, bottom: 3.5, right: 10),
+            decoration: BoxDecoration(
+              color: Color.fromRGBO(0, 0, 0, 0.17),
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
-        ),
+            child: Row(children: [
+              Container(
+                  padding: EdgeInsets.only(right: 2.5),
+                  margin: EdgeInsets.only(bottom: 1),
+                  child: statusIcon),
+              MessageTimestampLabel(message.sentTimestamp, gifLabelColor, edited: message.edited)
+            ]),
+          )
+        ],
       ),
     );
   }

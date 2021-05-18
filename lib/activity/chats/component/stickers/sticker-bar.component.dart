@@ -50,28 +50,70 @@ class StickerBarState extends State<StickerBar> {
       'owl/FreeOwl_026.webp', 'owl/FreeOwl_028.webp', 'owl/FreeOwl_039.webp'
     ],
     4: [
-      'akio/akio001.webp', 'akio/akio002.webp', 'akio/akio003.webp', 'akio/akio004.webp',
-      'akio/akio005.webp', 'akio/akio007.webp', 'akio/akio008.webp', 'akio/akio009.webp',
-      'akio/akio010.webp', 'akio/akio011.webp'
+      'akio/akio2.webp', 'akio/akio3.webp', 'akio/akio4.webp', 'akio/akio5.webp',
+      'akio/akio6.webp', 'akio/akio7.webp', 'akio/akio9.webp',
     ],
     5: [
+      'bernard/bernard1.webp', 'bernard/bernard5.webp', 'bernard/bernard8.webp',
+      'bernard/bernard9.webp', 'bernard/bernard10.webp', 'bernard/bernard11.webp',
+    ],
+    6: [
+      'cats/cats1.webp', 'cats/cats3.webp', 'cats/cats5.webp', 'cats/cats7.webp', 'cats/cats8.webp',
+      'cats/cats9.webp', 'cats/cats12.webp', 'cats/cats13.webp', 'cats/cats14.webp', 'cats/cats17.webp',
+      'cats/cats18.webp', 'cats/cats19.webp', 'cats/cats20.webp'
+    ],
+    7: [
+      'senya/senya1.webp', 'senya/senya3.webp', 'senya/senya4.webp', 'senya/senya6.webp'
+    ],
+    8: [
       'homer/homer001.webp', 'homer/homer002.webp', 'homer/homer003.webp', 'homer/homer004.webp',
       'homer/homer005.webp', 'homer/homer006.webp', 'homer/homer007.webp', 'homer/homer008.webp',
       'homer/homer009.webp', 'homer/homer010.webp', 'homer/homer011.webp', 'homer/homer012.webp',
       'homer/homer013.webp'
     ],
-    6: [
+    9: [
       'coffee/coffee_001.webp', 'coffee/coffee_002.webp', 'coffee/coffee_003.webp', 'coffee/coffee_004.webp',
       'coffee/coffee_005.webp', 'coffee/coffee_006.webp', 'coffee/coffee_007.webp', 'coffee/coffee_008.webp',
       'coffee/coffee_009.webp', 'coffee/coffee_010.webp', 'coffee/coffee_011.webp', 'coffee/coffee_012.webp',
       'coffee/coffee_013.webp', 'coffee/coffee_014.webp', 'coffee/coffee_015.webp'
     ],
-    7: [
+    10: [
       'words/busy.webp', 'words/coffee-time.webp', 'words/cool.webp', 'words/game-over.webp', 'words/hi.webp',
       'words/like.webp', 'words/nom-nom.webp', 'words/ok.webp', 'words/omg.webp', 'words/party-time.webp',
       'words/please.webp', 'words/stop.webp', 'words/what.webp', 'words/why.webp'
     ],
   };
+
+  Widget buildToolbar() {
+    return Container(
+      height: 55,
+      color: Colors.white,
+      child: Scrollbar(
+        isAlwaysShown: true,
+        controller: toolbarScrollController,
+        thickness: 1.5,
+        child: Container(
+          margin: EdgeInsets.only(bottom: 1),
+          child: ListView(
+              scrollDirection: Axis.horizontal,
+              controller: toolbarScrollController,
+              children: [
+                buildToolbarButton(index: 0, icon: Icons.access_time),
+                buildToolbarButton(index: 1, image: 'panda/panda2.png', size: 45),
+                buildToolbarButton(index: 2, image: 'stitch/stitch002.webp', size: 40),
+                buildToolbarButton(index: 3, image: 'owl/FreeOwl_002.webp', size: 40),
+                buildToolbarButton(index: 4, image: 'akio/akio6.webp', size: 40),
+                buildToolbarButton(index: 5, image: 'bernard/bernard11.webp', size: 40),
+                buildToolbarButton(index: 6, image: 'cats/cats1.webp', size: 40),
+                buildToolbarButton(index: 7, image: 'senya/senya6.webp', size: 40),
+                buildToolbarButton(index: 8, image: 'homer/homer003.webp', size: 40),
+                buildToolbarButton(index: 9, image: 'coffee/coffee_001.webp', size: 40),
+                buildToolbarButton(index: 10, image: 'words/like.webp', size: 40),
+              ]),
+        ),
+      ),
+    );
+  }
 
   loadRecentStickers() async {
     recentStickers = await stickerService.loadRecent();
@@ -133,34 +175,6 @@ class StickerBarState extends State<StickerBar> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget buildToolbar() {
-    return Container(
-      height: 55,
-      color: Colors.white,
-      child: Scrollbar(
-        isAlwaysShown: true,
-        controller: toolbarScrollController,
-        thickness: 1.5,
-        child: Container(
-          margin: EdgeInsets.only(bottom: 1),
-          child: ListView(
-              scrollDirection: Axis.horizontal,
-              controller: toolbarScrollController,
-              children: [
-                buildToolbarButton(index: 0, icon: Icons.access_time),
-                buildToolbarButton(index: 1, image: 'panda/panda2.png', size: 45),
-                buildToolbarButton(index: 2, image: 'stitch/stitch002.webp', size: 40),
-                buildToolbarButton(index: 3, image: 'owl/FreeOwl_002.webp', size: 40),
-                buildToolbarButton(index: 4, image: 'akio/akio001.webp', size: 40),
-                buildToolbarButton(index: 5, image: 'homer/homer003.webp', size: 40),
-                buildToolbarButton(index: 6, image: 'coffee/coffee_001.webp', size: 40),
-                buildToolbarButton(index: 7, image: 'words/like.webp', size: 40),
-              ]),
-        ),
       ),
     );
   }

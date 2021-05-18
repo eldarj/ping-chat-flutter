@@ -54,6 +54,7 @@ class MessageSticker extends StatelessWidget {
       alignment: Alignment.bottomRight,
       children: [
         Container(
+            padding: EdgeInsets.all(5),
             child: Image.asset('static/graphic/sticker/' + stickerCode, height: size, width: size)
         ),
         Container(

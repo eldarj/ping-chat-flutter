@@ -106,7 +106,7 @@ class MessageComponentState extends State<MessageComponent> {
       child: Container(
         margin: widget.margin,
         child: Container(
-          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 5 : 5),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 2.5 : 5),
           child: Column(crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 buildMessageContent(),
@@ -296,31 +296,19 @@ class MessageComponentState extends State<MessageComponent> {
     Widget w;
 
     if (widget.message.replyMessage != null) {
-      w = Container(
-          padding: EdgeInsets.only(left: 5, top: 5), // TODO: Check reply UI
-          decoration: BoxDecoration(
-            color: Color.fromRGBO(255, 255, 255, 0.5),
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
-                topRight: Radius.circular(MESSAGE_REPLY_RADIUS),
-                bottomLeft: Radius.circular(MESSAGE_REPLY_RADIUS),
-                bottomRight: Radius.circular(MESSAGE_BUBBLE_RADIUS)
+      w = Column(crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            ReplyComponent(
+              isPeerMessage: false,
+              message: widget.message,
+              picturesPath: widget.picturesPath,
             ),
-          ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                ReplyComponent(
-                  isPeerMessage: false,
-                  message: widget.message,
-                  picturesPath: widget.picturesPath,
-                ),
-                Container(
-                    decoration: _messageDecoration,
-                    constraints: BoxConstraints(maxWidth: maxWidth),
-                    // TODO: Check max height
-                    child: _messageWidget)
-              ]
-          )
+            Container(
+                decoration: _messageDecoration,
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                // TODO: Check max height
+                child: _messageWidget)
+          ]
       );
     } else {
       w = Container(

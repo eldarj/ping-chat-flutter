@@ -241,36 +241,27 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                       children: [
                         Container(
                           height: 45,
-                          child: Row(children: [
-                            Material(
-                                color: Colors.white,
-                                child: buildCancelButton()
+                          constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width), // TODO: Dynamic width
+                          padding: EdgeInsets.only(left: 15),
+                          child: TextField(
+                            cursorHeight: 18,
+                            textAlignVertical: TextAlignVertical.top,
+                            textInputAction: TextInputAction.newline,
+                            textCapitalization: TextCapitalization.sentences,
+                            minLines: 1,
+                            maxLines: 2,
+                            onSubmitted: (value) {
+                              widget.inputTextController.text += "asd"; //TODO: Remove
+                            },
+                            style: TextStyle(fontSize: 15.0),
+                            controller: widget.inputTextController,
+                            focusNode: widget.inputTextFocusNode,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Type a message',
+                              hintStyle: TextStyle(color: Colors.grey),
                             ),
-                            Container(
-                              height: 45,
-                              constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width), // TODO: Dynamic width
-                              padding: EdgeInsets.only(left: 15),
-                              child: TextField(
-                                cursorHeight: 18,
-                                textAlignVertical: TextAlignVertical.top,
-                                textInputAction: TextInputAction.newline,
-                                textCapitalization: TextCapitalization.sentences,
-                                minLines: 1,
-                                maxLines: 2,
-                                onSubmitted: (value) {
-                                  widget.inputTextController.text += "asd"; //TODO: Remove
-                                },
-                                style: TextStyle(fontSize: 15.0),
-                                controller: widget.inputTextController,
-                                focusNode: widget.inputTextFocusNode,
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'Type a message',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                            ),
-                          ]),
+                          ),
                         ),
                         Container(
                           height: 45,
@@ -472,30 +463,6 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     );
   }
 
-  buildCancelButton() {
-    Widget w = Container();
-
-    if (widget.isEditing) {
-      w = IconButton(
-          icon: Icon(Icons.close),
-          color: CompanyColor.blueDark,
-          onPressed: () {
-            widget.onCancelEdit.call();
-          }
-      );
-    } else if (widget.isReplying) {
-      w = IconButton(
-          icon: Icon(Icons.close),
-          color: CompanyColor.blueDark,
-          onPressed: () {
-            widget.onCancelReply.call();
-          }
-      );
-    }
-
-    return w;
-  }
-
   buildSendButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -558,26 +525,58 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     } else if (widget.isReplying) {
       w = Container(
           alignment: Alignment.centerLeft,
-          padding: EdgeInsets.only(top: 5, bottom: 5, left: 12.5),
+          padding: EdgeInsets.only(top: 5, bottom: 5, left: 0),
           margin: EdgeInsets.only(bottom: 1),
           decoration: BoxDecoration(
             color: Colors.grey.shade50,
             boxShadow: [Shadows.topShadow()]
           ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text('REPLY', style: TextStyle(
-                  color: CompanyColor.blueDark,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4
-              )),
-              widget.replyWidget
+              Material(
+                  color: Colors.transparent,
+                  child: buildCancelButton()
+              ),
+              Column(crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('REPLY', style: TextStyle(
+                      color: CompanyColor.blueDark,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4
+                  )),
+                  widget.replyWidget
+                ],
+              ),
             ],
           )
       );
     } else {
      w = Container();
+    }
+
+    return w;
+  }
+
+  buildCancelButton() {
+    Widget w = Container();
+
+    if (widget.isEditing) {
+      w = IconButton(
+          icon: Icon(Icons.close),
+          color: CompanyColor.blueDark,
+          onPressed: () {
+            widget.onCancelEdit.call();
+          }
+      );
+    } else if (widget.isReplying) {
+      w = IconButton(
+          icon: Icon(Icons.close),
+          color: CompanyColor.blueDark,
+          onPressed: () {
+            widget.onCancelReply.call();
+          }
+      );
     }
 
     return w;

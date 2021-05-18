@@ -36,6 +36,8 @@ class MessageImage extends StatelessWidget {
   final bool displayStatusIcon;
   final bool displayText;
 
+  final bool isReply;
+
   MessageImage(
       this.message,
       this.filePath,
@@ -52,6 +54,7 @@ class MessageImage extends StatelessWidget {
         this.messageTheme,
         this.displayStatusIcon = true,
         this.displayText = false,
+        this.isReply = false
       }
       ) : super(key: key);
 
@@ -59,6 +62,18 @@ class MessageImage extends StatelessWidget {
   Widget build(BuildContext _context) {
     File file = File(filePath);
     bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+    var borderRadius;
+    if (isReply) {
+      borderRadius = BorderRadius.all(Radius.circular(0));
+    } else {
+      borderRadius = BorderRadius.only(
+        topLeft: Radius.circular(isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
+        topRight: Radius.circular(!isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
+        bottomLeft: Radius.circular(chained && isPeerMessage ? 5 : IMAGE_BUBBLE_RADIUS),
+        bottomRight: Radius.circular(chained && !isPeerMessage ? 5 : IMAGE_BUBBLE_RADIUS),
+      );
+    }
 
     if (!isFileValid) {
       return Container(
@@ -97,12 +112,7 @@ class MessageImage extends StatelessWidget {
             Stack(alignment: Alignment.center,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
-                    topRight: Radius.circular(!isPeerMessage ? 0 : IMAGE_BUBBLE_RADIUS),
-                    bottomLeft: Radius.circular(chained && isPeerMessage ? 5 : IMAGE_BUBBLE_RADIUS),
-                    bottomRight: Radius.circular(chained && !isPeerMessage ? 5 : IMAGE_BUBBLE_RADIUS),
-                  ),
+                  borderRadius: borderRadius,
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     colorFilteredImage,
                     !isUploading && displayText ? buildImageText() : Container()
@@ -116,7 +126,7 @@ class MessageImage extends StatelessWidget {
                 ) : Container(width: 0),
               ],
             ),
-            !displayText ? buildStatusLabel() : Container(),
+            !displayText && !isReply ? buildStatusLabel() : Container(),
           ],
         ));
   }
@@ -165,6 +175,14 @@ class MessageImage extends StatelessWidget {
   }
 
   Widget buildImageText() {
+    double textSize = 16;
+    EdgeInsets padding = MESSAGE_PADDING;
+
+    if (isReply) {
+      textSize = 12;
+      padding = EdgeInsets.all(5);
+    }
+
     Color textColor = Colors.grey.shade800;
     Color statusLabelColor = Colors.grey.shade500;
     Color seenIconColor = Colors.green;
@@ -190,17 +208,17 @@ class MessageImage extends StatelessWidget {
         border: Border(top: BorderSide(color: Colors.grey.shade300)),
       ),
       child: Container(
-        padding: MESSAGE_PADDING,
+        padding: padding,
         child: Wrap(
           spacing: 10,
           alignment: WrapAlignment.end,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(text, style: TextStyle(
-                fontSize: 16,
+                fontSize: textSize,
                 color: textColor
             )),
-            Container(
+            isReply ? Container() : Container(
               margin: EdgeInsets.only(top: 1.5),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
