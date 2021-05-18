@@ -11,6 +11,7 @@ import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/duration.extension.dart';
 import 'package:intl/intl.dart';
@@ -24,6 +25,7 @@ class SingleChatInputRow extends StatefulWidget {
   final int userSentNodeId;
   final String picturesPath;
   final String myContactName;
+  final String contactPhoneNumber;
 
   final MessageSendingService messageSendingService;
   final Function(MessageDto, double) onProgress;
@@ -60,7 +62,7 @@ class SingleChatInputRow extends StatefulWidget {
     this.displayStickers, this.onOpenShareBottomSheet, this.displaySendButton, this.inputTextController,
     this.inputTextFocusNode, this.doSendMessage, this.userId, this.peerId, this.userSentNodeId,
     this.picturesPath, this.myContactName, this.onOpenGifPicker, this.displayGifs,
-    this.isEditing, this.onCancelEdit, this.onSubmitEdit,
+    this.isEditing, this.onCancelEdit, this.onSubmitEdit, this.contactPhoneNumber,
     this.isReplying, this.replyWidget, this.onCancelReply, this.onSubmitReply,
   }) : super(key: key);
 
@@ -80,6 +82,8 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
   StopWatchTimer _stopWatchTimer;
 
   String recordingDuration = '00:00';
+
+  bool sendingTypingEvent = false;
 
   @override
   initState() {
@@ -250,6 +254,13 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                             textCapitalization: TextCapitalization.sentences,
                             minLines: 1,
                             maxLines: 2,
+                            onChanged: (_) {
+                              if (!sendingTypingEvent) {
+                                sendingTypingEvent = true;
+                                sendTypingEvent(widget.contactPhoneNumber, true);
+                                Future.delayed(Duration(seconds: 2), () { sendingTypingEvent = false; });
+                              }
+                            },
                             onSubmitted: (value) {
                               widget.inputTextController.text += "asd"; //TODO: Remove
                             },

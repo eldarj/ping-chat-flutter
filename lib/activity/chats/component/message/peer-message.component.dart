@@ -223,14 +223,13 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
     } else if (widget.message.messageType == 'STICKER') {
       _messageDecoration = stickerBoxDecoration();
-      _messageWidget = MessageSticker(stickerCode: widget.message.text, displayStatusIcon: false);
+      _messageWidget = MessageSticker(stickerCode: widget.message.text, displayStatusIcon: false, message: widget.message);
 
     } else if (widget.message.messageType == 'GIF') {
       _messageDecoration = gifBoxDecoration(widget.message.pinned, isPeerMessage: true);
       _messageWidget = MessageGif(
           url: widget.message.text, message: widget.message, displayStatusIcon: false,
-          isPeerMessage: true
-      );
+          isPeerMessage: true);
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       String filePath = widget.picturesPath + '/' + widget.message.fileName;

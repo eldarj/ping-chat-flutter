@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
+import 'package:flutterping/model/typing-event.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/service/ws/ws-publisher.dart';
 import 'package:flutterping/service/ws/ws-client.dart';
@@ -41,6 +42,8 @@ class WsClientService {
 
   WsPublisher<MessageDto> messageDeletedPub = new WsPublisher(ws: _wsFunc);
 
+  WsPublisher<TypingEvent> typingPub = new WsPublisher();
+
   _initializeWsHandlers() async {
     String userToken = await UserService.getToken();
     bool isActive = await UserService.getUserStatus();
@@ -74,6 +77,11 @@ class WsClientService {
         MessageDto message = MessageDto.fromJson(json.decode(frame.body));
         messageDeletedPub.subject.add(message);
       });
+
+      wsClient.subscribe(destination: '/user/users/typing', callback: (frame) async {
+        TypingEvent typingEvent = TypingEvent.fromJson(json.decode(frame.body));
+        typingPub.subject.add(typingEvent);
+      });
     });
   }
 
@@ -102,5 +110,13 @@ sendReceivedStatus(MessageSeenDto messageSeenDto) {
 sendPresenceEvent(PresenceEvent presenceEvent) {
   if (WsClientService.wsClient != null) {
     WsClientService.wsClient.send('/users/status', presenceEvent);
+  }
+}
+
+sendTypingEvent(receiverPhoneNumber, status) {
+  if (WsClientService.wsClient != null) {
+    WsClientService.wsClient.send('/users/typing', new TypingEvent(
+      receiverPhoneNumber: receiverPhoneNumber, status: status
+    ));
   }
 }

@@ -4,6 +4,8 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutterping/activity/chats/component/gifs/gif-bar.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message.decoration.dart';
+import 'package:flutterping/model/typing-event.model.dart';
 import 'package:flutterping/service/gif/giphy.client.service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -45,6 +47,7 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';import 'package:fl
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
+import 'package:flutterping/shared/jumping-dots/jumping-dots.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
@@ -57,6 +60,7 @@ import 'package:http/http.dart' as http;
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 import 'package:tus_client/tus_client.dart';
 
 void downloadCallback(String id, DownloadTaskStatus status, int progress) {
@@ -139,6 +143,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   bool isPinButtonLoading = false;
 
   StateSetter messageActionsSetState;
+
+  bool displaySenderTyping = false;
 
   ChatActivityState({ this.contactName });
 
@@ -247,6 +253,24 @@ class ChatActivityState extends BaseState<ChatActivity> {
             messages[i].received = true;
           });
         }
+      }
+    });
+
+    wsClientService.typingPub.addListener(STREAMS_LISTENER_ID, (TypingEvent typingEvent) async {
+      if (!typingEvent.status) {
+        setState(() {
+          displaySenderTyping = false;
+        });
+      } else {
+        setState(() {
+          displaySenderTyping = true;
+        });
+
+        Future.delayed(Duration(seconds: 2), () {
+          setState(() {
+            displaySenderTyping = false;
+          });
+        });
       }
     });
 
@@ -467,6 +491,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       wsClientService.incomingReceivedPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.incomingSeenPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.messageDeletedPub.removeListener(STREAMS_LISTENER_ID);
+      wsClientService.typingPub.removeListener(STREAMS_LISTENER_ID);
     }
 
     if (dataSpaceDeletePublisher != null) {
@@ -630,11 +655,29 @@ class ChatActivityState extends BaseState<ChatActivity> {
                                     ),
                                     padding: EdgeInsets.all(10),
                                     child: Spinner(size: 20)))) : Container(),
+                        Container(
+                            alignment: Alignment.bottomLeft,
+                            child: AnimatedOpacity(
+                              duration: Duration(milliseconds: 50),
+                              opacity: displaySenderTyping ? 1 : 0,
+                              child: Container(
+                                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: EdgeInsets.only(left: 15, right: 15, bottom: 5, top: 5),
+                                decoration: peerTypingBoxDecoration(),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    JumpingDots(color: Colors.grey.shade400, dotSize: 12, dotSpacing: 2.5),
+                                  ],
+                                ),
+                              ),
+                            ))
                       ]),
                     ),
                     SingleChatInputRow(
                       userId: userId,
                       peerId: widget.peer.id,
+                      contactPhoneNumber: contact?.contactPhoneNumber,
                       userSentNodeId: userSentNodeId,
                       picturesPath: picturesPath,
                       inputTextController: textController,
@@ -817,7 +860,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         key: message.widgetKey,
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
             left: 5, right: 5,
-            bottom: isLastMessage ? 20 : 0),
+            bottom: isLastMessage ? 25 : 0),
         message: message,
         chained: chained,
         isPinnedMessage: isPinnedMessage,
@@ -831,7 +874,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
         key: message.widgetKey,
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
             left: 5, right: 5,
-            bottom: isLastMessage ? 20 : 0),
+            bottom: isLastMessage ? 25 : 0),
         message: message,
         chained: chained,
         displayTimestamp: displayTimestamp,
@@ -903,6 +946,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   doSendMessage() {
     if (textController.text.length > 0) {
+      sendTypingEvent(contact.contactPhoneNumber, false);
       widget.messageSendingService.sendTextMessage(textController.text);
 
       setState(() {

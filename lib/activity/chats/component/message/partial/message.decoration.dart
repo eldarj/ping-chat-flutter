@@ -31,6 +31,15 @@ BoxDecoration peerImageDecoration(pinned) => BoxDecoration(
     ]
 );
 
+BoxDecoration peerTypingBoxDecoration() => BoxDecoration(
+  color: Color.fromRGBO(243, 243, 245, 1),
+  borderRadius: BorderRadius.only(
+      bottomLeft: Radius.circular(0),
+      topLeft: Radius.circular(MESSAGE_BUBBLE_RADIUS),
+      topRight: Radius.circular(MESSAGE_BUBBLE_RADIUS),
+      bottomRight: Radius.circular(MESSAGE_BUBBLE_RADIUS)),
+);
+
 BoxDecoration peerTextBoxDecoration({ displayBubble = true }) => BoxDecoration(
   color: Color.fromRGBO(243, 243, 245, 1),
   borderRadius: BorderRadius.only(
