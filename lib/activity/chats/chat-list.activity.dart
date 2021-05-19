@@ -517,14 +517,14 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
               contact: contact,
               profile: profileUrl,
               myContactName: myContactName,
-              peerContactName: peerContactName??'fixme',
+              peerContactName: peerContactName ?? 'fixme',
               contactBindingId: chat.contactBindingId,
               messageContent: chat.text,
               seen: chat.seen,
               isOnline: isOnline,
               statusLabel: isOnline ? 'Online' : 'Last seen ' + DateTimeUtil.convertTimestampToTimeAgo(lastOnline),
               messageSent: DateTimeUtil.convertTimestampToTimeAgo(chat.sentTimestamp),
-              displayStatusIcon: userId == chat.sender.id,
+              isPeerMessage: userId == chat.receiver.id,
               message: chat,
             );
           },
@@ -534,7 +534,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   }
 
   Widget buildSingleConversationRow({ClientDto contact, String profile, String peerContactName, String myContactName,
-    String messageContent, bool displayStatusIcon = true, bool seen = true, String messageSent, bool isOnline = false,
+    String messageContent, bool isPeerMessage = false, bool seen = true, String messageSent, bool isOnline = false,
     String statusLabel = '', int contactBindingId = 0, MessageDto message
   }) {
     return Material(
@@ -593,7 +593,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                       Container(
                                           child: Text(peerContactName, style: TextStyle(fontSize: 18,
                                               fontWeight: FontWeight.w500, color: Colors.black87))),
-                                      buildMessageContent(message)
+                                      buildMessageContent(message, isPeerMessage)
                                     ]
                                 ),
                               )
@@ -602,7 +602,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                         ),
                         Row(
                           children: [
-                            displayStatusIcon ? Container(
+                            !isPeerMessage ? Container(
                                 margin: EdgeInsets.only(bottom: 1),
                                 padding: EdgeInsets.only(right: 2.5),
                                 child: MessageStatusIcon(message.sent, message.received, message.seen)
@@ -631,7 +631,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     );
   }
 
-  buildMessageContent(message) {
+  buildMessageContent(message, isPeerMessage) {
     Widget widget;
 
     if (message.deleted) {
@@ -686,6 +686,10 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         children: [
           Container(
               margin: EdgeInsets.only(right: 5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(color: Colors.grey.shade500, width: 0.5)
+              ),
               child: Icon(Icons.gif_outlined, color: Colors.grey.shade500, size: 15)),
           Text('GIF', style: TextStyle(color: Colors.grey.shade500)),
         ],
@@ -702,6 +706,16 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
               child: Icon(Icons.location_on_outlined, color: Colors.grey.shade500, size: 15)),
           Text('Location', style: TextStyle(color: Colors.grey.shade500)),
         ],
+      );
+    } else if (message.messageType == 'PIN_INFO') {
+      widget = Row(
+        children: [
+          Container(
+            margin: EdgeInsets.only(right: 5),
+            child: Icon(Icons.push_pin_outlined, color: Colors.grey.shade500, size: 14),
+          ),
+          Text('Pinned message', style: TextStyle(color: Colors.grey.shade500))
+        ]
       );
     }
 

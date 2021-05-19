@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutterping/activity/chats/component/gifs/gif-bar.component.dart';
+import 'package:flutterping/activity/chats/component/message/info-message.component.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message.decoration.dart';
 import 'package:flutterping/model/typing-event.model.dart';
 import 'package:flutterping/service/gif/giphy.client.service.dart';
@@ -915,7 +916,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     message.widgetKey = new GlobalKey();
 
-    if (isPeerMessage) {
+    if (message.messageType == 'PIN_INFO') {
+      return Container(
+          margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 25 : 0),
+          child: InfoMessageComponent(key: message.widgetKey, message: message, isPeerMessage: isPeerMessage, isPinnedMessage: isPinnedMessage));
+    } else if (isPeerMessage) {
       return PeerMessageComponent(
         key: message.widgetKey,
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
@@ -1523,6 +1528,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   onPinSuccess(message, pinned) {
+    widget.messageSendingService.sendPinnedInfoMessage();
+
     setState(() {
       message.pinned = pinned;
     });

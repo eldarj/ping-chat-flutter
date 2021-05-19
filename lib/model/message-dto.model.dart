@@ -68,6 +68,8 @@ class MessageDto {
 
   int pinnedTimestamp;
 
+  int pinnedByUserId;
+
   bool pinLoading = false;
 
   bool edited = false;
@@ -95,6 +97,7 @@ class MessageDto {
     this.isRecordingPlaying = false,
     this.pinned,
     this.pinnedTimestamp,
+    this.pinnedByUserId,
     this.edited,
     this.replyMessage
   });
@@ -144,6 +147,7 @@ class MessageDto {
       ..messageType = parsedJson['messageType'] as String
       ..pinned = parsedJson['pinned'] as bool
       ..pinnedTimestamp = parsedJson['pinnedTimestamp'] as int
+      ..pinnedByUserId = parsedJson['pinnedByUserId'] as int
       ..edited = parsedJson['edited'] as bool
       ..replyMessage = parsedJson['replyMessage'] == null
           ? null
@@ -178,6 +182,7 @@ class MessageDto {
     'deleted': deleted,
     'pinned': pinned,
     'pinnedTimestamp': pinnedTimestamp,
+    'pinnedByUserId': pinnedByUserId,
     'edited': edited,
     'replyMessage': replyMessage
   };
