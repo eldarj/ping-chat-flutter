@@ -22,7 +22,7 @@ class Spinner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedOpacity(
-      duration: Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 250),
       opacity: visible ? 1 : 0,
       child: Container(
         width: this.size, height: this.size,

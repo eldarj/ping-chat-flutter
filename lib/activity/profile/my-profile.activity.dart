@@ -15,6 +15,7 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/country-icon.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
@@ -43,6 +44,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
   String createdAtFormatted;
 
   bool displaySettingsLoader = false;
+  bool displayProfileActionsLoader = false;
 
   List<Color> chatBubbleColors = CompanyColor.messageThemes
       .entries.map<Color>((element) => element.key)
@@ -92,6 +94,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
               buildHeader(),
               buildQRCode(),
               buildSettings(),
+              buildProfileActions(),
             ])
         );
       } else {
@@ -226,6 +229,83 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
     );
   }
 
+  Widget buildProfileActions() {
+    return Container(
+      margin: EdgeInsets.only(top: 10),
+      padding: EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+          color: Theme.of(context).backgroundColor,
+          boxShadow: [Shadows.bottomShadow()]
+      ),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
+              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    height: 20,
+                    margin: EdgeInsets.only(left: 10, right: 10),
+                    child: Text("Profile", style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.grey.shade800
+                    )),
+                  ),
+                  Spinner(size: 20, visible: displayProfileActionsLoader)
+                ],
+              ),
+            ),
+            IgnorePointer(
+              ignoring: displayProfileActionsLoader || clientDto.profileImagePath == null,
+              child: AnimatedOpacity(
+                  duration: Duration(milliseconds: 250),
+                  opacity: displayProfileActionsLoader || clientDto.profileImagePath == null ? 0.5 : 1,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        var dialog = GenericAlertDialog(
+                            title: 'Remove profile photo',
+                            message: 'You will not be able to restore your profile photo',
+                            onPostivePressed: () {
+                              doRemoveProfilePhoto().then(onRemoveProfileSuccess, onError: onRemoveProfileError);
+                            },
+                            positiveBtnText: 'Remove',
+                            negativeBtnText: 'Cancel');
+                        showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(children: [
+                              Container(
+                                child: Icon(Icons.image_not_supported_outlined, color: Colors.red),
+                                margin: EdgeInsets.only(left: 7.5, right: 20),
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.grey.shade50,
+                                ),
+                              ),
+                              Text('Remove profile photo',
+                                  style: TextStyle(color: Colors.grey.shade800)),
+                            ]),
+                            new RoundProfileImageComponent(url: clientDto.profileImagePath,
+                                height: 40, width: 40, borderRadius: 100)
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+              ),
+            ),
+          ]
+      ),
+    );
+  }
+
   Widget buildSettings() {
     return Container(
       margin: EdgeInsets.only(top: 10),
@@ -255,7 +335,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
             IgnorePointer(
               ignoring: displaySettingsLoader,
               child: AnimatedOpacity(
-                duration: Duration(milliseconds: 500),
+                duration: Duration(milliseconds: 250),
                 opacity: displaySettingsLoader ? 0.5 : 1,
                 child: Column(children: [
                   buildChatBubbleColorButton(),
@@ -604,5 +684,44 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
       doGetProfileData().then(onGetProfileDataSuccess, onError: onGetProfileDataError);
     }));
+  }
+
+  // Remove user profile
+  Future doRemoveProfilePhoto() async {
+    setState(() {
+      displayProfileActionsLoader = true;
+    });
+
+    var user = await UserService.getUser();
+    await Future.delayed(Duration(seconds: 1));
+
+    var response = await HttpClientService.delete('/api/users/${user.id}/profile-image');
+
+    if (response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return;
+  }
+
+  void onRemoveProfileSuccess(_) async {
+    clientDto.profileImagePath = null;
+    await UserService.setUser(clientDto);
+
+    setState(() {
+      displayProfileActionsLoader = false;
+    });
+  }
+
+  void onRemoveProfileError(error) {
+    print(error);
+    setState(() {
+      displayProfileActionsLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(
+      duration: Duration(seconds: 2)
+    ));
   }
 }
