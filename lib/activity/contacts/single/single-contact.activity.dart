@@ -791,9 +791,6 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       if (nodes != null && nodes.length > 0) {
         _w = Container(
           height: nodes.length > 4 ? 300 : 150, width: DEVICE_MEDIA_SIZE.width,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade200),
-          ),
           child: GridView.builder(
               scrollDirection: Axis.horizontal,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -817,15 +814,16 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   buildSingleNode(DSNodeDto node) {
-    bool fileExists;
-    String filePath;
-    filePath = picturesPath + '/' + node.nodeName;
+    String filePath = picturesPath + '/' + node.nodeName;
 
-    fileExists = File(filePath).existsSync();
+    File file = File(filePath);
+    bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
     Widget _w;
 
-    if (node.nodeType == 'IMAGE') {
+    if (!isFileValid) {
+      _w = Icon(Icons.broken_image_outlined, color: Colors.grey.shade400);
+    } else if (node.nodeType == 'IMAGE' || node.nodeType == 'MAP_LOCATION') {
       _w = GestureDetector(
         onTap: () async {
           var result = await NavigatorUtil.push(context,
@@ -841,18 +839,17 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
             });
           }
         },
-        child: fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
-            : Text('TODO: fixme 1'),
+        child: Image.file(File(filePath), fit: BoxFit.cover),
       );
     } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA' || node.nodeType == 'FILE') {
       _w = DSMedia(node: node, gridHorizontalSize: 3, picturesPath: picturesPath);
     } else {
-      _w = Center(child: Text('Unrecognized media.'));
+      _w = Container(
+          color: Colors.grey.shade100,
+          child: Center(child: Text('Unrecognized media', style: TextStyle(color: Colors.grey))));
     }
 
-    return Container(
-        child: fileExists ? _w
-            : Text('TODO: fixme 4'));
+    return _w;
   }
 
   void doGetContactData() async {

@@ -13,6 +13,7 @@ import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
@@ -234,15 +235,16 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
   }
 
   buildSingleNode(DSNodeDto node) {
-    bool fileExists;
-    String filePath;
-    filePath = widget.picturesPath + '/' + node.nodeName;
+    String filePath = widget.picturesPath + '/' + node.nodeName;
 
-    fileExists = File(filePath).existsSync();
+    File file = File(filePath);
+    bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
     Widget _w;
 
-    if (node.nodeType == 'IMAGE') {
+    if (!isFileValid) {
+      _w = Icon(Icons.broken_image_outlined, color: Colors.grey.shade400);
+    } else if (node.nodeType == 'IMAGE' || node.nodeType == 'MAP_LOCATION') {
       _w = GestureDetector(
         onTap: () async {
           var result = await NavigatorUtil.push(context,
@@ -258,17 +260,16 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
             });
           }
         },
-        child: fileExists ? Image.file(File(filePath), fit: BoxFit.cover)
-            : Text('TODO: fixme'),
+        child: Image.file(File(filePath), fit: BoxFit.cover),
       );
     } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA' || node.nodeType == 'FILE') {
       _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: widget.picturesPath);
     } else {
-      _w = Center(child: Text('Unrecognized media.'));
+      _w = Container(
+          color: Colors.grey.shade100,
+          child: Center(child: Text('Unrecognized media', style: TextStyle(color: Colors.grey))));
     }
 
-    return Container(
-        child: fileExists ? _w
-            : Text('TODO: fixme'));
+    return _w;
   }
 }
