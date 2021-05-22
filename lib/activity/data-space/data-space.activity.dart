@@ -209,6 +209,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
               actions: [
                 buildCreateDirectoryButton(),
                 buildDeleteDirectoryButton(),
+                buildDeleteContentButton(),
               ]),
           drawer: NavigationDrawerComponent(),
           floatingActionButton: buildFloatingActionButton(),
@@ -274,12 +275,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             ),
           );
         } else {
-          w = Center(
-            child: Container(
-              margin: EdgeInsets.all(25),
-              child: Text('No media to display', style: TextStyle(color: Colors.grey)),
-            ),
-          );
+          w = InfoComponent.noDataOwl(text: 'No media to display');
         }
       } else {
         w = InfoComponent.errorDonut(message: "Couldn't load your Data Space, please try again", onButtonPressed: () async {
@@ -321,7 +317,22 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
       if (!isFileValid) {
-        _w = Icon(Icons.broken_image_outlined, color: Colors.grey.shade400);
+        _w = GestureDetector(
+            onTapDown: (details) {
+              showMenu(
+                context: scaffold.context,
+                position: RelativeRect.fromLTRB(details.globalPosition.dx - 25, details.globalPosition.dy - 50, 1000, 1000),
+                elevation: 8.0,
+                items: [
+                  PopupMenuItem(value: 'DELETE', child: Text("Delete")),
+                ],
+              ).then((value) {
+                if (value == 'DELETE') {
+                  doDeleteMessage(node).then(onDeleteMessageSuccess, onError: onDeleteMessageError);
+                }
+              });
+            },
+            child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400));
       } else if (node.nodeType == 'IMAGE' || node.nodeType == 'MAP_LOCATION') {
         var imageSize = DEVICE_MEDIA_SIZE.width / gridHorizontalSize;
         _w = GestureDetector(
@@ -376,7 +387,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             onPressed: () {
               var dialog = GenericAlertDialog(
                   title: 'Delete directory',
-                  message: 'Directory "${currentDirectoryNodeName}" will be deleted with all it\'s content.',
+                  message: 'Directory $currentDirectoryNodeName will be deleted with all it\'s content.',
                   onPostivePressed: () {
                     doDeleteDirectory().then(onDeleteDirectorySuccess, onError: onDeleteDirectoryError);
                   },
@@ -385,6 +396,35 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
               showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
             }
         ),
+      );
+    }
+
+    return _w;
+  }
+
+  Widget buildDeleteContentButton() {
+    Widget _w = Container();
+
+    if (currentDirectoryNodeId == 0 || ['Sent', 'Received'].contains(currentDirectoryNodeName)) {
+      _w = Container(
+        width: 60,
+        child: LoadingButton(
+            icon: Icons.delete_sweep_outlined,
+            displayLoader: displayDeleteLoader,
+            disabled: nodes == null || nodes.length <= 0,
+            loaderSize: 25,
+            onPressed: () {
+              var dialog = GenericAlertDialog(
+                  title: 'Delete all content',
+                  message: 'All content in $currentDirectoryNodeName will be deleted.',
+                  onPostivePressed: () {
+                    doDeleteContent().then(onDeleteContentSuccess, onError: onDeleteContentError);
+                  },
+                  positiveBtnText: 'Delete',
+                  negativeBtnText: 'Cancel');
+              showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
+            }
+          ),
       );
     }
 
@@ -446,6 +486,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     return Container(child: _w);
   }
 
+  // Get data
   Future doGetData() async {
     setState(() {
       displayLoader = true;
@@ -499,6 +540,84 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     }));
   }
 
+  // Delete
+  Future<DSNodeDto> doDeleteMessage(DSNodeDto node) async {
+    try {
+      var file = File(picturesPath + '/' + node.nodeName);
+      file.delete();
+    } catch(ignored) {}
+
+    String url = '/api/data-space'
+        '?nodeId=' + node.id.toString() +
+        '&fileName=' + basename(node.nodeName);
+
+    http.Response response = await HttpClientService.delete(url);
+
+    if (response.statusCode != 200) {
+      throw Exception();
+    }
+
+    return node;
+  }
+
+  onDeleteMessageSuccess(DSNodeDto node) async {
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.info('Deleted'));
+    await Future.delayed(Duration(seconds: 2));
+    dataSpaceDeletePublisher.subject.add(node.id);
+  }
+
+  onDeleteMessageError(error) {
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error());
+  }
+
+  // Delete all content
+  Future doDeleteContent() async {
+    setState(() {
+      displayDeleteLoader = true;
+    });
+
+    String url = '/api/data-space/directory/$currentDirectoryNodeId/content';
+
+    http.Response response = await HttpClientService.delete(url);
+
+    if (response.statusCode != 200) {
+      throw Exception();
+    }
+
+    return true;
+  }
+
+  onDeleteContentSuccess(_) async {
+    await Future.delayed(Duration(seconds: 1));
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.info('Content deleted'));
+
+    nodes.forEach((element) {
+      try {
+        var file = File(picturesPath + '/' + element.nodeName);
+        file.delete();
+      } catch(ignored) {}
+      dataSpaceDeletePublisher.subject.add(element.id);
+    });
+
+    setState(() {
+      displayDeleteLoader = false;
+    });
+  }
+
+  onDeleteContentError(error) {
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error());
+  }
+
+  // Delete directory
   Future doDeleteDirectory() async {
     setState(() {
       displayDeleteLoader = true;
@@ -519,7 +638,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     await Future.delayed(Duration(seconds: 1));
 
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.info('Directory deleted.'));
+    scaffold.showSnackBar(SnackBarsComponent.info('Directory deleted'));
     setState(() {
       displayDeleteLoader = false;
     });

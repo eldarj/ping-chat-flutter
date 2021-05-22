@@ -130,7 +130,7 @@ class MessageComponentState extends State<MessageComponent> {
     ) : Container();
   }
 
-  buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
+  buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc, isFileValid) {
     Color titleColor = Colors.grey.shade800;
     Color descColor = Colors.grey.shade500;
     Color iconColor = CompanyColor.accentGreenLight;
@@ -138,7 +138,7 @@ class MessageComponentState extends State<MessageComponent> {
     Color statusLabelColor = Colors.grey.shade500;
     Color seenIconColor = Colors.green;
 
-    if (widget.messageTheme != null) {
+    if (isFileValid && widget.messageTheme != null) {
       titleColor = widget.messageTheme.textColor;
       descColor = widget.messageTheme.descriptionColor;
       iconColor = widget.messageTheme.iconColor;
@@ -146,7 +146,6 @@ class MessageComponentState extends State<MessageComponent> {
       statusLabelColor = widget.messageTheme.statusLabelColor;
       seenIconColor = widget.messageTheme.seenIconColor;
     }
-
 
     Widget statusIcon = MessageStatusIcon(
       message.sent, message.received, message.seen,
@@ -195,6 +194,11 @@ class MessageComponentState extends State<MessageComponent> {
           ),
         ],
       );
+    }
+
+    if (!isFileValid) {
+      iconColor = Colors.grey.shade300;
+      iconWidget = Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 20);
     }
 
     return Container(
@@ -291,19 +295,40 @@ class MessageComponentState extends State<MessageComponent> {
     if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
       String filePath = widget.message.filePath;
 
+      File file = File(filePath);
+      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+      if (!isFileValid) {
+        _messageDecoration = disabledTextBoxDecoration(displayBubble: widget.isPinnedMessage || !widget.chained);
+      }
+
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
-          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
+          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc,
+          isFileValid
+      );
 
     } else if (widget.message.messageType == 'RECORDING') {
       String filePath = widget.message.filePath;
 
+      File file = File(filePath);
+      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+      if (!isFileValid) {
+        _messageDecoration = disabledTextBoxDecoration(displayBubble: widget.isPinnedMessage || !widget.chained);
+      }
+
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
-          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
+          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc,
+          isFileValid
+      );
 
     } else if (widget.message.messageType == 'IMAGE') {
       String filePath = widget.message.filePath;
 
-      _messageDecoration = imageDecoration(widget.message.pinned, widget.messageTheme.bubbleColor);
+      File file = File(filePath);
+      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+      _messageDecoration = imageDecoration(widget.message.pinned, widget.messageTheme.bubbleColor, disabled: !isFileValid);
       _messageWidget = MessageImage(widget.message, filePath, widget.message.isDownloadingFile, widget.message.isUploading,
           widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained, messageTheme: widget.messageTheme);
 
@@ -321,7 +346,10 @@ class MessageComponentState extends State<MessageComponent> {
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       String filePath = widget.message.filePath;
 
-      _messageDecoration = imageDecoration(widget.message.pinned, widget.messageTheme.bubbleColor);
+      File file = File(filePath);
+      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+      _messageDecoration = imageDecoration(widget.message.pinned, widget.messageTheme.bubbleColor, disabled: !isFileValid);
       _messageWidget = MessageImage(
           widget.message,
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
@@ -371,21 +399,27 @@ class MessageComponentState extends State<MessageComponent> {
     if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
       String filePath = widget.message.filePath;
 
-      messageTapHandler = (_) async {
+      File file = File(filePath);
+      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+      messageTapHandler = isFileValid ? (_) async {
         OpenFile.open(filePath);
-      };
+      } : null;
 
     } else if (widget.message.messageType == 'RECORDING') {
       if (!widget.message.isUploading) {
         String filePath = widget.message.filePath;
 
-        messageTapHandler = (_) async {
+        File file = File(filePath);
+        bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+        messageTapHandler = isFileValid ? (_) async {
           if (widget.message.isRecordingPlaying) {
             await audioPlayer.stop();
           } else {
             await audioPlayer.play(filePath, isLocal: true);
           }
-        };
+        } : null;
       }
 
     } else if (widget.message.messageType == 'IMAGE') {

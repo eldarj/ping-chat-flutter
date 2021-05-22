@@ -97,20 +97,20 @@ class InfoComponent extends StatelessWidget {
     );
   }
 
-  static noDataHomer() {
-    return InfoComponent('No data to display',
+  static noDataHomer({ text = 'No data to display' }) {
+    return InfoComponent(text,
       imagePath: 'static/graphic/sticker/homer/homer012.webp',
     );
   }
 
-  static noDataOwl() {
-    return InfoComponent('No data to display',
+  static noDataOwl({ text = 'No data to display' }) {
+    return InfoComponent(text,
       imagePath: 'static/graphic/sticker/owl/FreeOwl_022.webp',
     );
   }
 
-  static noDataStitch() {
-    return InfoComponent('No data to display',
+  static noDataStitch({ text = 'No data to display' }) {
+    return InfoComponent(text,
       imagePath: 'static/graphic/sticker/stitch/stitch006.webp',
     );
   }

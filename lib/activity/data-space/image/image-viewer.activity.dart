@@ -97,7 +97,7 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                         IconButton(onPressed: () {
                           Share.shareFiles([widget.file.path]);
                         }, icon: Icon(Icons.share), color: Colors.white),
-                        LoadingButton(color: Colors.transparent, child: Icon(Icons.delete, color: Colors.white),
+                        LoadingButton(child: Icon(Icons.delete, color: Colors.white),
                             displayLoader: displayLoader, onPressed: () {
                               var dialog = GenericAlertDialog(
                                   title: "Delete",

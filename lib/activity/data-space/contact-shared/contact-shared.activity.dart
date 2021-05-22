@@ -12,7 +12,9 @@ import 'package:flutterping/service/data-space/data-space-delete.publisher.dart'
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
+import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
@@ -55,6 +57,8 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
 
   bool gotoTopButtonVisible = false;
 
+  bool displayDeleteLoader = false;
+
   onInit() async {
     userId = await UserService.getUserId();
     doGetSharedData().then(onGetSharedDataSuccess, onError: onGetSharedDataError);
@@ -83,7 +87,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleWidget:           Container(
+      appBar: BaseAppBar.getBackAppBar(getScaffoldContext, titleWidget: Container(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Shared media', style: TextStyle(fontWeight: FontWeight.normal)),
           Text(widget.peerContactName, style: TextStyle(fontSize: 16, color: Colors.grey))
@@ -197,6 +201,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
     return w;
   }
 
+  // Get shared data
   Future doGetSharedData() async {
     String url = '/api/data-space/shared'
         '?userId=' + userId.toString() +

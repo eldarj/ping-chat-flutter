@@ -5,8 +5,8 @@ const double MESSAGE_BUBBLE_RADIUS = 15;
 const double MESSAGE_REPLY_RADIUS = 10;
 const double IMAGE_BUBBLE_RADIUS = 10;
 
-BoxDecoration imageDecoration(pinned, myMessageBackground) => BoxDecoration(
-  color: myMessageBackground ?? CompanyColor.myMessageBackground,
+BoxDecoration imageDecoration(pinned, myMessageBackground, {bool disabled = false}) => BoxDecoration(
+  color: disabled ? Colors.grey.shade300 : (myMessageBackground ?? CompanyColor.myMessageBackground),
   borderRadius: BorderRadius.only(
       bottomLeft: Radius.circular(IMAGE_BUBBLE_RADIUS),
       bottomRight: Radius.circular(IMAGE_BUBBLE_RADIUS),
@@ -68,4 +68,12 @@ BoxDecoration gifBoxDecoration(pinned, { isPeerMessage = false, myMessageBackgro
     boxShadow: [
       Shadows.bottomShadow(color: Colors.black54, blurRadius: 0, topDistance: 0)
     ]
+);
+
+BoxDecoration disabledTextBoxDecoration({ displayBubble = true }) => BoxDecoration(
+  color: Colors.grey.shade300,
+  borderRadius: BorderRadius.only(
+      topLeft: Radius.circular(MESSAGE_BUBBLE_RADIUS),
+      bottomLeft: Radius.circular(MESSAGE_BUBBLE_RADIUS),
+      bottomRight: Radius.circular(displayBubble ? MESSAGE_BUBBLE_RADIUS : 5)),
 );
