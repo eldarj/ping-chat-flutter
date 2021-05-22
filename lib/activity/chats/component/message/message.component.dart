@@ -179,7 +179,7 @@ class MessageComponentState extends State<MessageComponent> {
         title += ' (${message.recordingDuration})';
       }
 
-      progressIndicator = buildProgressIndicator(durationInMillis - 1000, statusLabelColor, iconColor);
+      progressIndicator = buildProgressIndicator(durationInMillis - 950, statusLabelColor, iconColor);
 
       iconWidget = Stack(
         alignment: Alignment.center,
@@ -283,11 +283,12 @@ class MessageComponentState extends State<MessageComponent> {
         displayBubble: widget.isPinnedMessage || !widget.chained
     );
 
-    if (widget.message.deleted) {
-      print('MESSAGE DELETED');
-      _messageWidget = MessageDeleted();
-
-    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
+    // if (widget.message.deleted) {
+    //   print('MESSAGE DELETED');
+    //   _messageWidget = MessageDeleted();
+    //
+    // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
+    if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
       String filePath = widget.message.filePath;
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
@@ -363,10 +364,11 @@ class MessageComponentState extends State<MessageComponent> {
   resolveMessageTapHandler() {
     Function messageTapHandler = (_) {};
 
-    if (widget.message.deleted) {
-      messageTapHandler = (_) {};
-
-    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
+    // if (widget.message.deleted) {
+    //   messageTapHandler = (_) {};
+    //
+    // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
+    if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
       String filePath = widget.message.filePath;
 
       messageTapHandler = (_) async {
@@ -416,34 +418,5 @@ class MessageComponentState extends State<MessageComponent> {
     }
 
     return messageTapHandler;
-  }
-
-  // Delete message
-  Future doDeleteMessage(message) async {
-    String url = '/api/messages/' + message.id.toString();
-
-    if (message.fileName != null) {
-      String filePath = widget.picturesPath + '/' + message.fileName;
-      File(filePath).delete();
-    }
-
-    http.Response response = await HttpClientService.delete(url);
-
-    if (response.statusCode != 200) {
-      throw Exception();
-    }
-
-    return true;
-  }
-
-  onDeleteMessageSuccess(_) async {
-    setState(() {
-      widget.message.deleted = true;
-    });
-  }
-
-  onDeleteMessageError(error) {
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.error());
   }
 }

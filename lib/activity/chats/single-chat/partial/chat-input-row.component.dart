@@ -185,7 +185,7 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
         fileUrl, fileSize, fileType, recordingDuration: fileDuration);
 
     message.stopUploadFunc = () async {
-      message.deleted = true;
+      message.stoppedUpload = true; // TODO: Handle stop upload
       message.isUploading = false;
       await Future.delayed(Duration(seconds: 2));
       fileUploadClient.delete();

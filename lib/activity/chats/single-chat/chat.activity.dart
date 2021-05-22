@@ -36,6 +36,7 @@ import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/image-download.publisher.dart';
+import 'package:flutterping/service/messaging/message-deleted.publisher.dart';
 import 'package:flutterping/service/messaging/message-edit.publisher.dart';
 import 'package:flutterping/service/messaging/message-reply.publisher.dart';
 import 'package:flutterping/service/messaging/message-pin.publisher.dart';
@@ -144,6 +145,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   ScrollController chatListController = new ScrollController();
 
   bool isPinButtonLoading = false;
+  bool isDeleteSingleMessageLoading = false;
 
   StateSetter messageActionsSetState;
 
@@ -292,25 +294,33 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
-      for(var i = messages.length - 1; i >= 0; i--){
-        if (messages[i].id == message.id) {
-          setState(() {
-            messages[i].deleted = true;
-          });
-        }
-      }
+      setState(() {
+        messages.removeWhere((element) => element.id == message.id);
+      });
+
+      // for(var i = messages.length - 1; i >= 0; i--){
+      //   if (messages[i].id == message.id) {
+      //     setState(() {
+      //       messages[i].deleted = true;
+      //     });
+      //   }
+      // }
     });
 
     dataSpaceDeletePublisher.addListener(STREAMS_LISTENER_ID, (int nodeId) {
       setState(() {
-        for(var i = messages.length - 1; i >= 0; i--){
-          if (messages[i].nodeId == nodeId) {
-            setState(() {
-              messages[i].deleted = true;
-            });
-          }
-        }
+        messages.removeWhere((element) => element.nodeId == nodeId);
       });
+
+      // setState(() {
+      //   for(var i = messages.length - 1; i >= 0; i--){
+      //     if (messages[i].nodeId == nodeId) {
+      //       setState(() {
+      //         messages[i].deleted = true;
+      //       });
+      //     }
+      //   }
+      // });
     });
 
     contactPublisher.onNameUpdate(STREAMS_LISTENER_ID, (ContactEvent contactEvent) {
@@ -342,6 +352,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
         isEditing = true;
         editingMessage = editEvent.message;
         textController.text = editEvent.text;
+      });
+    });
+
+    messageDeletedPublisher.onMessageDeleted(STREAMS_LISTENER_ID, (MessageDto message) {
+      setState(() {
+        messages.removeWhere((element) => element.id == message.id);
       });
     });
 
@@ -517,6 +533,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
       messageEditPublisher.removeListener(STREAMS_LISTENER_ID);
     }
 
+    if (messageDeletedPublisher != null) {
+      messageDeletedPublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
     if (messageReplyPublisher != null) {
       messageReplyPublisher.removeListener(STREAMS_LISTENER_ID);
     }
@@ -625,7 +645,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                           doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
                         },
                         onDeleteMessages: () {
-                          doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                          doDeleteAllMessages().then(onDeleteAllMessagesSuccess, onError: onDeleteAllMessagesError);
                         },
                     )
               ]
@@ -1123,7 +1143,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
       var m = MessageDto.fromJson(e);
 
       // Download new file
-      if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType) && !m.deleted) {
+      // if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType) && !m.deleted) {
+      if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType)) {
         bool fileExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
         if (userId == m.receiver.id && !fileExists) {
           m.isDownloadingFile = true;
@@ -1277,56 +1298,6 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   void onDeleteError(error) {
-    print(error);
-
-    setState(() {
-      displayDeleteLoader = false;
-    });
-
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.error(
-        content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
-    ));
-  }
-
-  // Delete messages
-  Future doDeleteMessages() async {
-    setState(() {
-      displayDeleteLoader = true;
-    });
-
-    String url = '/api/messages'
-        '?contactBindingId=${widget.contactBindingId}'
-        '&userId=${userId}';
-
-    http.Response response = await HttpClientService.delete(url);
-
-    await Future.delayed(Duration(seconds: 1));
-
-    if(response.statusCode != 200) {
-      throw new Exception();
-    }
-
-    return;
-  }
-
-  void onDeleteMessagesSuccess(_) async {
-    setState(() {
-      displayDeleteLoader = false;
-    });
-
-    contactPublisher.emitAllMessagesDelete(widget.contactBindingId);
-
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.info('All messages deleted'));
-
-
-    await Future.delayed(Duration(seconds: 1));
-
-    Navigator.of(context).pop();
-  }
-
-  void onDeleteMessagesError(error) {
     print(error);
 
     setState(() {
@@ -1502,9 +1473,99 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   buildDeleteTile(message) {
-    return ListTile(dense: true, leading: Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
+    return ListTile(
+        dense: true,
+        leading: isDeleteSingleMessageLoading ? Spinner(size: 20) : Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
         title: Text('Delete'),
-        onTap: () {});
+        onTap: () {
+          doDeleteSingleMessage(message).then(onDeleteSingleMessageSuccess, onError: onDeleteSingleMessageError);
+        });
+  }
+
+
+  // Delete all messages
+  Future doDeleteAllMessages() async {
+    setState(() {
+      displayDeleteLoader = true;
+    });
+
+    String url = '/api/messages'
+        '?contactBindingId=${widget.contactBindingId}'
+        '&userId=${userId}';
+
+    http.Response response = await HttpClientService.delete(url);
+
+    await Future.delayed(Duration(seconds: 1));
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return;
+  }
+
+  void onDeleteAllMessagesSuccess(_) async {
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    contactPublisher.emitAllMessagesDelete(widget.contactBindingId);
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.info('All messages deleted'));
+
+
+    await Future.delayed(Duration(seconds: 1));
+
+    Navigator.of(context).pop();
+  }
+
+  void onDeleteAllMessagesError(error) {
+    print(error);
+
+    setState(() {
+      displayDeleteLoader = false;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error(
+        content: 'Something went wrong, please try again', duration: Duration(seconds: 2)
+    ));
+  }
+
+  // Delete messages
+  Future<MessageDto> doDeleteSingleMessage(MessageDto message) async {
+    messageActionsSetState(() {
+      isDeleteSingleMessageLoading = true;
+    });
+
+    String url = '/api/messages/${message.id}?userId=${userId}';
+
+    http.Response response = await HttpClientService.delete(url);
+
+    await Future.delayed(Duration(seconds: 1));
+
+    if(response.statusCode != 200) {
+      throw new Exception();
+    }
+
+    return message;
+  }
+
+  void onDeleteSingleMessageSuccess(MessageDto message) async {
+    messageDeletedPublisher.emitMessageDeleted(message);
+
+    isDeleteSingleMessageLoading = false;
+
+    Navigator.of(ROOT_CONTEXT).pop();
+  }
+
+  void onDeleteSingleMessageError(error) {
+    print(error);
+
+    isDeleteSingleMessageLoading = false;
+
+    Navigator.of(ROOT_CONTEXT).pop();
   }
 
   // Pin message

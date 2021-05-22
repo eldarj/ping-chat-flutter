@@ -233,11 +233,11 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
         displayBubble: widget.isPinnedMessage || !widget.chained
     );
 
-    if (widget.message.deleted) {
-      print('MESSAGE DELETED');
-      _messageWidget = MessageDeleted();
-
-    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
+    // if (widget.message.deleted) {
+    //   print('MESSAGE DELETED');
+    //   _messageWidget = MessageDeleted();
+    //
+    if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
       String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
@@ -326,10 +326,11 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
   resolveMessageTapHandler() {
     Function messageTapHandler = (_) {};
 
-    if (widget.message.deleted) {
-      messageTapHandler = (_) {};
-
-    } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
+    // if (widget.message.deleted) {
+    //   messageTapHandler = (_) {};
+    //
+    // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
+    if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
       String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       messageTapHandler = (_) async {

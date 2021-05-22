@@ -27,15 +27,7 @@ class DSDocument extends StatefulWidget {
 }
 
 class DSDocumentState extends BaseState<DSDocument> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  String filePath;
 
   @override
   Widget build(BuildContext context) {
@@ -53,54 +45,85 @@ class DSDocumentState extends BaseState<DSDocument> {
     double iconSize = 40 / widget.gridHorizontalSize;
 
     String title = widget.node.nodeName;
-    String filePath = widget.picturesPath + '/' + widget.node.nodeName;
-    Widget iconWidget = Icon(Icons.insert_drive_file, color: Colors.grey.shade100, size: iconSize);
+    filePath = widget.picturesPath + '/' + widget.node.nodeName;
 
     return GestureDetector(
       onTap: () async {
         OpenFile.open(filePath);
       },
-      onLongPressEnd: (details) {
-        showMenu(
-          context: scaffold.context,
-          position: RelativeRect.fromLTRB(details.globalPosition.dx, details.globalPosition.dy, 100000, 0),
-          elevation: 8.0,
-          items: [PopupMenuItem(value: 'DELETE', child: Text("Delete")),],
-        ).then((value) {
-          if (value == 'DELETE') {
-            doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
-          }
-        });
+      onLongPressStart: (details) {
+        showDSMenu(details);
       },
       child: Container(
           color: Colors.grey.shade200,
-          padding: EdgeInsets.all(10),
-          child: Row(
+          child: Stack(
+            alignment: Alignment.topRight,
             children: [
-              widget.gridHorizontalSize == 4 ? Container() : Container(
-                margin: EdgeInsets.only(right: 10),
-                child: Container(
-                    width: iconContainerSize, height: iconContainerSize,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(50),
-                        color: CompanyColor.blueDark
-                    ),
-                    child: iconWidget),
-              ),
               Container(
-                width: nameContainerSize,
-                alignment: Alignment.centerLeft,
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(title, overflow: TextOverflow.ellipsis, maxLines: 3),
-                      Text(widget.node.fileSizeFormatted(), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                    ]),
-              )
+                padding: EdgeInsets.all(10),
+                child: Row(
+                  children: [
+                    widget.gridHorizontalSize == 4 ? Container() : Container(
+                      margin: EdgeInsets.only(right: 5),
+                      child: Container(
+                          width: iconContainerSize, height: iconContainerSize,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              color: CompanyColor.blueDark
+                          ),
+                          child: Icon(Icons.insert_drive_file, color: Colors.grey.shade100, size: iconSize)),
+                    ),
+                    Container(
+                      width: nameContainerSize,
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(title, overflow: TextOverflow.ellipsis, maxLines: 3),
+                            Text(widget.node.fileSizeFormatted(), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          ]),
+                    )
+                  ],
+                ),
+              ),
+              buildMoreButton(),
             ],
           )),
     );
+  }
+
+  GestureDetector buildMoreButton() {
+    return GestureDetector(
+      onTapDown: (details) async {
+        showDSMenu(details);
+      },
+      child: Container(
+        alignment: Alignment.center,
+        constraints: BoxConstraints(
+            maxWidth: 25, maxHeight: 35
+        ),
+        child: Icon(Icons.more_vert_rounded, color: Colors.grey, size: 20),
+      )
+    );
+  }
+
+  void showDSMenu(details) {
+    showMenu(
+      context: scaffold.context,
+      position: RelativeRect.fromLTRB(details.globalPosition.dx, details.globalPosition.dy, 100000, 0),
+      elevation: 8.0,
+      items: [
+        PopupMenuItem(value: 'DELETE', child: Text("Delete")),
+        PopupMenuItem(value: 'OPEN', child: Text("Open")),
+      ],
+    ).then((value) {
+      if (value == 'DELETE') {
+        doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
+      } else if (value == 'OPEN') {
+        OpenFile.open(filePath);
+      }
+    });
   }
 
   Future doDeleteMessage() async {

@@ -15,21 +15,55 @@ import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart';
 
-class DSMedia extends StatefulWidget {
+class DSRecording extends StatefulWidget {
   final DSNodeDto node;
 
   final String picturesPath;
 
   final int gridHorizontalSize;
 
-  const DSMedia({Key key, this.node, this.picturesPath, this.gridHorizontalSize}) : super(key: key);
+  const DSRecording({Key key, this.node, this.picturesPath, this.gridHorizontalSize}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => DSMediaState();
+  State<StatefulWidget> createState() => DSRecordingState();
 }
 
-class DSMediaState extends BaseState<DSMedia> {
+class DSRecordingState extends BaseState<DSRecording> {
+  bool isRecordingPlaying = false;
+
+  String recordingCurrentPosition = '00:00';
+  int recordingCurrentPositionMillis = 0;
+
+  AudioPlayer audioPlayer = AudioPlayer();
+
   String filePath;
+
+  double nameContainerSize;
+
+  @override
+  void initState() {
+    super.initState();
+
+    AudioPlayer.logEnabled = false;
+    audioPlayer.onAudioPositionChanged.listen((Duration  p) {
+      setState(() {
+        recordingCurrentPositionMillis = p.inMilliseconds;
+        recordingCurrentPosition = p.format();
+      });
+    });
+
+    audioPlayer.onPlayerStateChanged.listen((AudioPlayerState audioPlayerState) {
+      setState(() {
+        isRecordingPlaying = audioPlayerState == AudioPlayerState.PLAYING;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    audioPlayer.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,15 +77,51 @@ class DSMediaState extends BaseState<DSMedia> {
 
   buildMessageMedia() {
     double iconContainerSize = widget.gridHorizontalSize == 4 ? 0 : 100 / widget.gridHorizontalSize;
-    double nameContainerSize = DEVICE_MEDIA_SIZE.width / widget.gridHorizontalSize - iconContainerSize - 20;
+    nameContainerSize = DEVICE_MEDIA_SIZE.width / widget.gridHorizontalSize - iconContainerSize - 20;
     double iconSize = 40 / widget.gridHorizontalSize;
 
-    String title = widget.node.nodeName;
+    String title = 'Recording';
+    IconData icon = isRecordingPlaying ? Icons.pause : Icons.mic_none;
     filePath = widget.picturesPath + '/' + widget.node.nodeName;
+
+    if (!isRecordingPlaying) {
+      recordingCurrentPositionMillis = 0;
+    }
+
+    var time = widget.node.recordingDuration.split(":");
+    String seconds = time[1];
+    String minutes = time[0];
+    int durationInMillis = (int.parse(minutes) * 60 + int.parse(seconds)) * 1000;
+    Widget progressIndicator;
+
+    Widget iconWidget = Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        Container(
+            margin: EdgeInsets.only(bottom: isRecordingPlaying ? 12.5 : 0),
+            child: Icon(icon, color: Colors.grey.shade100, size: iconSize)),
+        Container(
+            margin: EdgeInsets.only(top: isRecordingPlaying ? 12.5 : 0),
+            child: Text(recordingCurrentPosition, style: TextStyle(
+                fontSize: 11,
+                color: isRecordingPlaying ? Colors.grey.shade100 : Colors.transparent))
+        ),
+      ],
+    );
+
+    if (widget.node.recordingDuration != null) {
+      title += ' (${widget.node.recordingDuration})';
+    }
+
+    progressIndicator = buildProgressIndicator(durationInMillis - 950, Colors.grey.shade500, Colors.indigo);
 
     return GestureDetector(
       onTap: () async {
-        OpenFile.open(filePath);
+        if (isRecordingPlaying) {
+          await audioPlayer.stop();
+        } else {
+          await audioPlayer.play(filePath, isLocal: true);
+        }
       },
       onLongPressStart: (details) {
         showDSMenu(details);
@@ -71,9 +141,9 @@ class DSMediaState extends BaseState<DSMedia> {
                           width: iconContainerSize, height: iconContainerSize,
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(50),
-                              color: CompanyColor.accentGreenLight
+                              color: Colors.indigo
                           ),
-                          child: Icon(Icons.ondemand_video, color: Colors.grey.shade100, size: iconSize)),
+                          child: iconWidget),
                     ),
                     Container(
                       width: nameContainerSize,
@@ -82,7 +152,11 @@ class DSMediaState extends BaseState<DSMedia> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(title, overflow: TextOverflow.ellipsis, maxLines: 3),
+                            Container(
+                                height: 15,
+                                child: isRecordingPlaying
+                                    ? progressIndicator
+                                    : Text(title, overflow: TextOverflow.ellipsis, maxLines: 3)),
                             Text(widget.node.fileSizeFormatted(), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                           ]),
                     )
@@ -95,15 +169,34 @@ class DSMediaState extends BaseState<DSMedia> {
     );
   }
 
-  GestureDetector buildMoreButton() {
+  buildProgressIndicator(durationInMillis, loaderColor, progressColor) {
+    var maxWidth = nameContainerSize - 10;
+    var currentWidth = (recordingCurrentPositionMillis / durationInMillis) * (maxWidth);
+
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        Container(
+            width: maxWidth, height: 0.5, color: loaderColor
+        ),
+        AnimatedContainer(
+            duration: Duration(seconds: 1),
+            width: currentWidth, height: 2, color: progressColor
+        ),
+      ],
+    );
+  }
+
+  buildMoreButton() {
     return GestureDetector(
         onTapDown: (details) async {
           showDSMenu(details);
         },
         child: Container(
+          padding: EdgeInsets.only(left: 10, bottom: 10),
           alignment: Alignment.center,
           constraints: BoxConstraints(
-              maxWidth: 25, maxHeight: 35
+              maxWidth: 35, maxHeight: 45
           ),
           child: Icon(Icons.more_vert_rounded, color: Colors.grey, size: 20),
         )
@@ -113,11 +206,11 @@ class DSMediaState extends BaseState<DSMedia> {
   void showDSMenu(details) {
     showMenu(
       context: scaffold.context,
-      position: RelativeRect.fromLTRB(details.globalPosition.dx, details.globalPosition.dy, 100000, 0),
+      position: RelativeRect.fromLTRB(details.globalPosition.dx - 25, details.globalPosition.dy - 50, 1000, 1000),
       elevation: 8.0,
       items: [
-        PopupMenuItem(value: 'DELETE', child: Text("Delete")),
         PopupMenuItem(value: 'OPEN', child: Text("Open")),
+        PopupMenuItem(value: 'DELETE', child: Text("Delete")),
       ],
     ).then((value) {
       if (value == 'DELETE') {

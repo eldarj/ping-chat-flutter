@@ -217,7 +217,7 @@ class ShareFilesModalState extends BaseState<ShareFilesModal> {
         fileName, file.path, fileUrl, fileSize, messageType, text: text);
 
     message.stopUploadFunc = () async {
-      message.deleted = true;
+      message.stoppedUpload = true; // TODO: Handle stop upload
       message.isUploading = false;
       await Future.delayed(Duration(seconds: 2));
       fileUploadClient.delete();

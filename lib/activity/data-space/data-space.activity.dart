@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/data-space/component/ds-document.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
+import 'package:flutterping/activity/data-space/component/ds-recording.component.dart';
 import 'package:flutterping/activity/data-space/create-directory.activity.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
@@ -151,9 +152,15 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
   @override
   dispose() {
+    if (dataSpaceNewDirectoryPublisher != null) {
+      dataSpaceNewDirectoryPublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
+    if (dataSpaceDeletePublisher != null) {
+      dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
     super.dispose();
-    dataSpaceNewDirectoryPublisher.removeListener(STREAMS_LISTENER_ID);
-    dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
   }
 
   onBackPressed(getContext) async {
@@ -319,18 +326,13 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
         var imageSize = DEVICE_MEDIA_SIZE.width / gridHorizontalSize;
         _w = GestureDetector(
           onTap: () async {
-            var result = await NavigatorUtil.push(scaffold.context,
+            NavigatorUtil.push(scaffold.context,
                 ImageViewerActivity(
                     nodeId: node.id,
                     sender: node.description,
                     timestamp: node.createdTimestamp,
-                    file: File(filePath)));
-
-            if (result != null && result['deleted'] == true) {
-              setState(() {
-                nodes.removeWhere((element) => element.id == node.id);
-              });
-            }
+                    file: File(filePath))
+            );
           },
           child: Container(
             color: Colors.grey.shade200,
@@ -345,10 +347,16 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             ),
           ),
         );
-      } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA') {
+      } else if (node.nodeType == 'RECORDING') {
+        _w = DSRecording(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
+      } else if (node.nodeType == 'MEDIA') {
         _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
-      } else {
+      } else if (node.nodeType == 'FILE') {
         _w = DSDocument(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
+      } else {
+        _w = Container(
+            color: Colors.grey.shade100,
+            child: Center(child: Text('Unrecognized media', style: TextStyle(color: Colors.grey))));
       }
     }
 

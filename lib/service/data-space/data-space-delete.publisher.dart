@@ -12,7 +12,8 @@ class DataSpaceDeletePublisher {
 
   DataSpaceDeletePublisher._internal();
 
-  Map<String, StreamSubscription> subs = new Map();
+  Map<String, StreamSubscription> subs = {};
+
   PublishSubject<int> subject = PublishSubject<int>();
 
   addListener(String key, Function callback) {

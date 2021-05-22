@@ -6,6 +6,8 @@ import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/reply-dto.model.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/service/messaging/message-deleted.publisher.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
@@ -46,6 +48,18 @@ class ImageViewerActivity extends StatefulWidget {
 }
 
 class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
+  int userId;
+
+  initialize() async {
+    userId = await UserService.getUserId();
+  }
+
+  @override
+  initState() {
+    super.initState();
+    initialize();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,8 +101,7 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                             displayLoader: displayLoader, onPressed: () {
                               var dialog = GenericAlertDialog(
                                   title: "Delete",
-                                  message: "Note that some media will still be visible if "
-                                      "the receiver stored it directly on the device.",
+                                  message: "Both the message and image will be deleted from the device as well",
                                   onPostivePressed: () {
                                     doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
                                   },
@@ -148,20 +161,26 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
   }
 
   Future doDeleteMessage() async {
-    try {
-      widget.file.delete();
-    } catch(ignored) {}
+    setState(() {
+      displayLoader = true;
+    });
 
     String url;
     if (widget.messageId != null) {
-      url = '/api/messages/' + widget.messageId.toString();
+      url = '/api/messages/${widget.messageId}?userId=$userId';
     } else {
       url = '/api/data-space'
           '?nodeId=' + widget.nodeId.toString() +
-          '&fileName=' + basename(widget.file.path);
+          '&fileName=' + basename(widget.file.path); // TODO: Handle this
+
+      try {
+        widget.file.delete();
+      } catch(ignored) {}
     }
 
     http.Response response = await HttpClientService.delete(url);
+
+    await Future.delayed(Duration(seconds: 1));
 
     if (response.statusCode != 200) {
       throw Exception();
@@ -171,17 +190,11 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
   }
 
   onDeleteMessageSuccess(_) async {
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste datoteku.'));
-
-    if (widget.message != null) {
-      setState(() {
-        widget.message.deleted = true;
-      });
+    if (widget.messageId != null) {
+      messageDeletedPublisher.emitMessageDeleted(widget.message);
     } else {
       dataSpaceDeletePublisher.subject.add(widget.nodeId);
     }
-    await Future.delayed(Duration(seconds: 1));
 
     Navigator.pop(scaffold.context, {'deleted': true});
   }

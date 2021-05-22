@@ -6,7 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterping/activity/calls/callscreen.activity.dart';
 import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
+import 'package:flutterping/activity/data-space/component/ds-document.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
+import 'package:flutterping/activity/data-space/component/ds-recording.component.dart';
 import 'package:flutterping/activity/data-space/contact-shared/contact-shared.activity.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
@@ -14,6 +16,7 @@ import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/service/contact/contact.publisher.dart';
+import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
@@ -69,6 +72,8 @@ class SingleContactActivity extends StatefulWidget {
 }
 
 class SingleContactActivityState extends BaseState<SingleContactActivity> {
+  static const String STREAMS_LISTENER_ID = "SingleContactActivityListener";
+
   StateSetter backgroundsModalSetState;
 
   String contactName;
@@ -138,6 +143,12 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       doGetBackgrounds().then(onGetBackgroundsSuccess, onError: onGetBackgroundsError);
     });
+
+    dataSpaceDeletePublisher.addListener(STREAMS_LISTENER_ID, (int nodeId) {
+      setState(() {
+        nodes.removeWhere((element) => element.id == nodeId);
+      });
+    });
   }
 
   @override
@@ -155,6 +166,11 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     if (contactNameController != null) {
       contactNameController.dispose();
     }
+
+    if (dataSpaceDeletePublisher != null) {
+      dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
+    }
+
     super.dispose();
   }
 
@@ -543,7 +559,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                         title: 'Delete contact',
                         message: 'Contact will be deleted along with any messages',
                         onPostivePressed: () {
-                          doDeleteContact().then(onDeleteSuccess, onError: onDeleteError);
+                          doDeleteContact().then(onDeleteContactSuccess, onError: onDeleteContactError);
                         },
                         positiveBtnText: 'Delete',
                         negativeBtnText: 'Cancel');
@@ -571,7 +587,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                         title: 'Delete messages',
                         message: 'All messages will be deleted',
                         onPostivePressed: () {
-                          doDeleteMessages().then(onDeleteMessagesSuccess, onError: onDeleteMessagesError);
+                          doDeleteAllMessages().then(onDeleteAllMessagesSuccess, onError: onDeleteAllMessagesError);
                         },
                         positiveBtnText: 'Delete',
                         negativeBtnText: 'Cancel');
@@ -678,13 +694,13 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           buildSectionHeader('Shared media', linkWidget: TextButton(
-            onPressed: () { // TODO: FIX while loading
+            onPressed: !displaySharedDataSpaceLoader && nodes != null && nodes.length > 0 ? () {
               NavigatorUtil.push(context, ContactSharedActivity(
                   peer: widget.peer,
                   picturesPath: picturesPath,
                   peerContactName: widget.contactName,
                   contactBindingId: widget.contactBindingId));
-            },
+            } : null,
             child: displaySharedDataSpaceLoader
                 ? Spinner(size: 20) : nodes != null && nodes.length > 0
                 ? Text('See more', style: TextStyle(color: CompanyColor.bluePrimary))
@@ -826,23 +842,22 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     } else if (node.nodeType == 'IMAGE' || node.nodeType == 'MAP_LOCATION') {
       _w = GestureDetector(
         onTap: () async {
-          var result = await NavigatorUtil.push(context,
+          NavigatorUtil.push(context,
               ImageViewerActivity(
                   nodeId: node.id,
                   sender: widget.contactName,
                   timestamp: node.createdTimestamp,
-                  file: File(filePath)));
-
-          if (result != null && result['deleted'] == true) {
-            setState(() {
-              nodes.removeWhere((element) => element.id == node.id);
-            });
-          }
+                  file: File(filePath))
+          );
         },
         child: Image.file(File(filePath), fit: BoxFit.cover),
       );
-    } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA' || node.nodeType == 'FILE') {
+    } else if (node.nodeType == 'RECORDING') {
+      _w = DSRecording(node: node, gridHorizontalSize: 3, picturesPath: picturesPath);
+    } else if (node.nodeType == 'MEDIA') {
       _w = DSMedia(node: node, gridHorizontalSize: 3, picturesPath: picturesPath);
+    } else if (node.nodeType == 'FILE') {
+      _w = DSDocument(node: node, gridHorizontalSize: 3, picturesPath: picturesPath);
     } else {
       _w = Container(
           color: Colors.grey.shade100,
@@ -852,6 +867,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return _w;
   }
 
+  // Get contact data
   void doGetContactData() async {
     String url = '/api/contacts/${widget.userId}/search/${widget.peer.id}';
 
@@ -872,6 +888,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     });
   }
 
+  // Get shared data
   Future doGetSharedData() async {
     String url = '/api/data-space/shared'
         '?userId=' + widget.userId.toString() +
@@ -913,6 +930,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     }));
   }
 
+  // Update favourites status
   Future<bool> doUpdateFavourites() async {
     setState(() {
       isFavouriteButtonLoaing = true;
@@ -958,7 +976,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     ));
   }
 
-  // UPDATE CONTACT NAME
+  // Update contact name
   Future<String> doUpdateContactName(StateSetter setState) async {
     setState(() {
       displayContactNameButtonLoader = true;
@@ -1005,7 +1023,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     Navigator.of(context).pop();
   }
 
-  // UPDATE BACKGROUND IMAGE
+  // Update background image
   Future<String> doUpdateBackgroundImage(StateSetter setState, int index) async {
     setState(() {
       backgroundLoaderIndex = index;
@@ -1044,7 +1062,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     Navigator.of(context).pop();
   }
 
-  // GET BACKGROUNDS
+  // Get backgrounds
   Future<List> doGetBackgrounds() async {
     http.Response response = await HttpClientService.get('/api/chat/backgrounds', cacheKey: "backgroundsImages");
 
@@ -1095,7 +1113,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return contact.contactName;
   }
 
-  void onDeleteSuccess(String contactName) async {
+  void onDeleteContactSuccess(String contactName) async {
     setState(() {
       displayDeleteContactLoader = false;
     });
@@ -1113,7 +1131,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     Navigator.of(context).pop();
   }
 
-  void onDeleteError(error) {
+  void onDeleteContactError(error) {
     print(error);
 
     setState(() {
@@ -1127,7 +1145,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   // Delete messages
-  Future doDeleteMessages() async {
+  Future doDeleteAllMessages() async {
     setState(() {
       displayDeleteMessagesLoader = true;
     });
@@ -1147,7 +1165,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     return;
   }
 
-  void onDeleteMessagesSuccess(_) async {
+  void onDeleteAllMessagesSuccess(_) async {
     setState(() {
       displayDeleteMessagesLoader = false;
     });
@@ -1165,7 +1183,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     }
   }
 
-  void onDeleteMessagesError(error) {
+  void onDeleteAllMessagesError(error) {
     print(error);
 
     setState(() {

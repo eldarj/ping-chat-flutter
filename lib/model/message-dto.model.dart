@@ -48,8 +48,6 @@ class MessageDto {
 
   Function stopUploadFunc;
 
-  bool deleted;
-
   bool isDownloadingFile;
 
   int downloadProgress;
@@ -77,6 +75,10 @@ class MessageDto {
   ReplyDto replyMessage;
 
   GlobalKey widgetKey;
+
+  bool deleted;
+
+  bool stoppedUpload;
 
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
@@ -139,7 +141,6 @@ class MessageDto {
       ..uploadProgress = 0.0
       ..stopUploadFunc = null
       ..isUploading = false
-      ..deleted = parsedJson['deleted'] as bool
       ..totalUnreadMessages = parsedJson['totalUnreadMessages'] == null
           ? 0
           : parsedJson['totalUnreadMessages'] as int
@@ -179,7 +180,6 @@ class MessageDto {
     'fileSizeBytes': fileSizeBytes,
     'messageType': messageType,
     'recordingDuration': recordingDuration,
-    'deleted': deleted,
     'pinned': pinned,
     'pinnedTimestamp': pinnedTimestamp,
     'pinnedByUserId': pinnedByUserId,

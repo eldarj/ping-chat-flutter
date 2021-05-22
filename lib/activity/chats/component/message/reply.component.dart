@@ -310,34 +310,34 @@ class ReplyComponentState extends State<ReplyComponent> {
           await audioPlayer.play(filePath, isLocal: true);
         }
       };
-
-    } else if (widget.message.replyMessage.messageType == 'IMAGE') {
-      String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.replyMessage.fileName
-          : widget.message.replyMessage.filePath;
-
-      messageTapHandler = () async {
-        NavigatorUtil.push(context,
-            ImageViewerActivity(
-                reply: widget.message.replyMessage,
-                timestamp: widget.message.replyMessage.sentTimestamp,
-                file: File(filePath)));
-      };
-
-    } else if (widget.message.replyMessage.messageType == 'MAP_LOCATION') {
-      String filePath = widget.isPeerMessage
-          ? widget.picturesPath + '/' + widget.message.replyMessage.fileName
-          : widget.message.replyMessage.filePath;
-
-      messageTapHandler = () async {
-        NavigatorUtil.push(context,
-            ImageViewerActivity(
-                reply: widget.message.replyMessage,
-                timestamp: widget.message.replyMessage.sentTimestamp,
-                file: File(filePath))
-        );
-      };
     }
+    // } else if (widget.message.replyMessage.messageType == 'IMAGE') {
+    //   String filePath = widget.isPeerMessage
+    //       ? widget.picturesPath + '/' + widget.message.replyMessage.fileName
+    //       : widget.message.replyMessage.filePath;
+    //
+    //   messageTapHandler = () async {
+    //     NavigatorUtil.push(context,
+    //         ImageViewerActivity(
+    //             reply: widget.message.replyMessage,
+    //             timestamp: widget.message.replyMessage.sentTimestamp,
+    //             file: File(filePath)));
+    //   };
+    //
+    // } else if (widget.message.replyMessage.messageType == 'MAP_LOCATION') {
+    //   String filePath = widget.isPeerMessage
+    //       ? widget.picturesPath + '/' + widget.message.replyMessage.fileName
+    //       : widget.message.replyMessage.filePath;
+    //
+    //   messageTapHandler = () async {
+    //     NavigatorUtil.push(context,
+    //         ImageViewerActivity(
+    //             reply: widget.message.replyMessage,
+    //             timestamp: widget.message.replyMessage.sentTimestamp,
+    //             file: File(filePath))
+    //     );
+    //   };
+    // }
 
     return messageTapHandler;
   }

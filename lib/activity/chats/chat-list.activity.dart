@@ -226,15 +226,15 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       }
     });
 
-    wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
-      for(var i = chats.length - 1; i >= 0; i--){
-        if (chats[i].contactBindingId == message.contactBindingId) {
-          setState(() {
-            chats[i].deleted = true;
-          });
-        }
-      }
-    });
+    // wsClientService.messageDeletedPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
+    //   for(var i = chats.length - 1; i >= 0; i--){
+    //     if (chats[i].contactBindingId == message.contactBindingId) {
+    //       setState(() {
+    //         chats[i].deleted = true;
+    //       });
+    //     }
+    //   }
+    // });
 
     unreadMessagePublisher.addListener(STREAMS_LISTENER_ID, (contactBindingId) {
       chats.forEach((chat) => {

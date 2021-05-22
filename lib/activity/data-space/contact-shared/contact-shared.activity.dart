@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/data-space/component/ds-document.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
+import 'package:flutterping/activity/data-space/component/ds-recording.component.dart';
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
@@ -73,7 +75,9 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
   @override
   void dispose() {
     super.dispose();
-    dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
+    if (dataSpaceDeletePublisher != null) {
+      dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
+    }
   }
 
   @override
@@ -247,23 +251,22 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
     } else if (node.nodeType == 'IMAGE' || node.nodeType == 'MAP_LOCATION') {
       _w = GestureDetector(
         onTap: () async {
-          var result = await NavigatorUtil.push(context,
+          NavigatorUtil.push(context,
               ImageViewerActivity(
                   nodeId: node.id,
                   sender: widget.peerContactName,
                   timestamp: node.createdTimestamp,
-                  file: File(filePath)));
-
-          if (result != null && result['deleted'] == true) {
-            setState(() {
-              nodes.removeWhere((element) => element.id == node.id);
-            });
-          }
+                  file: File(filePath))
+          );
         },
         child: Image.file(File(filePath), fit: BoxFit.cover),
       );
-    } else if (node.nodeType == 'RECORDING' || node.nodeType == 'MEDIA' || node.nodeType == 'FILE') {
+    } else if (node.nodeType == 'RECORDING') {
+      _w = DSRecording(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: widget.picturesPath);
+    } else if (node.nodeType == 'MEDIA') {
       _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: widget.picturesPath);
+    } else if (node.nodeType == 'FILE') {
+      _w = DSDocument(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: widget.picturesPath);
     } else {
       _w = Container(
           color: Colors.grey.shade100,
