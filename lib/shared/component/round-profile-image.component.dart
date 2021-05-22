@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class RoundProfileImageComponent extends StatefulWidget {
-  static const String DEFAULT_IMAGE_PATH = 'static/graphic/client/default-profile.jpg';
+  static const String DEFAULT_IMAGE_PATH = 'static/graphic/client/default-profile.png';
   static const String _QUESTION_MARK_IMAGE_PATH = 'static/graphic/icon/question-mark-24.png';
 
   final bool displayQuestionMarkImage;
