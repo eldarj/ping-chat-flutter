@@ -149,7 +149,7 @@ class DSMediaState extends BaseState<DSMedia> {
 
   onDeleteMessageSuccess(_) async {
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.info('Izbrisali ste datoteku.'));
+    scaffold.showSnackBar(SnackBarsComponent.info('Deleted'));
     await Future.delayed(Duration(seconds: 2));
     dataSpaceDeletePublisher.subject.add(widget.node.id);
   }
