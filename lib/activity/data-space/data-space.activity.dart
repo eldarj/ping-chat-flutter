@@ -2,10 +2,13 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutterping/activity/data-space/component/ds-document.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-media.component.dart';
 import 'package:flutterping/activity/data-space/component/ds-recording.component.dart';
@@ -35,6 +38,11 @@ import 'package:path/path.dart';
 import 'package:tus_client/tus_client.dart';
 
 
+void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+  final SendPort send = IsolateNameServer.lookupPortByName('DS_ACTIVITY_DOWNLOADER_PORT_KEY');
+  send.send({'id': id, 'status': status});
+}
+
 class DataSpaceActivity extends StatefulWidget {
   final int userId;
 
@@ -45,8 +53,11 @@ class DataSpaceActivity extends StatefulWidget {
 }
 
 class DataSpaceActivityState extends State<DataSpaceActivity> {
+  static const String DS_ACTIVITY_DOWNLOADER_PORT_ID = "DS_ACTIVITY_DOWNLOADER_PORT_KEY";
   static const String STREAMS_LISTENER_ID = "DataSpaceStreamsListener";
+
   ScaffoldState scaffold;
+
   BuildContext getScaffoldContext() => scaffold.context;
 
   bool displayLoader = true;
@@ -75,12 +86,21 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   openFilePicker() async {
     files = await FilePicker.getMultiFile();
 
-    files.forEach((file) {
-      uploadAndSendFile(file);
+    List<Future> uploadTasks = files.map((e) => prepareUploadFiles(e))
+        .toList();
+
+    Future.wait(uploadTasks).then((_) {
+      doGetData().then(onGetDataSuccess, onError: onGetDataError);
+
+    }, onError: (error) {
+      scaffold.removeCurrentSnackBar();
+      scaffold.showSnackBar(SnackBarsComponent.error(
+        content: 'Error occurred during upload', duration: Duration(seconds: 3)
+      ));
     });
   }
 
-  uploadAndSendFile(file) async {
+  Future prepareUploadFiles(file) async {
     var fileName = basename(file.path);
     var fileType = FileTypeResolverUtil.resolve(extension(fileName));
     var fileSize = file.lengthSync();
@@ -114,18 +134,10 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       displayUploadingFiles = true;
     });
 
-    try {
-      await fileUploadClient.upload(
-        onComplete: (response) async {
-          doGetData().then(onGetDataSuccess, onError: onGetDataError);
-        },
-        onProgress: (progress) {
-        },
-      );
-    } catch (exception) {
-      print('Error uploading file');
-      print(exception); //TODO: Handling
-    }
+    return fileUploadClient.upload(
+      onComplete: (response) => response,
+      onProgress: (progress) {},
+    );
   }
 
   init() async {
@@ -142,6 +154,23 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
         nodes.removeWhere((element) => element.id == nodeId);
       });
     });
+
+    ReceivePort _port = ReceivePort();
+    IsolateNameServer.registerPortWithName(_port.sendPort, DS_ACTIVITY_DOWNLOADER_PORT_ID);
+    _port.listen((dynamic data) {
+      String downloadTaskId = data['id'];
+      DownloadTaskStatus status = data['status'];
+
+      if ([DownloadTaskStatus.complete, DownloadTaskStatus.failed].contains(status)) {
+        nodes.where((node) => node.downloadTaskId == downloadTaskId).forEach((node) async {
+          setState(() {
+            node.isDownloading = false;
+          });
+        });
+      }
+    });
+
+    FlutterDownloader.registerCallback(downloadCallback);
   }
 
   @override
@@ -160,20 +189,25 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       dataSpaceDeletePublisher.removeListener(STREAMS_LISTENER_ID);
     }
 
+    IsolateNameServer.removePortNameMapping(DS_ACTIVITY_DOWNLOADER_PORT_ID);
+
     super.dispose();
   }
 
   onBackPressed(getContext) async {
     if (currentDirectoryNodeId == 0) {
       Navigator.of(getContext()).pop();
+
     } else {
       if (nodeBreadcrumbs.isNotEmpty) {
         nodeBreadcrumbs.removeLast();
+
         if (nodeBreadcrumbs.isNotEmpty) {
           var previousNode = nodeBreadcrumbs.last;
           currentDirectoryNodeName = previousNode.nodeName;
           currentDirectoryNodeId = previousNode.id;
           doGetData().then(onGetDataSuccess, onError: onGetDataError);
+
         } else {
           setState(() {
             currentDirectoryNodeName = 'My dataspace';
@@ -231,48 +265,39 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     if (!displayLoader) {
       if (!isError) {
         if (nodes != null && nodes.length > 0) {
-          w = Container(
-            color: Colors.white,
-            child: Stack(
-              alignment: Alignment.bottomRight,
-              children: <Widget>[
-                GestureDetector(
-                  onHorizontalDragEnd: (DragEndDetails details) async {
-                    if (details.primaryVelocity > 0) {
-                      if (gridHorizontalSize < 3) {
-                        setState(() {
-                          gridHorizontalSize++;
-                          contentOpacity = 0.5;
-                        });
-                        await Future.delayed(Duration(milliseconds: 500));
-                        setState(() {
-                          contentOpacity = 1;
-                        });
-                      }
-                    } else if (details.primaryVelocity < 0) {
-                      if (gridHorizontalSize > 1) {
-                        setState(() {
-                          gridHorizontalSize--;
-                          contentOpacity = 0.5;
-                        });
-                        await Future.delayed(Duration(milliseconds: 500));
-                        setState(() {
-                          contentOpacity = 1;
-                        });
-                      }
-                    }
-                  },
-                  child: GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisSpacing: 2.5, mainAxisSpacing: 2.5, crossAxisCount: gridHorizontalSize),
-                      itemCount: nodes.length, itemBuilder: (context, index) {
-                    var node = nodes[index];
-                    return buildSingleNode(node);
-                  }),
-                ),
-                buildUploadingFilesContainer(),
-              ],
-            ),
+          w = GestureDetector(
+            onHorizontalDragEnd: (DragEndDetails details) async {
+              if (details.primaryVelocity > 0) {
+                if (gridHorizontalSize < 3) {
+                  setState(() {
+                    gridHorizontalSize++;
+                    contentOpacity = 0.5;
+                  });
+                  await Future.delayed(Duration(milliseconds: 500));
+                  setState(() {
+                    contentOpacity = 1;
+                  });
+                }
+              } else if (details.primaryVelocity < 0) {
+                if (gridHorizontalSize > 1) {
+                  setState(() {
+                    gridHorizontalSize--;
+                    contentOpacity = 0.5;
+                  });
+                  await Future.delayed(Duration(milliseconds: 500));
+                  setState(() {
+                    contentOpacity = 1;
+                  });
+                }
+              }
+            },
+            child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisSpacing: 2.5, mainAxisSpacing: 2.5, crossAxisCount: gridHorizontalSize),
+                itemCount: nodes.length, itemBuilder: (context, index) {
+              var node = nodes[index];
+              return buildSingleNode(node);
+            }),
           );
         } else {
           w = InfoComponent.noDataOwl(text: 'No media to display');
@@ -289,13 +314,27 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       }
     }
 
-    return w;
+    return Container(
+      color: Colors.white,
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          w,
+          buildUploadingFilesContainer(),
+        ]
+      )
+    );
   }
 
   buildSingleNode(DSNodeDto node) {
     Widget _w;
 
-    if (node.nodeType == 'DIRECTORY') {
+    if (node.isDownloading != null && node.isDownloading) {
+      _w = Container(
+          color: Colors.grey.shade100,
+          child: Center(child: Spinner())
+      );
+    } else if (node.nodeType == 'DIRECTORY') {
       _w = GestureDetector(
         onTap: () => onNavigateToDirectory(node),
         child: Container(
@@ -381,7 +420,8 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       _w = Container(
         width: 60,
         child: LoadingButton(
-            child: Icon(Icons.delete_outline, color: Colors.grey.shade600),
+            icon: Icons.delete_outline,
+            disabled: displayUploadingFiles || displayLoader,
             displayLoader: displayDeleteLoader,
             loaderSize: 25,
             onPressed: () {
@@ -406,19 +446,22 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     Widget _w = Container();
 
     if (currentDirectoryNodeId == 0 || ['Sent', 'Received'].contains(currentDirectoryNodeName)) {
+
+      bool disabled = isError || displayLoader || displayUploadingFiles || nodes == null || nodes.length <= 0 || (currentDirectoryNodeId == 0 && nodes.length <= 2);
+
       _w = Container(
         width: 60,
         child: LoadingButton(
             icon: Icons.delete_sweep_outlined,
             displayLoader: displayDeleteLoader,
-            disabled: nodes == null || nodes.length <= 0,
+            disabled: disabled,
             loaderSize: 25,
             onPressed: () {
               var dialog = GenericAlertDialog(
                   title: 'Delete all content',
                   message: 'All content in $currentDirectoryNodeName will be deleted.',
                   onPostivePressed: () {
-                    doDeleteContent().then(onDeleteContentSuccess, onError: onDeleteContentError);
+                    Future.wait(prepareDeleteContentTasks()).then(onDeleteContentSuccess, onError: onDeleteContentError);
                   },
                   positiveBtnText: 'Delete',
                   negativeBtnText: 'Cancel');
@@ -435,17 +478,17 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     Widget w = Container();
 
     if (!['Sent', 'Received'].contains(currentDirectoryNodeName)) {
-      w = GestureDetector(
-          onTap: () {
+      w = LoadingButton(
+          icon: Icons.create_new_folder_outlined,
+          disabled: isError || displayUploadingFiles || displayLoader,
+          onPressed: () {
             NavigatorUtil.push(getScaffoldContext(), CreateDirectoryActivity(
               userId: widget.userId,
               parentNodeId: currentDirectoryNodeId,
               parentNodeName: currentDirectoryNodeName,
             ));
-          },
-          child: Container(
-              width: 50,
-              child: Icon(Icons.create_new_folder_outlined, color: Colors.grey.shade600)));
+          }
+      );
     }
 
     return w;
@@ -454,11 +497,12 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   buildFloatingActionButton() {
     Widget _w;
 
-    if (!displayUploadingFiles) {
+    if (!displayUploadingFiles && !displayLoader && !isError) {
       _w = FloatingActionButton(
-        onPressed: openFilePicker,
-        child: Icon(Icons.file_upload, color: Colors.white),
+        elevation: 1,
         backgroundColor: CompanyColor.blueDark,
+        child: Icon(Icons.file_upload, color: Colors.white),
+        onPressed: openFilePicker,
       );
     } else {
       _w = Container();
@@ -487,7 +531,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   }
 
   // Get data
-  Future doGetData() async {
+  Future<List<DSNodeDto>> doGetData() async {
     setState(() {
       displayLoader = true;
       currentDirectoryNodeName = currentDirectoryNodeName;
@@ -497,8 +541,10 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
     if (currentDirectoryNodeName == 'Received') {
       url += '/received';
+    } else if (currentDirectoryNodeName == 'Sent') {
+      url += '/sent?directoryId=$currentDirectoryNodeId';
     } else if (currentDirectoryNodeId != 0) {
-      url += '/' + currentDirectoryNodeId.toString();
+      url += '/$currentDirectoryNodeId';
     }
 
     http.Response response = await HttpClientService.get(url);
@@ -508,15 +554,40 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     }
 
     var decode = response.decode();
-    var list = List<DSNodeDto>.from(decode.map((e) => DSNodeDto.fromJson(e))).toList();
-    return list;
+    return List<DSNodeDto>.from(decode.map((e) => DSNodeDto.fromJson(e))).toList();
   }
 
-  void onGetDataSuccess(result) async {
-    await Future.delayed(Duration(milliseconds: 500));
+  doDownloadAndStoreFile(DSNodeDto node) async {
+    try {
+      return await FlutterDownloader.enqueue(
+        url: node.fileUrl,
+        savedDir: picturesPath,
+        fileName: node.nodeName,
+        showNotification: false,
+        openFileFromNotification: false,
+      );
+    } catch(exception) {
+      print('Error downloading file on init.');
+      print(exception);
+    }
+  }
+
+  void onGetDataSuccess(List<DSNodeDto> result) async {
+    var preparedNodes = result.map((node) async {
+      if (node.nodeType != 'DIRECTORY') {
+        bool fileExists = File(picturesPath + '/' + node.nodeName).existsSync();
+        if (!fileExists) {
+          node.isDownloading = true;
+          node.downloadTaskId = await doDownloadAndStoreFile(node);
+        }
+      }
+
+      return node;
+    }).toList();
+
+    nodes = await Future.wait(preparedNodes);
 
     setState(() {
-      nodes = result;
       displayLoader = false;
       displayUploadingFiles = false;
       isError = false;
@@ -524,20 +595,11 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   }
 
   void onGetDataError(Object error) {
-    print('error');
     setState(() {
       displayLoader = false;
       displayUploadingFiles = false;
       isError = true;
     });
-
-    scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.error(actionOnPressed: () async {
-      setState(() {
-        displayLoader = true;
-        isError = false;
-      });
-    }));
   }
 
   // Delete
@@ -573,34 +635,48 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   }
 
   // Delete all content
-  Future doDeleteContent() async {
+  List<Future<DSNodeDto>> prepareDeleteContentTasks() {
     setState(() {
       displayDeleteLoader = true;
     });
 
-    String url = '/api/data-space/directory/$currentDirectoryNodeId/content';
+    List<Future<DSNodeDto>> deleteTasks = [];
 
-    http.Response response = await HttpClientService.delete(url);
+    deleteTasks = nodes.where((element) => element.nodeName != 'Received' && element.nodeName != 'Sent' && element.id != 0)
+        .map<Future<DSNodeDto>>((node) async {
+          var url = '/api/data-space';
 
-    if (response.statusCode != 200) {
-      throw Exception();
-    }
+          if (node.nodeType == 'DIRECTORY') {
+            url = '/api/data-space/directory/${node.id}';
+          } else {
+            url = '/api/data-space'
+                '?nodeId=${node.id}'
+                '&fileName=${node.nodeName}';
+          }
 
-    return true;
+          http.Response response = await HttpClientService.delete(url);
+
+          if (response.statusCode != 200) {
+            throw Exception();
+          }
+
+          dataSpaceDeletePublisher.subject.add(node.id);
+
+          return node;
+    }).toList();
+
+    return deleteTasks;
   }
 
-  onDeleteContentSuccess(_) async {
-    await Future.delayed(Duration(seconds: 1));
-
+  onDeleteContentSuccess(List<DSNodeDto> deletedNodes) async {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.info('Content deleted'));
 
-    nodes.forEach((element) {
+    deletedNodes.forEach((node) {
       try {
-        var file = File(picturesPath + '/' + element.nodeName);
+        var file = File(picturesPath + '/' + node.nodeName);
         file.delete();
       } catch(ignored) {}
-      dataSpaceDeletePublisher.subject.add(element.id);
     });
 
     setState(() {
@@ -609,12 +685,17 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   }
 
   onDeleteContentError(error) {
+    print(error);
+
     setState(() {
       displayDeleteLoader = false;
     });
 
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.error());
+    scaffold.showSnackBar(SnackBarsComponent.error(
+      content: 'Some data might not have been deleted.',
+      duration: Duration(seconds: 5)
+    ));
   }
 
   // Delete directory

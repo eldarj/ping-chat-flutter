@@ -146,6 +146,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
   bool isPinButtonLoading = false;
   bool isDeleteSingleMessageLoading = false;
+  bool isDeleteForEveryoneLoading = false;
 
   StateSetter messageActionsSetState;
 
@@ -205,7 +206,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     wsClientService.receivingMessagesPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) async {
-      if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(message.messageType)) {
+      if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING', 'MAP_LOCATION'].contains(message.messageType)) {
         message.isDownloadingFile = true;
         message.downloadTaskId = await doDownloadAndStoreFile(message);
       }
@@ -308,9 +309,12 @@ class ChatActivityState extends BaseState<ChatActivity> {
     });
 
     dataSpaceDeletePublisher.addListener(STREAMS_LISTENER_ID, (int nodeId) {
-      setState(() {
-        messages.removeWhere((element) => element.nodeId == nodeId);
-      });
+      MessageDto message = messages.firstWhere((element) => element.nodeId == nodeId, orElse: () => null);
+      if (message != null) {
+        setState(() {
+          message.filePath = null;
+        });
+      }
 
       // setState(() {
       //   for(var i = messages.length - 1; i >= 0; i--){
@@ -466,7 +470,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       String downloadTaskId = data[0];
       DownloadTaskStatus status = data[1];
 
-      if (status == DownloadTaskStatus.complete) {
+      if ([DownloadTaskStatus.complete, DownloadTaskStatus.failed].contains(status)) {
         messages.where((message) => message.downloadTaskId == downloadTaskId).forEach((message) async {
           await Future.delayed(Duration(seconds: 1));
           setState(() {
@@ -1142,15 +1146,18 @@ class ChatActivityState extends BaseState<ChatActivity> {
     var preparedMessages = fetchedMessages.map((e) async {
       var m = MessageDto.fromJson(e);
 
-      // Download new file
-      // if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType) && !m.deleted) {
-      if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType)) {
-        bool fileExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
-        if (userId == m.receiver.id && !fileExists) {
-          m.isDownloadingFile = true;
-          m.downloadTaskId = await doDownloadAndStoreFile(m);
+      if (m.receiver.id == userId && !m.seen) {
+        // Download new file
+        // if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType) && !m.deleted) {
+        if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType)) {
+          bool fileExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
+          if (!fileExists) {
+            m.isDownloadingFile = true;
+            m.downloadTaskId = await doDownloadAndStoreFile(m);
+          }
         }
       }
+
 
       // Set prevmessage and chaining (ui bubbling)
       if (prevMessage == null) {
@@ -1318,6 +1325,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       buildEditTile(message),
       buildPinTile(message),
       buildDeleteTile(message),
+      buildDeleteForEveryoneTile(message),
     ]);
   }
 
@@ -1326,6 +1334,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       buildReplyTile(message),
       buildPinTile(message),
       buildDeleteTile(message),
+      buildDeleteForEveryoneTile(message),
     ]);
   }
 
@@ -1334,6 +1343,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       buildReplyTile(message),
       buildPinTile(message),
       buildDeleteTile(message),
+      buildDeleteForEveryoneTile(message),
     ]);
   }
 
@@ -1342,6 +1352,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       buildReplyTile(message),
       buildPinTile(message),
       buildDeleteTile(message),
+      buildDeleteForEveryoneTile(message),
     ]);
   }
 
@@ -1351,6 +1362,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       buildCopyTile(message),
       buildPinTile(message),
       buildDeleteTile(message),
+      buildDeleteForEveryoneTile(message),
     ]);
   }
 
@@ -1359,6 +1371,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       buildReplyTile(message),
       buildPinTile(message),
       buildDeleteTile(message),
+      buildDeleteForEveryoneTile(message),
     ]);
   }
 
@@ -1367,6 +1380,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       buildReplyTile(message),
       buildCopyTile(message),
       buildPinTile(message),
+      buildDeleteTile(message)
     ]);
   }
 
@@ -1374,6 +1388,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     return Wrap(children: [
       buildReplyTile(message),
       buildPinTile(message),
+      buildDeleteTile(message),
     ]);
   }
 
@@ -1476,9 +1491,20 @@ class ChatActivityState extends BaseState<ChatActivity> {
     return ListTile(
         dense: true,
         leading: isDeleteSingleMessageLoading ? Spinner(size: 20) : Icon(Icons.delete_outlined, size: 20, color: Colors.grey.shade600),
-        title: Text('Delete'),
+        title: Text('Delete for myself'),
         onTap: () {
-          doDeleteSingleMessage(message).then(onDeleteSingleMessageSuccess, onError: onDeleteSingleMessageError);
+          doDeleteSingleMessage(message, deleteForEveryone: false).then(onDeleteSingleMessageSuccess, onError: onDeleteSingleMessageError);
+        });
+  }
+
+  buildDeleteForEveryoneTile(message) {
+    return ListTile(
+        dense: true,
+        leading: isDeleteForEveryoneLoading ? Spinner(size: 20) : Icon(Icons.delete, size: 20, color: Colors.grey.shade600),
+        title: Text('Delete for everyone'),
+        onTap: () {
+          doDeleteSingleMessage(message, deleteForEveryone: true)
+              .then(onDeleteSingleMessageSuccess, onError: onDeleteSingleMessageError);
         });
   }
 
@@ -1534,12 +1560,18 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   // Delete messages
-  Future<MessageDto> doDeleteSingleMessage(MessageDto message) async {
+  Future<MessageDto> doDeleteSingleMessage(MessageDto message, { bool deleteForEveryone: false }) async {
     messageActionsSetState(() {
-      isDeleteSingleMessageLoading = true;
+      if (deleteForEveryone) {
+        isDeleteForEveryoneLoading = true;
+      } else {
+        isDeleteSingleMessageLoading = true;
+      }
     });
 
-    String url = '/api/messages/${message.id}?userId=${userId}';
+    String url = '/api/messages/${message.id}'
+        '?userId=$userId'
+        '&deleteForEveryone=$deleteForEveryone';
 
     http.Response response = await HttpClientService.delete(url);
 
@@ -1556,6 +1588,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     messageDeletedPublisher.emitMessageDeleted(message);
 
     isDeleteSingleMessageLoading = false;
+    isDeleteForEveryoneLoading = false;
 
     Navigator.of(ROOT_CONTEXT).pop();
   }
@@ -1564,6 +1597,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     print(error);
 
     isDeleteSingleMessageLoading = false;
+    isDeleteForEveryoneLoading = false;
 
     Navigator.of(ROOT_CONTEXT).pop();
   }
