@@ -196,7 +196,7 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
       dataSpaceDeletePublisher.subject.add(widget.nodeId);
     }
 
-    Navigator.pop(scaffold.context, {'deleted': true});
+    Navigator.pop(scaffold.context);
   }
 
   onDeleteMessageError(error) {

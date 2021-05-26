@@ -9,7 +9,6 @@ import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:bordered_text/bordered_text.dart';
 
 const MESSAGE_PADDING = EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15);
 
@@ -20,8 +19,6 @@ class MessageImage extends StatelessWidget {
   final dynamic isDownloadingFile;
   final dynamic isUploading;
   final dynamic uploadProgress;
-
-  final Function stopUploadFunc;
 
   final double size = DEVICE_MEDIA_SIZE.width / 1.25;
 
@@ -44,7 +41,6 @@ class MessageImage extends StatelessWidget {
       this.isDownloadingFile,
       this.isUploading,
       this.uploadProgress,
-      this.stopUploadFunc,
       {
         Key key,
         this.text,
@@ -60,6 +56,12 @@ class MessageImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext _context) {
+    Color iconColor = CompanyColor.blueDark;
+
+    if (messageTheme != null) {
+      iconColor = messageTheme.iconColor;
+    }
+
     File file = File(filePath);
     bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
@@ -75,7 +77,7 @@ class MessageImage extends StatelessWidget {
       );
     }
 
-    if (!isFileValid) {
+    if (!isFileValid && !isDownloadingFile) {
       return Container(
           constraints: BoxConstraints(
               maxWidth: size, maxHeight: size, minHeight: 100, minWidth: 100),
@@ -118,12 +120,10 @@ class MessageImage extends StatelessWidget {
                     !isUploading && displayText ? buildImageText() : Container()
                   ]),
                 ),
-                isUploading ? GestureDetector(
-                  onTap: stopUploadFunc,
-                  child: Container(
-                      width: 100, height: 100,
-                      child: UploadProgressIndicator(size: 50, progress: uploadProgress)),
-                ) : Container(width: 0),
+                isUploading ? Container(
+                    width: 100, height: 100,
+                    child: UploadProgressIndicator(size: 50, progress: uploadProgress, color: iconColor))
+                    : Container(width: 0),
               ],
             ),
             !displayText && !isReply ? buildStatusLabel() : Container(),

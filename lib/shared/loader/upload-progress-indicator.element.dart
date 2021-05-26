@@ -20,19 +20,13 @@ class UploadProgressIndicator extends StatelessWidget {
           children: <Widget>[
             Container(
               width: this.size, height: this.size,
-              child: TweenAnimationBuilder(
-                tween: Tween<double>(begin: 0.0, end: progress),
-                duration: const Duration(milliseconds: 200),
-                builder: (context, value, _) {
-                  return CircularProgressIndicator(
-                      strokeWidth: this.strokeWidth,
-                      backgroundColor: Colors.grey.shade300,
-                      value: value != null ? value : null,
-                      valueColor: new AlwaysStoppedAnimation<Color>(color));
-                },
-              ),
+              child: CircularProgressIndicator(
+                  strokeWidth: this.strokeWidth,
+                  backgroundColor: Colors.grey.shade300,
+                  value: progress,
+                  valueColor: new AlwaysStoppedAnimation<Color>(color)),
             ),
-            Icon(Icons.close, color: color, size: 30),
+            Icon(Icons.arrow_upward_rounded, color: color, size: 30),
           ],
         ),
       ),

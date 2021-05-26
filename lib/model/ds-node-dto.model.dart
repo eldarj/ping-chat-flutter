@@ -31,6 +31,10 @@ class DSNodeDto {
 
   bool selected;
 
+  bool isDownloading;
+
+  String downloadTaskId;
+
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
   }

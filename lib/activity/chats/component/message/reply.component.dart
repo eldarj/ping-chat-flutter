@@ -116,7 +116,7 @@ class ReplyComponentState extends State<ReplyComponent> {
           : widget.message.replyMessage.filePath;
 
       _messageWidget = buildMessageMedia(widget.message.replyMessage, filePath, false,
-          false, 0, () {});
+          false, 0);
 
     } else if (widget.message.replyMessage.messageType == 'RECORDING') {
       String filePath = widget.isPeerMessage
@@ -124,7 +124,7 @@ class ReplyComponentState extends State<ReplyComponent> {
           : widget.message.replyMessage.filePath;
 
       _messageWidget = buildMessageMedia(widget.message.replyMessage, filePath, false,
-          false, widget.message.uploadProgress, () {});
+          false, widget.message.uploadProgress);
 
     } else if (widget.message.replyMessage.messageType == 'IMAGE') {
       String filePath = widget.isPeerMessage
@@ -143,7 +143,7 @@ class ReplyComponentState extends State<ReplyComponent> {
               ),
               child: MessageImage(
                 widget.message,
-                filePath, false, false, 0.0, () {},
+                filePath, false, false, 0.0,
                 text: widget.message.replyMessage.text,
                 isPeerMessage: widget.isPeerMessage,
                 isReply: true,
@@ -163,7 +163,7 @@ class ReplyComponentState extends State<ReplyComponent> {
           constraints: BoxConstraints(maxWidth: 120),
           child: MessageImage(
             widget.message,
-            filePath, false, false, 0.0, () {}, displayText: true,
+            filePath, false, false, 0.0, displayText: true,
             text: widget.message.replyMessage.text, isPeerMessage: widget.isPeerMessage,
             isReply: true,
           ),
@@ -215,7 +215,7 @@ class ReplyComponentState extends State<ReplyComponent> {
         child: _messageWidget);
   }
 
-  buildMessageMedia(ReplyDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
+  buildMessageMedia(ReplyDto message, filePath, isDownloadingFile, isUploading, uploadProgress) {
     String desc = message.fileSizeFormatted();
     String title = message.fileName;
 
@@ -255,8 +255,8 @@ class ReplyComponentState extends State<ReplyComponent> {
           children: [
             Container(
               margin: EdgeInsets.only(right: 7.5),
-              child: isUploading ? GestureDetector(onTap: stopUploadFunc, child: Container(
-                  width: 25, height: 25, child: UploadProgressIndicator(size: 25, progress: uploadProgress))) :
+              child: isUploading ? Container(
+                  width: 25, height: 25, child: UploadProgressIndicator(size: 25)) :
               isDownloadingFile ? Container(height: 25, width: 25,
                   alignment: Alignment.center,
                   child: Spinner()) :

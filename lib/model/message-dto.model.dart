@@ -46,7 +46,7 @@ class MessageDto {
 
   double uploadProgress;
 
-  Function stopUploadFunc;
+  // Function stopUploadFunc;
 
   bool isDownloadingFile;
 
@@ -88,7 +88,9 @@ class MessageDto {
     this.displayCheckMark, this.senderContactName, this.receiverContactName, this.sentTimestamp,
     this.contactBindingId, this.chained,
     this.fileName, this.fileUrl, this.filePath, this.fileSizeBytes,
-    this.uploadProgress, this.stopUploadFunc, this.isUploading,
+    this.uploadProgress,
+    // this.stopUploadFunc,
+    this.isUploading,
     this.messageType,
     this.deleted = false,
     this.isDownloadingFile = false,
@@ -139,7 +141,7 @@ class MessageDto {
           ? 0
           : parsedJson['fileSizeBytes'] as int
       ..uploadProgress = 0.0
-      ..stopUploadFunc = null
+      // ..stopUploadFunc = null
       ..isUploading = false
       ..totalUnreadMessages = parsedJson['totalUnreadMessages'] == null
           ? 0
