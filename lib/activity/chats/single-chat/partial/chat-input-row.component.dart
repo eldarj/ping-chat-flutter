@@ -184,16 +184,17 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
     MessageDto message = widget.messageSendingService.addPreparedFile(fileName, file.path,
         fileUrl, fileSize, fileType, recordingDuration: fileDuration);
 
-    message.stopUploadFunc = () async {
-      message.stoppedUpload = true; // TODO: Handle stop upload
-      message.isUploading = false;
-      await Future.delayed(Duration(seconds: 2));
-      fileUploadClient.delete();
-    };
+    // message.stopUploadFunc = () async {
+    //   message.stoppedUpload = true; // TODO: Handle stop upload
+    //   message.isUploading = false;
+    //   messageDeletedPublisher.emitMessageDeleted(message);
+    //   await Future.delayed(Duration(seconds: 2));
+    //   fileUploadClient.delete();
+    // };
 
     widget.onProgress(message, 10);
     await Future.delayed(Duration(milliseconds: 500));
-    widget.onProgress(message, 30);
+    widget.onProgress(message, 20);
     await Future.delayed(Duration(milliseconds: 500));
 
     try {

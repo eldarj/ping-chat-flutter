@@ -44,32 +44,37 @@ class CreateDirectoryActivityState extends BaseState<CreateDirectoryActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: widget.parentNodeName);
+    appBar = BaseAppBar.getCloseAppBar(
+        getScaffoldContext,
+        elevation: 0.0,
+    );
     drawer = new NavigationDrawerComponent();
   }
 
   @override
   Widget render() {
     return Container(
-      margin: EdgeInsets.only(left: 30, right: 30, top: 15, bottom: 15),
+      color: Colors.white,
+      padding: EdgeInsets.only(left: 2.5, right: 2.5, top: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(margin: EdgeInsets.only(right: 10),
-                  width: 50, height: 50,
+              Container(
+                  padding: EdgeInsets.all(10),
+                  margin: EdgeInsets.only(left: 7.5, right: 10),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50.0),
-                      color: Colors.grey.shade400
+                      color: Colors.grey.shade100
                   ),
-                  child: Icon(Icons.create_new_folder, color: Colors.grey.shade300, size: 25)),
+                  child: Icon(Icons.create_new_folder, color: Colors.grey.shade300, size: 20)),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(child: Text('Novi direktorij', style: TextStyle(fontSize: 16))),
+                  Container(child: Text('Create new directory', style: TextStyle(color: Colors.grey.shade700))),
                   Container(child: RichText(text: TextSpan(children: [
-                    TextSpan(text: 'Nadređeni direktorij ', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    TextSpan(text: 'Parent directory ', style: TextStyle(color: Colors.grey, fontSize: 12)),
                     TextSpan(text: widget.parentNodeName, style: TextStyle(color: CompanyColor.blueAccent, fontSize: 12))
                   ])))
                 ],
@@ -77,45 +82,47 @@ class CreateDirectoryActivityState extends BaseState<CreateDirectoryActivity> {
             ],
           ),
           Divider(height: 25, thickness: 1),
-          TextField(
-            autofocus: true,
-            controller: directoryNameController,
-            keyboardType: TextInputType.text,
-            decoration: InputDecoration(
-                hintText: 'Naziv direktorija',
-                labelText: 'Naziv direktorija',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.all(15)),
-          ),
-          Container(margin: EdgeInsets.only(top: 5, left: 2),
-              child: Text(directoryNameValidationMessage, style: TextStyle(color: CompanyColor.red))
-          ),
           Container(
-            child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              GradientButton(
-                child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Kreiraj'),
-                onPressed: !displayLoader ?
-                    () => noCreateDirectory(context) : null,
-              )
-            ]),
-          )
-
+            margin: EdgeInsets.only(left: 20, right: 20),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  autofocus: true,
+                  controller: directoryNameController,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      hintText: 'Directory name',
+                      labelText: 'Directory name',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.all(15)),
+                ),
+                Container(margin: EdgeInsets.only(top: 5, left: 2),
+                    child: Text(directoryNameValidationMessage, style: TextStyle(color: CompanyColor.red))),
+                Container(
+                  child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    GradientButton(
+                      child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Save'),
+                      onPressed: !displayLoader ?
+                          () => doCreateDirectory(context) : null,
+                    )
+                  ]),
+                )
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  void noCreateDirectory(BuildContext context) {
+  void doCreateDirectory(BuildContext context) {
     setState(() {
       directoryNameValidationMessage = directoryNameController.text.length == 0
-          ? 'Unesite naziv direktorija'
-          : !validDirectoryNameChars.hasMatch(directoryNameController.text) ? 'Naziv može sadržati samo slova.' : '';
+          ? 'Enter a directory name'
+          : !validDirectoryNameChars.hasMatch(directoryNameController.text) ? 'Name can contain numbers and letters only' : '';
     });
 
-    if (directoryNameValidationMessage.length > 0) {
-      scaffold.removeCurrentSnackBar();
-      scaffold.showSnackBar(SnackBarsComponent.error(content: 'Molimo ispravite greške.', duration: Duration(seconds: 2)));
-    } else {
+    if (directoryNameValidationMessage.length <= 0) {
       setState(() { displayLoader = true; });
       doSendRequest(directoryNameController.text)
           .then(onRequestSuccess, onError: onRequestError);
@@ -146,7 +153,7 @@ class CreateDirectoryActivityState extends BaseState<CreateDirectoryActivity> {
     dataSpaceNewDirectoryPublisher.subject.add(dsNode);
 
     scaffold.removeCurrentSnackBar();
-    scaffold.showSnackBar(SnackBarsComponent.success('Uspješno ste kreirali direktorij ${dsNode.nodeName}'));
+    scaffold.showSnackBar(SnackBarsComponent.success('Directory ${dsNode.nodeName} created'));
     // setState(() { displayLoader = false; });
 
     await Future.delayed(Duration(seconds: 1));

@@ -67,7 +67,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
   String recordingCurrentPosition = '00:00';
 
-  int recordingCurrentPositionSeconds = 0;
+  int recordingCurrentPositionMillis = 0;
 
   @override
   void initState() {
@@ -75,7 +75,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
     AudioPlayer.logEnabled = false;
     audioPlayer.onAudioPositionChanged.listen((Duration  p) {
       setState(() {
-        recordingCurrentPositionSeconds = p.inSeconds;
+        recordingCurrentPositionMillis = p.inMilliseconds;
         recordingCurrentPosition = p.format();
       });
     });
@@ -102,7 +102,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       child: Container(
         margin: widget.margin,
         child: Container(
-          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 0 : 5),
+          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 2.5 : 5),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 buildMessageContent(),
@@ -123,33 +123,34 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
     ) : Container();
   }
 
-  buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc) {
+  buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, isFileValid) {
     String desc = message.fileSizeFormatted();
     String title = message.fileName;
+    Color iconColor = CompanyColor.blueDark;
 
     IconData icon = message.messageType == 'MEDIA' ? Icons.ondemand_video : Icons.file_copy_outlined;
     Widget iconWidget = Icon(icon, color: Colors.grey.shade100, size: 20);
 
-    int durationInSeconds;
+    int durationInMillis;
     Widget progressIndicator;
 
     if (message.messageType == 'RECORDING') {
       title = 'Recording';
       IconData icon = message.isRecordingPlaying ? Icons.pause : Icons.mic_none;
       if (!message.isRecordingPlaying) {
-        recordingCurrentPositionSeconds = 0;
+        recordingCurrentPositionMillis = 0;
       }
 
       if (message.recordingDuration != null) {
         var time = message.recordingDuration.split(":");
         String seconds = time[1];
         String minutes = time[0];
-        durationInSeconds = int.parse(minutes) * 60 + int.parse(seconds);
+        durationInMillis = (int.parse(minutes) * 60 + int.parse(seconds)) * 1000;
 
         title += ' (${message.recordingDuration})';
       }
 
-      progressIndicator = buildProgressIndicator(durationInSeconds - 1);
+      progressIndicator = buildProgressIndicator(durationInMillis - 950);
 
       iconWidget = Stack(
         alignment: Alignment.center,
@@ -167,6 +168,11 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       );
     }
 
+    if (!isFileValid) {
+      iconColor = Colors.grey.shade300;
+      iconWidget = Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 20);
+    }
+
     return Container(
         padding: EdgeInsets.all(10),
         constraints: BoxConstraints(maxWidth: maxWidth, minWidth: maxWidth),
@@ -174,8 +180,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
           children: [
             Container(
               margin: EdgeInsets.only(right: 10),
-              child: isUploading ? GestureDetector(onTap: stopUploadFunc, child: Container(
-                  width: 50, height: 50, child: UploadProgressIndicator(size: 50, progress: uploadProgress))) :
+              child: isUploading ? Container(width: 50, height: 50, child: UploadProgressIndicator(size: 50)) :
               isDownloadingFile ? Container(height: 50, width: 50,
                   alignment: Alignment.center,
                   child: Spinner()) :
@@ -183,26 +188,27 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
                   width: 50, height: 50,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
-                      color: CompanyColor.blueDark
+                      color: iconColor
                   ),
                   child: iconWidget
               ),
             ),
-            Container(
-              width: maxWidth - 100,
-              alignment: Alignment.centerLeft,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                        height: 15,
-                        child: message.isRecordingPlaying
-                            ? progressIndicator
-                            : Text(title)
-                    ),
-                    Text(desc, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                  ]),
+            Flexible(
+              child: Container(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                          height: 15,
+                          child: message.isRecordingPlaying
+                              ? progressIndicator
+                              : Text(title)
+                      ),
+                      Text(desc, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                    ]),
+              ),
             )
           ],
         ));
@@ -210,7 +216,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
   buildProgressIndicator(totalDurationInSeconds) {
     var maxWidth = DEVICE_MEDIA_SIZE.width - 240;
-    var currentWidth = (recordingCurrentPositionSeconds / totalDurationInSeconds) * (maxWidth);
+    var currentWidth = (recordingCurrentPositionMillis / totalDurationInSeconds) * (maxWidth);
 
     return Stack(
       alignment: Alignment.centerLeft,
@@ -237,27 +243,34 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
     //   print('MESSAGE DELETED');
     //   _messageWidget = MessageDeleted();
     //
-    if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
+    if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
       String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
+      File file = File(filePath);
+      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
-          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
+          widget.message.isUploading, widget.message.uploadProgress,
+          isFileValid);
 
     } else if (widget.message.messageType == 'RECORDING') {
       String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
+      File file = File(filePath);
+      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
-          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc);
+          widget.message.isUploading, widget.message.uploadProgress,
+          isFileValid);
 
     } else if (widget.message.messageType == 'IMAGE') {
-      print('MESSAGE IMAGE');
       String filePath = widget.picturesPath + '/' + widget.message.fileName;
 
       _messageDecoration = peerImageDecoration(widget.message.pinned);
       _messageWidget = MessageImage(
           widget.message,
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained, isPeerMessage: true, displayStatusIcon: false,
+          widget.message.uploadProgress, chained: widget.chained, isPeerMessage: true, displayStatusIcon: false,
       );
 
     } else if (widget.message.messageType == 'STICKER') {
@@ -277,7 +290,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       _messageWidget = MessageImage(
           widget.message,
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
+          widget.message.uploadProgress, text: widget.message.text,
           chained: widget.chained, isPeerMessage: true, displayStatusIcon: false, displayText: true,
       );
     } else {
@@ -326,21 +339,32 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
   resolveMessageTapHandler() {
     Function messageTapHandler = (_) {};
 
+    String filePath;
+
+    try {
+      filePath = widget.picturesPath + '/' + widget.message.fileName;
+    } catch (ignored) {
+      return messageTapHandler;
+    }
+
+    File file = File(filePath);
+    bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+    if (!isFileValid) {
+      return messageTapHandler;
+    }
+
     // if (widget.message.deleted) {
     //   messageTapHandler = (_) {};
     //
     // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
     if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
-      String filePath = widget.picturesPath + '/' + widget.message.fileName;
-
       messageTapHandler = (_) async {
         OpenFile.open(filePath);
       };
 
     } else if (widget.message.messageType == 'RECORDING') {
       if (!widget.message.isUploading) {
-        String filePath = widget.picturesPath + '/' + widget.message.fileName;
-
         messageTapHandler = (_) async {
           if (widget.message.isRecordingPlaying) {
             await audioPlayer.stop();
@@ -352,8 +376,6 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
     } else if (widget.message.messageType == 'IMAGE') {
       if (!widget.message.isUploading) {
-        String filePath = widget.picturesPath + '/' + widget.message.fileName;
-
         messageTapHandler = (_) async {
           NavigatorUtil.push(context,
               ImageViewerActivity(message: widget.message,
@@ -365,8 +387,6 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       }
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       if (!widget.message.isUploading) {
-        String filePath = widget.picturesPath + '/' + widget.message.fileName;
-
         messageTapHandler = (_) async {
           NavigatorUtil.push(context,
               ImageViewerActivity(message: widget.message,

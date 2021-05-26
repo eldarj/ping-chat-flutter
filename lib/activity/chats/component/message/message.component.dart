@@ -4,9 +4,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-deleted.component.dart';
-import 'package:flutterping/activity/chats/component/message/partial/message-image.component.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-gif.component.dart';
+import 'package:flutterping/activity/chats/component/message/partial/message-image.component.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-sticker.component.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message-text.component.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message.decoration.dart';
@@ -15,18 +14,11 @@ import 'package:flutterping/activity/chats/component/message/reply.component.dar
 import 'package:flutterping/activity/data-space/image/image-viewer.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/message-dto.model.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
-import 'package:flutterping/service/messaging/message-edit.publisher.dart';
-import 'package:flutterping/service/messaging/message-pin.publisher.dart';
-import 'package:flutterping/service/messaging/message-reply.publisher.dart';
-import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/loader/upload-progress-indicator.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/extension/duration.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:flutterping/util/other/date-time.util.dart';
-import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 
 class MessageComponent extends StatefulWidget {
@@ -130,7 +122,7 @@ class MessageComponentState extends State<MessageComponent> {
     ) : Container();
   }
 
-  buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, stopUploadFunc, isFileValid) {
+  buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, isFileValid) {
     Color titleColor = Colors.grey.shade800;
     Color descColor = Colors.grey.shade500;
     Color iconColor = CompanyColor.accentGreenLight;
@@ -211,8 +203,8 @@ class MessageComponentState extends State<MessageComponent> {
               children: [
                 Container(
                   margin: EdgeInsets.only(right: 10),
-                  child: isUploading ? GestureDetector(onTap: stopUploadFunc, child: Container(
-                      width: 50, height: 50, child: UploadProgressIndicator(size: 50, progress: uploadProgress))) :
+                  child: isUploading ? Container(
+                      width: 50, height: 50, child: UploadProgressIndicator(size: 50, progress: uploadProgress, color: iconColor)) :
                   isDownloadingFile ? Container(height: 50, width: 50,
                       alignment: Alignment.center,
                       child: Spinner()) :
@@ -233,10 +225,10 @@ class MessageComponentState extends State<MessageComponent> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            height: 15,
-                            child: message.isRecordingPlaying
-                                ? progressIndicator
-                                : Text(title, style: TextStyle(color: titleColor))
+                              height: 15,
+                              child: message.isRecordingPlaying
+                                  ? progressIndicator
+                                  : Text(title, style: TextStyle(color: titleColor))
                           ),
                           Text(desc, style: TextStyle(color: descColor, fontSize: 12)),
                         ]),
@@ -303,8 +295,7 @@ class MessageComponentState extends State<MessageComponent> {
       }
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
-          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc,
-          isFileValid
+          widget.message.isUploading, widget.message.uploadProgress, isFileValid
       );
 
     } else if (widget.message.messageType == 'RECORDING') {
@@ -318,8 +309,7 @@ class MessageComponentState extends State<MessageComponent> {
       }
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
-          widget.message.isUploading, widget.message.uploadProgress, widget.message.stopUploadFunc,
-          isFileValid
+          widget.message.isUploading, widget.message.uploadProgress, isFileValid
       );
 
     } else if (widget.message.messageType == 'IMAGE') {
@@ -329,8 +319,10 @@ class MessageComponentState extends State<MessageComponent> {
       bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
       _messageDecoration = imageDecoration(widget.message.pinned, widget.messageTheme.bubbleColor, disabled: !isFileValid);
-      _messageWidget = MessageImage(widget.message, filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc, chained: widget.chained, messageTheme: widget.messageTheme);
+      _messageWidget = MessageImage(
+          widget.message,
+          filePath, widget.message.isDownloadingFile, widget.message.isUploading,
+          widget.message.uploadProgress, chained: widget.chained, messageTheme: widget.messageTheme);
 
     } else if (widget.message.messageType == 'STICKER') {
       _messageDecoration = stickerBoxDecoration();
@@ -353,7 +345,7 @@ class MessageComponentState extends State<MessageComponent> {
       _messageWidget = MessageImage(
           widget.message,
           filePath, widget.message.isDownloadingFile, widget.message.isUploading,
-          widget.message.uploadProgress, widget.message.stopUploadFunc, text: widget.message.text,
+          widget.message.uploadProgress, text: widget.message.text,
           textColor: widget.messageTheme.textColor, chained: widget.chained,
           messageTheme: widget.messageTheme, displayText: true,
       );
@@ -392,40 +384,43 @@ class MessageComponentState extends State<MessageComponent> {
   resolveMessageTapHandler() {
     Function messageTapHandler = (_) {};
 
+    String filePath;
+
+    try {
+      filePath = widget.picturesPath + '/' + widget.message.fileName;
+    } catch (ignored) {
+      return messageTapHandler;
+    }
+
+    File file = File(filePath);
+    bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+
+    if (!isFileValid) {
+      return messageTapHandler;
+    }
+
     // if (widget.message.deleted) {
     //   messageTapHandler = (_) {};
     //
     // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
     if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
-      String filePath = widget.message.filePath;
-
-      File file = File(filePath);
-      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
-
-      messageTapHandler = isFileValid ? (_) async {
+      messageTapHandler = (_) async {
         OpenFile.open(filePath);
-      } : null;
+      };
 
     } else if (widget.message.messageType == 'RECORDING') {
       if (!widget.message.isUploading) {
-        String filePath = widget.message.filePath;
-
-        File file = File(filePath);
-        bool isFileValid = file.existsSync() && file.lengthSync() > 0;
-
-        messageTapHandler = isFileValid ? (_) async {
+        messageTapHandler = (_) async {
           if (widget.message.isRecordingPlaying) {
             await audioPlayer.stop();
           } else {
             await audioPlayer.play(filePath, isLocal: true);
           }
-        } : null;
+        };
       }
 
     } else if (widget.message.messageType == 'IMAGE') {
       if (!widget.message.isUploading) {
-        String filePath = widget.message.filePath;
-
         messageTapHandler = (_) async {
           NavigatorUtil.push(context,
               ImageViewerActivity(message: widget.message,
@@ -437,8 +432,6 @@ class MessageComponentState extends State<MessageComponent> {
       }
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       if (!widget.message.isUploading) {
-        String filePath = widget.message.filePath;
-
         messageTapHandler = (_) async {
           NavigatorUtil.push(context,
               ImageViewerActivity(message: widget.message,
