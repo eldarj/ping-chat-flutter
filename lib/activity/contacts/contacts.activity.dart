@@ -208,8 +208,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                     },
                     indicatorColor: CompanyColor.blueDark,
                     tabs: [
-                      Tab(icon: Icon(Icons.people)),
-                      Tab(icon: Icon(Icons.star_border)),
+                      Tab(text: 'All'),
+                      Tab(text: 'Favourites'),
                     ]
                 )),
             drawer: NavigationDrawerComponent(),

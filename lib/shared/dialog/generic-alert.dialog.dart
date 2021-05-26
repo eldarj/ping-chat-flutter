@@ -54,7 +54,7 @@ class GenericAlertDialog extends StatelessWidget {
             child: Text(positiveBtnText),
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 15),
-              primary: CompanyColor.accentGreenDark,
+              primary: CompanyColor.blueDark,
               backgroundColor: Colors.white,
             ),
             onPressed: () {

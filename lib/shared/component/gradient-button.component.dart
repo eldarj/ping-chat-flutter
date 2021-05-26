@@ -46,30 +46,30 @@ extension GradientButtonBubbleExtension on GradientButtonBubble {
     switch (this) {
       case GradientButtonBubble.fromBottomLeft:
         return BorderRadius.only(
-          topRight: Radius.circular(10),
-          bottomRight: Radius.circular(10),
-          topLeft: Radius.circular(10),
+          topRight: Radius.circular(5),
+          bottomRight: Radius.circular(5),
+          topLeft: Radius.circular(5),
         );
       case GradientButtonBubble.fromBottomRight:
         return BorderRadius.only(
-          bottomLeft: Radius.circular(10),
-          topRight: Radius.circular(10),
-          topLeft: Radius.circular(10),
+          bottomLeft: Radius.circular(5),
+          topRight: Radius.circular(5),
+          topLeft: Radius.circular(5),
         );
       case GradientButtonBubble.fromTopLeft:
         return BorderRadius.only(
-          bottomLeft: Radius.circular(10),
-          topRight: Radius.circular(10),
-          bottomRight: Radius.circular(10),
+          bottomLeft: Radius.circular(5),
+          topRight: Radius.circular(5),
+          bottomRight: Radius.circular(5),
         );
       case GradientButtonBubble.fromTopRight:
         return BorderRadius.only(
-          bottomLeft: Radius.circular(10),
-          bottomRight: Radius.circular(10),
-          topLeft: Radius.circular(10),
+          bottomLeft: Radius.circular(5),
+          bottomRight: Radius.circular(5),
+          topLeft: Radius.circular(5),
         );
       default:
-        return BorderRadius.all(Radius.circular(10));
+        return BorderRadius.all(Radius.circular(5));
     }
   }
 }

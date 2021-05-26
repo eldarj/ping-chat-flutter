@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutterping/activity/auth/logout.activity.dart';
 import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/activity/chats/component/share-files/share-files.modal.dart';
 import 'package:flutterping/activity/contacts/add-contact.activity.dart';
@@ -16,8 +17,8 @@ import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
 import 'package:flutterping/shared/drawer/partial/drawer-items.dart';
-import 'package:flutterping/shared/drawer/partial/logout.dialog.dart';
 import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/widget/base.state.dart';
@@ -204,7 +205,15 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                                 child: buildDrawerItem(context, 'Logout',
                                     buildIcon(icon: Icons.exit_to_app, backgroundColor: Colors.red.shade300),
                                     onTapFunction: () => showDialog(context: context, builder: (BuildContext context) {
-                                      return LogoutDialog();
+                                      return GenericAlertDialog(
+                                        title: 'Logout',
+                                        message: "Are you sure you'd like to log out?",
+                                        positiveBtnText: 'Logout',
+                                        negativeBtnText: 'Cancel',
+                                        onPostivePressed: () {
+                                          NavigatorUtil.replace(context, LogoutActivity());
+                                        },
+                                      );
                                     })),
                               ),
                             ]),
