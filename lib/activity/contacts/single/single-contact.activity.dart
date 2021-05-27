@@ -375,8 +375,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                                   borderRadius: BorderRadius.circular(50.0),
                                   color: Colors.grey.shade100
                               ),
-                              child: Icon(Icons.image_outlined, color: Colors.grey.shade700, size: 20)),
-                          Container(child: Text('Select a background', style: TextStyle(color: Colors.grey.shade700))),
+                              child: Icon(Icons.image_outlined, color: CompanyColor.iconGrey, size: 20)),
+                          Container(child: Text('Select a background', style: TextStyle(color: CompanyColor.iconGrey))),
                         ],
                       ),
                       CloseButton(onPressed: () async {

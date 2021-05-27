@@ -14,7 +14,7 @@ class PolicyInfoActivity extends StatelessWidget {
             Container(
                 margin: EdgeInsets.only(right: 20),
                 child: Center(child: Text('Last updated April 23 2021',
-                  style: TextStyle(color: Colors.grey.shade400),)))
+                  style: TextStyle(color: Colors.grey.shade500),)))
           ],
           backgroundColor: Colors.white
       ),
@@ -31,8 +31,22 @@ class PolicyInfoActivity extends StatelessWidget {
                         padding: EdgeInsets.only(left: 25, right: 25, top: 5, bottom: 35),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Container(
-                              margin: EdgeInsets.only(top: 10, bottom: 20),
-                              child: Text('Use of information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+                            margin: EdgeInsets.only(bottom: 20),
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Use of information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                                  Container(
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.grey.shade100,
+                                      ),
+                                      child: Icon(Icons.info_rounded, color: Colors.grey.shade400)
+                                  )
+                                ]
+                            ),
+                          ),
                           Text('We may use your information in other ways for which we provide specific notice at the time of collection.\n'),
                           Text('No information will be externally used or exposed.'),
                           Container(
@@ -51,9 +65,9 @@ class PolicyInfoActivity extends StatelessWidget {
                                       padding: EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.grey.shade400,
+                                        color: Colors.grey.shade100,
                                       ),
-                                      child: Icon(Icons.perm_media_rounded, color: Colors.grey.shade50)
+                                      child: Icon(Icons.perm_media_rounded, color: Colors.grey.shade400)
                                   )
                                 ]
                             ),
@@ -84,9 +98,9 @@ class PolicyInfoActivity extends StatelessWidget {
                                       padding: EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.grey.shade400,
+                                        color: Colors.grey.shade100,
                                       ),
-                                      child: Icon(Icons.question_answer, color: Colors.grey.shade50)
+                                      child: Icon(Icons.question_answer, color: Colors.grey.shade400)
                                     )
                                   ]
                                 )),

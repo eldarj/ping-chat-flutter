@@ -4,7 +4,7 @@ import 'package:flutterping/shared/component/round-profile-image.component.dart'
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
-const double APP_BAR_ELEVATION = 2.5;
+const double APP_BAR_ELEVATION = 1.5;
 const Color APP_BAR_SHADOW_COLOR = Color.fromRGBO(0, 0, 0, 0.5);
 
 class BaseAppBar {

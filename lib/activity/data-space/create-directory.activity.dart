@@ -65,7 +65,7 @@ class CreateDirectoryActivityState extends BaseState<CreateDirectoryActivity> {
                       borderRadius: BorderRadius.circular(50.0),
                       color: Colors.grey.shade100
                   ),
-                  child: Icon(Icons.create_new_folder, color: Colors.grey.shade300, size: 20)),
+                  child: Icon(Icons.create_new_folder, color: CompanyColor.iconGrey, size: 20)),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

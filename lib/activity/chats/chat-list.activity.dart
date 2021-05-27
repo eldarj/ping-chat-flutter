@@ -25,6 +25,7 @@ import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
+import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
@@ -618,7 +619,9 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                          child: Text(peerContactName, style: TextStyle(fontSize: 16,
+                                          child: Text(peerContactName, style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: message.totalUnreadMessages > 0 ? FontWeight.bold : FontWeight.normal,
                                               color: Colors.black87))),
                                       buildMessageContent(message, isPeerMessage)
                                     ]
@@ -636,11 +639,11 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                             ) : Container(),
                             MessageTimestampLabel(message.sentTimestamp, Colors.grey.shade500, edited: false),
                             message.totalUnreadMessages > 0 ? Container(
-                                height: 15, width: 15,
+                                height: 20, width: 20,
                                 alignment: Alignment.center,
                                 margin: EdgeInsets.only(left: 5, bottom: 1.5),
                                 decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(5),
+                                    shape: BoxShape.circle,
                                     color: CompanyColor.bluePrimary),
                                 child: Text(message.totalUnreadMessages.toString(),
                                     style: TextStyle(fontSize: 12, color: Colors.white))

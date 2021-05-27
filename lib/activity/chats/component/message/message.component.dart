@@ -255,6 +255,11 @@ class MessageComponentState extends State<MessageComponent> {
 
   buildProgressIndicator(durationInMillis, loaderColor, progressColor) {
     var maxWidth = DEVICE_MEDIA_SIZE.width - 240;
+
+    if (durationInMillis < 100) {
+      durationInMillis = 100;
+    }
+
     var currentWidth = (recordingCurrentPositionMillis / durationInMillis) * (maxWidth);
 
     return Stack(

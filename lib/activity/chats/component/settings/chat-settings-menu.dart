@@ -49,7 +49,7 @@ class ChatSettingsMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert, color: Colors.grey.shade700),
+      icon: Icon(Icons.more_vert, color: CompanyColor.iconGrey),
       onSelected: (choice) {
         if (choice == 'info') {
           NavigatorUtil.push(context, SingleContactActivity(
@@ -89,7 +89,7 @@ class ChatSettingsMenu extends StatelessWidget {
               child: Row(children: [
                 Container(
                     margin:EdgeInsets.only(right: 10, left: 5),
-                    child: Icon(Icons.person, color: Colors.grey.shade700, size: 17)),
+                    child: Icon(Icons.person, color: CompanyColor.iconGrey, size: 17)),
                 Text('Profile')
               ])),
           PopupMenuDivider(height: 0),
@@ -98,7 +98,7 @@ class ChatSettingsMenu extends StatelessWidget {
               child: Row(children: [
                 Container(
                     margin:EdgeInsets.only(right: 10, left: 5),
-                    child: Icon(Icons.image_outlined, color: Colors.grey.shade700, size: 17)),
+                    child: Icon(Icons.image_outlined, color: CompanyColor.iconGrey, size: 17)),
                 Text('Shared media')
               ])),
           PopupMenuItem<String>(
@@ -106,7 +106,7 @@ class ChatSettingsMenu extends StatelessWidget {
               child: Row(children: [
                 Container(
                     margin:EdgeInsets.only(right: 10, left: 5),
-                    child: Icon(Icons.push_pin_outlined, color: Colors.grey.shade700, size: 17)),
+                    child: Icon(Icons.push_pin_outlined, color: CompanyColor.iconGrey, size: 17)),
                 Text('Pinned messages')
               ])),
           PopupMenuDivider(height: 0),
@@ -115,7 +115,7 @@ class ChatSettingsMenu extends StatelessWidget {
               child: Row(children: [
                 Container(
                     margin:EdgeInsets.only(right: 10, left: 5),
-                    child: Icon(Icons.delete_outline, color: Colors.grey.shade700, size: 17)),
+                    child: Icon(Icons.delete_outline, color: CompanyColor.iconGrey, size: 17)),
                 Text('Delete contact')
               ])),
           PopupMenuItem<String>(
@@ -123,7 +123,7 @@ class ChatSettingsMenu extends StatelessWidget {
               child: Row(children: [
                 Container(
                     margin:EdgeInsets.only(right: 10, left: 5),
-                    child: Icon(Icons.announcement_outlined, color: Colors.grey.shade700, size: 17)),
+                    child: Icon(Icons.announcement_outlined, color: CompanyColor.iconGrey, size: 17)),
                 Text('Delete all messages')
               ])),
         ];

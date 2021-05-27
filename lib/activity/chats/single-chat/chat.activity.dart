@@ -616,7 +616,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 Padding(
                     padding: EdgeInsets.only(right: 20.0),
                     child: GestureDetector(
-                      child: Icon(Icons.call, size: 20, color: Colors.grey.shade700),
+                      child: Icon(Icons.call, size: 20, color: CompanyColor.iconGrey),
                       onTap: () {
                         NavigatorUtil.replace(context, new CallScreenWidget(
                           target: widget.peer.fullPhoneNumber,
@@ -826,7 +826,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                         doAddContact().then(onAddContactSuccess, onError: onAddContactError);
                       },
                       child: displayAddContactLoader ? Spinner(size: 20) : Text('Add', style: TextStyle(
-                          color: Colors.grey.shade700)),
+                          color: CompanyColor.iconGrey)),
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.grey.shade50,
                       ))
@@ -1240,7 +1240,9 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.success('You successfully added $contactName'
-        ' to your contacts'));
+        ' to your contacts',
+        duration: Duration(seconds: 4)
+    ));
   }
 
   onAddContactError(error) {

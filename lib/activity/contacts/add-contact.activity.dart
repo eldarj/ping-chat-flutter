@@ -106,7 +106,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(50.0),
                     ),
-                    child: Icon(Icons.person_add_alt_1, color: Colors.grey.shade300, size: 20)),
+                    child: Icon(Icons.person_add_alt_1, color: CompanyColor.iconGrey, size: 20)),
                 Container(child: Text('Add a new contact', style: TextStyle(color: Colors.grey.shade700))),
               ],
             ),
@@ -144,6 +144,7 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
                 child: TextField(
                   controller: contactNameController,
                   keyboardType: TextInputType.text,
+                  textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
                       hintText: 'Contact name',
                       labelText: 'Contact name',
@@ -214,25 +215,33 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
     setState(() { displayLoader = false; });
 
     if (contactDto.contactUserExists) {
+      scaffold.removeCurrentSnackBar();
+      scaffold.showSnackBar(SnackBarsComponent.success('You successfully added ${contactDto.contactPhoneNumber} to your contacts'));
+
+      await Future.delayed(Duration(seconds: 2));
+
       NavigatorUtil.push(context, ContactsActivity(
-          displaySavedContactSnackbar: true,
           savedContactName: contactDto.contactName,
           savedContactPhoneNumber: contactDto.contactPhoneNumber
       ));
     } else {
       scaffold.removeCurrentSnackBar();
-      scaffold.showSnackBar(SnackBarsComponent.success('You successfully added ${contactDto.contactPhoneNumber}'));
+      scaffold.showSnackBar(SnackBarsComponent.success('You successfully added ${contactDto.contactPhoneNumber} to your contacts',
+        duration: Duration(seconds: 2)));
 
       await showDialog(context: context, builder: (BuildContext context) {
-        return InviteContactDialog(contactName: contactDto.contactName,
+        return InviteContactDialog(
+            contactName: contactDto.contactName,
             contactPhoneNumber: contactDto.contactPhoneNumber);
-      }).then((invited) {
+      }).then((invited) async {
         if (invited != null && invited) {
           scaffold.removeCurrentSnackBar();
-          scaffold.showSnackBar(SnackBarsComponent.success('Successfully sent to ${contactDto.contactPhoneNumber}'));
+          scaffold.showSnackBar(SnackBarsComponent.success('SMS successfully sent to ${contactDto.contactPhoneNumber}'));
         }
+
+        await Future.delayed(Duration(seconds: 2));
+
         NavigatorUtil.push(context, ContactsActivity(
-            displaySavedContactSnackbar: true,
             savedContactName: contactDto.contactName,
             savedContactPhoneNumber: contactDto.contactPhoneNumber
         ));

@@ -148,7 +148,9 @@ class QrScannerActivityState extends BaseState<QrScannerActivity> {
 
   void onAddContactSuccess(ContactDto contactDto) async {
     scaffold.showSnackBar(SnackBarsComponent.success('You successfully added ${contactDto.contactName}'
-        ' to your contacts'));
+        ' to your contacts',
+        duration: Duration(seconds: 4)
+    ));
 
     await Future.delayed(Duration(seconds: 2));
 

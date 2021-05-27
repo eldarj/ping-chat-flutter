@@ -34,11 +34,10 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ContactsActivity extends StatefulWidget {
-  final bool displaySavedContactSnackbar;
   final String savedContactName;
   final String savedContactPhoneNumber;
 
-  const ContactsActivity({this.displaySavedContactSnackbar = false, this.savedContactName, this.savedContactPhoneNumber}): super();
+  const ContactsActivity({this.savedContactName, this.savedContactPhoneNumber}): super();
 
   @override
   State<StatefulWidget> createState() => new ContactsActivityState();
@@ -130,16 +129,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
       };
     });
 
-    if (widget.displaySavedContactSnackbar) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        scaffold.showSnackBar(SnackBarsComponent.success('Contact '
-            '${widget.savedContactName} (${widget.savedContactPhoneNumber}) '
-            'successfully added!',
-          duration: Duration(seconds: 4)
-        ));
-      });
-    }
-
     initialize();
   }
 
@@ -189,7 +178,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                 titleText: 'Contacts',
                 actions: [
                   TextButton(child: displaySyncLoader ? Spinner(size: 20)
-                      : Icon(Icons.search, color: CompanyColor.iconGrey),
+                      : Icon(Icons.search, size: 24, color: CompanyColor.iconGrey),
                       onPressed: () {
                         NavigatorUtil.push(context, SearchContactsActivity(
                             type: SearchContactsType.CONTACT,

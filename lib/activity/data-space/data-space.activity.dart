@@ -300,7 +300,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             }),
           );
         } else {
-          w = InfoComponent.noDataOwl(text: 'No media to display');
+          w = InfoComponent.noDataStitch(text: 'No media to display');
         }
       } else {
         w = InfoComponent.errorDonut(message: "Couldn't load your Data Space, please try again", onButtonPressed: () async {
@@ -327,7 +327,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   }
 
   buildSingleNode(DSNodeDto node) {
-    Widget _w;
+    Widget _w = Container();
 
     if (node.isDownloading != null && node.isDownloading) {
       _w = Container(

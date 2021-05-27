@@ -24,7 +24,7 @@ class InviteContactDialogState extends BaseState<InviteContactDialog> {
         title: Text('Contact added'),
         content: RichText(
             text: TextSpan(
-              text: 'You added a contact, but it unfortunately seems like ',
+              text: 'New contact added, but it unfortunately seems like ',
               style: TextStyle(color: Colors.black87),
               children: [
                 TextSpan(text: widget.contactName,
@@ -35,41 +35,54 @@ class InviteContactDialogState extends BaseState<InviteContactDialog> {
                 TextSpan(text: '?')
               ],
             )),
-        actionsPadding: EdgeInsets.only(right: 10),
         actions: [
-          FlatButton(
-              child: Text('No', style: TextStyle(fontWeight: FontWeight.w400, color: Theme.of(context).accentColor)),
+          TextButton(
+              child: Text('No'),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                primary: CompanyColor.grey,
+                backgroundColor: Colors.white,
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               }),
-          GradientButton(
-              child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Yes'),
-              bubble: GradientButtonBubble.fromBottomRight,
+          Container(
+            child: TextButton(
+              child: displayLoader ? Spinner(size: 20) : Text('Send SMS'),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                primary: CompanyColor.blueDark,
+                backgroundColor: Colors.white,
+              ),
               onPressed: () {
-                doSendAuthRequest().then(onSuccessAuthRequest, onError: onErrorAuthRequest);
-              })
+                doSendInvite().then(onInviteSuccess, onError: onInviteError);
+              },
+            )
+          )
         ]
     );
   }
 
-  Future<void> doSendAuthRequest() async {
+  Future<void> doSendInvite() async {
     setState(() {
       displayLoader = true;
     });
 
     http.Response response = await HttpClientService.post('/api/contacts/invite', body: widget.contactPhoneNumber);
 
+    await Future.delayed(Duration(seconds: 1));
+
     if (response.statusCode != 200) {
       throw new Exception();
     }
   }
 
-  onSuccessAuthRequest(_) {
+  onInviteSuccess(_) {
     setState(() { displayLoader = false; });
     Navigator.of(context).pop(true);
   }
 
-  onErrorAuthRequest(var error) {
+  onInviteError(var error) {
     setState(() { displayLoader = false; });
     Navigator.of(context).pop();
   }

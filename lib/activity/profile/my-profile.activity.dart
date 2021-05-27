@@ -125,7 +125,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
         children: [
           icon != null ? Container(
               margin: EdgeInsets.only(right: 12.5),
-              child: Icon(icon, color: Colors.grey.shade700, size: 20)) : Container(),
+              child: Icon(icon, color: CompanyColor.iconGrey, size: 20)) : Container(),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
                 margin: EdgeInsets.only(left: titleLeftMargin, bottom: 5),
@@ -398,7 +398,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
               children: [
                 Row(children: [
                   Container(
-                    child: Icon(Icons.chat_outlined, color: Colors.grey.shade700),
+                    child: Icon(Icons.chat_outlined, color: CompanyColor.iconGrey),
                     margin: EdgeInsets.only(left: 7.5, right: 20),
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -448,7 +448,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
               children: [
                 Row(children: [
                   Container(
-                    child: Icon(icon, color: Colors.grey.shade700),
+                    child: Icon(icon, color: CompanyColor.iconGrey),
                     margin: EdgeInsets.only(left: 7.5, right: 20),
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -537,7 +537,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                                   borderRadius: BorderRadius.circular(50.0),
                                   color: Colors.grey.shade50
                               ),
-                              child: Icon(Icons.chat_outlined, color: Colors.grey.shade700, size: 20)),
+                              child: Icon(Icons.chat_outlined, color: CompanyColor.iconGrey, size: 20)),
                           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Text('Chat color',
                                 style: TextStyle(color: Colors.grey.shade800)),
@@ -711,6 +711,8 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
   void onRemoveProfileSuccess(_) async {
     clientDto.profileImagePath = null;
     await UserService.setUser(clientDto);
+
+    profilePublisher.emitProfileImageUpdate(null);
 
     setState(() {
       displayProfileActionsLoader = false;
