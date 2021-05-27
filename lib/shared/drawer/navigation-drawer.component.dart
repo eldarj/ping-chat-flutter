@@ -80,26 +80,22 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                       children: <Widget>[
                         Material(
                           color: Colors.white,
-                          elevation: 10.0,
-                          shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
+                          elevation: APP_BAR_ELEVATION,
+                          shadowColor: APP_BAR_SHADOW_COLOR,
                           child: InkWell(
                             onTap: () {
                               NavigatorUtil.push(context, MyProfileActivity());
                             },
                             child: Container(
-                              padding: EdgeInsets.only(top: 20, bottom: 30),
+                              padding: EdgeInsets.only(top: 5, bottom: 20),
                               child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     displayLoader ? Container(margin:EdgeInsets.all(20), height: 80, width: 80, child: CircularProgressIndicator())
                                         : Container(
                                         margin: EdgeInsets.only(bottom: 20),
-                                        decoration: BoxDecoration(
-                                            boxShadow: [BoxShadow(color: Colors.grey.shade200, blurRadius: 15, spreadRadius: 2.5)],
-                                            borderRadius: BorderRadius.all(Radius.circular(100))
-                                        ),
                                         child: new RoundProfileImageComponent(url: user.profileImagePath,
-                                            height: 100, width: 100, borderRadius: 100, margin: 0)),
+                                            height: 150, width: 150, borderRadius: 150, margin: 0)),
                                     displayLoader ? Column(children: [
                                       Container(margin: EdgeInsets.only(bottom: 5), color: CompanyColor.backgroundGrey, height: 20, width: 120),
                                       Container(color: CompanyColor.backgroundGrey, height: 20, width: 50),
@@ -122,7 +118,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                         Container(
                           child: !displayLoader ? SingleChildScrollView(
                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              SizedBox(height: 15),
+                              SizedBox(height: 10),
                               buildSectionTitle("Me"),
                               buildDrawerItem(context, 'My profile',
                                   buildIcon(icon: Icons.alternate_email, backgroundColor: Colors.red),
@@ -200,7 +196,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                               ),
                               Container(
                                 color: CompanyColor.backgroundGrey,
-                                margin: EdgeInsets.only(top: 25),
+                                margin: EdgeInsets.only(top: 10),
                                 padding: EdgeInsets.only(top: 10, bottom: 10),
                                 child: buildDrawerItem(context, 'Logout',
                                     buildIcon(icon: Icons.exit_to_app, backgroundColor: Colors.red.shade300),

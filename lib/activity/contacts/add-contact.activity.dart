@@ -65,7 +65,6 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
   preRender() async {
     appBar = BaseAppBar.getCloseAppBar(
         getScaffoldContext,
-        elevation: 0.0,
         actions: [
           TextButton(
               onPressed: () {
@@ -89,29 +88,34 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
   Widget render() {
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.only(left: 2.5, right: 2.5, top: 5),
+      padding: EdgeInsets.only(left: 2.5, right: 2.5, top: 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                  padding: EdgeInsets.all(10),
-                  margin: EdgeInsets.only(left: 7.5, right: 10),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50.0),
-                      color: Colors.grey.shade100
-                  ),
-                  child: Icon(Icons.person_add_alt_1, color: Colors.grey.shade300, size: 20)),
-              Container(child: Text('Add a new contact', style: TextStyle(color: Colors.grey.shade700))),
-            ],
+          Container(
+            padding: EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(width: 0.35, color: Colors.grey.shade800))
+            ),
+            child: Row(
+              children: [
+                Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(left: 7.5, right: 10),
+                    decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(50.0),
+                    ),
+                    child: Icon(Icons.person_add_alt_1, color: Colors.grey.shade300, size: 20)),
+                Container(child: Text('Add a new contact', style: TextStyle(color: Colors.grey.shade700))),
+              ],
+            ),
           ),
-          Divider(height: 25, thickness: 1),
           Container(
             margin: EdgeInsets.only(left: 20, right: 20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Container(
-                  margin: EdgeInsets.only(top: 10, bottom: 15),
+                  margin: EdgeInsets.only(top: 10, bottom: 10),
                   padding: EdgeInsets.only(left: 10.0, right: 10.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
@@ -132,25 +136,21 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
                     hintText: 'Phone number',
                     labelText: 'Phone number',
                     border: OutlineInputBorder(),
+                    errorText: phoneNumberValidationMessage.length > 0 ? phoneNumberValidationMessage : null,
                     contentPadding: EdgeInsets.all(15)),
               ),
-              Container(margin: EdgeInsets.only(top: 5, left: 2),
-                  child: Text(phoneNumberValidationMessage, style: TextStyle(color: CompanyColor.red))
-              ),
               Container(
-                margin: EdgeInsets.only(top: 5),
+                margin: EdgeInsets.only(top: 10, bottom: 10),
                 child: TextField(
                   controller: contactNameController,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                       hintText: 'Contact name',
                       labelText: 'Contact name',
+                      errorText: contactNameValidationMessage.length > 0 ? contactNameValidationMessage : null,
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.all(15)),
                 ),
-              ),
-              Container(margin: EdgeInsets.only(top: 5, left: 2),
-                  child: Text(contactNameValidationMessage, style: TextStyle(color: CompanyColor.red))
               ),
               Container(
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -175,14 +175,14 @@ class AddContactActivityState extends BaseState<AddContactActivity> {
     setState(() {
       phoneNumberValidationMessage = phoneNumberController.text.length == 0
           ? 'Enter a phone number'
-          : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Phonenumber can contain digits only.' : '';
+          : !validPhoneNumberChars.hasMatch(phoneNumberController.text) ? 'Phonenumber can contain digits only' : '';
 
       contactNameValidationMessage = contactNameController.text.length < 3 ? 'Enter a contact name' : '';
     });
 
-    if (phoneNumberValidationMessage.length > 0) {
+    if (phoneNumberValidationMessage.length > 0 || contactNameValidationMessage.length > 0) {
       scaffold.removeCurrentSnackBar();
-      scaffold.showSnackBar(SnackBarsComponent.error(content: 'Please fix the above errors', duration: Duration(seconds: 2)));
+      scaffold.showSnackBar(SnackBarsComponent.error(content: 'Please check the entered data.', duration: Duration(seconds: 2)));
     } else {
       setState(() { displayLoader = true; });
       doAddContact(dialCodesMap[selectedCallingCodeId], phoneNumberController.text, contactNameController.text)

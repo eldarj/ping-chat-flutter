@@ -489,8 +489,39 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       },
       child: Expanded(
         child: ListView.builder(
-          itemCount: chats == null ? 0 : chats.length,
+          itemCount: chats == null ? 0 : chats.length + 1,
           itemBuilder: (context, index) {
+            if (index == 0) {
+              return Container(
+                color: Colors.white,
+                margin: EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 0),
+                child: Material(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(100),
+                  clipBehavior: Clip.hardEdge,
+                  child: InkWell(
+                    onTap: () {
+                      NavigatorUtil.push(context, SearchContactsActivity());
+                    },
+                    child: Container(
+                        height: 40,
+                        child: Row(
+                          children: [
+                            Container(
+                                margin: EdgeInsets.only(left: 15, right: 10),
+                                child: Icon(Icons.search, size: 17, color: Colors.grey.shade400)),
+                            Text('Search', style: TextStyle(
+                                color: Colors.grey.shade400, fontSize: 14
+                            ))
+                          ]
+                        ))
+                  ),
+                ),
+              );
+            }
+
+            index = index - 1;
+
             // TODO: Move this to onSuccess
             var chat = chats[index];
             var contact, profileUrl, peerContactName, myContactName, isOnline, lastOnline, statusLabel;
@@ -551,16 +582,12 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
               statusLabel: statusLabel, contactBindingId: contactBindingId));
         },
         child: Container(
-          height: 75,
-          decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.grey.shade100, width: 1))
-          ),
-          padding: EdgeInsets.all(10),
+          padding: EdgeInsets.only(left: 10, right: 10, top: 7.5, bottom: 7.5),
           child: Container(
             child: Row(
                 children: [
                   Container(
-                      padding: EdgeInsets.only(left: 5, right: 10),
+                      padding: EdgeInsets.only(right: 12.5),
                       child: Stack(
                           alignment: AlignmentDirectional.topEnd,
                           children: [
@@ -591,8 +618,8 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                          child: Text(peerContactName, style: TextStyle(fontSize: 18,
-                                              fontWeight: FontWeight.w500, color: Colors.black87))),
+                                          child: Text(peerContactName, style: TextStyle(fontSize: 16,
+                                              color: Colors.black87))),
                                       buildMessageContent(message, isPeerMessage)
                                     ]
                                 ),

@@ -76,7 +76,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   @override
   preRender() {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'My Profile');
+    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Profile');
     drawer = new NavigationDrawerComponent();
   }
 
@@ -114,19 +114,27 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
   }
 
 
-  Widget buildSection(title, {text, child, titleLeftMargin: 0.0}) {
+  Widget buildSection(title, {text, child, titleLeftMargin: 0.0, IconData icon}) {
     if (child == null && text is int) {
       text = text.toString();
     }
     return Container(
       margin: EdgeInsets.only(left: 12.5, bottom: 15),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-            margin: EdgeInsets.only(left: titleLeftMargin, bottom: 5),
-            child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade800))
-        ),
-        child != null ? child : Text(text != null ? text : "")
-      ]),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          icon != null ? Container(
+              margin: EdgeInsets.only(right: 12.5),
+              child: Icon(icon, color: Colors.grey.shade700, size: 20)) : Container(),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+                margin: EdgeInsets.only(left: titleLeftMargin, bottom: 5),
+                child: Text(title, style: TextStyle(fontWeight: FontWeight.w500, color: Colors.grey.shade800))
+            ),
+            child != null ? child : Text(text != null ? text : "")
+          ]),
+        ],
+      ),
     );
   }
 
@@ -150,7 +158,6 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   Widget buildHeader() {
     return Container(
-        padding: EdgeInsets.only(top: 10, bottom: 10),
         decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [Shadows.bottomShadow()]
@@ -159,7 +166,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
           GestureDetector(
             onTap: pushProfileImageUploadActivity,
             child: Container(
-                margin: EdgeInsets.only(left: 5, right: 10),
+                margin: EdgeInsets.only(left: 5, right: 5),
                 child: Center(
                   child: Stack(
                     alignment: AlignmentDirectional.bottomEnd,
@@ -170,11 +177,10 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                             borderRadius: BorderRadius.all(Radius.circular(20))
                         ),
                         child: new RoundProfileImageComponent(url: clientDto.profileImagePath,
-                            border: Border.all(color: Colors.grey.shade200, width: 1),
-                            height: 200, width: 200, borderRadius: 20),
+                            height: 200, width: 200, borderRadius: 45),
                       ),
                       Container(
-                          margin: EdgeInsets.all(5),
+                          margin: EdgeInsets.all(10),
                           padding: EdgeInsets.all(5),
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(30),
@@ -190,12 +196,8 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 15),
+                padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 20),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(
-                    "Hello there,",
-                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w400, fontSize: 26),
-                  ),
                   Text(clientDto.firstName + ' ' + clientDto.lastName,
                       style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 29)),
                 ]),
@@ -205,17 +207,19 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
           Container(
             padding: EdgeInsets.only(left: 10, right: 10),
             child: buildTwoColumns([
-              buildSection('Phone number', text: clientDto.countryCode.dialCode + " " + clientDto.phoneNumber),
+              buildSection('Phone number',
+                  icon: Icons.phone,
+                  text: clientDto.countryCode.dialCode + " " + clientDto.phoneNumber),
             ], [
-              buildSection('Joined', text: createdAtFormatted),
+              buildSection('Joined', icon: Icons.verified_user_outlined, text: createdAtFormatted),
             ]),
           ),
           Container(
-            margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+            margin: EdgeInsets.only(left: 10, right: 10, bottom: 20),
             child: Row(
               children: [
                 Container(
-                    margin: EdgeInsets.only(right: 10, left: 12.5),
+                    margin: EdgeInsets.only(right: 15, left: 15),
                     child: CountryIconComponent
                         .buildCountryIcon(clientDto.countryCode.countryName, height: 15, width: 15)
                 ),
@@ -248,7 +252,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                     height: 20,
                     margin: EdgeInsets.only(left: 10, right: 10),
                     child: Text("Profile", style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.grey.shade800
+                        fontWeight: FontWeight.w500, color: Colors.grey.shade800
                     )),
                   ),
                   Spinner(size: 20, visible: displayProfileActionsLoader)
@@ -325,7 +329,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                     height: 20,
                     margin: EdgeInsets.only(left: 10, right: 10),
                     child: Text("Preferences", style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.grey.shade800
+                        fontWeight: FontWeight.w500, color: Colors.grey.shade800
                     )),
                   ),
                   Spinner(size: 20, visible: displaySettingsLoader)
@@ -488,9 +492,9 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
               margin: EdgeInsets.only(left: 10, right: 10),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text("QR Code", style: TextStyle(
-                    fontWeight: FontWeight.bold, color: Colors.grey.shade800
+                    fontWeight: FontWeight.w500, color: Colors.grey.shade800
                 )),
-                Text("Let contacts add you by scanning this code", style: TextStyle(
+                Text("Let contacts add you by scanning your QR Code", style: TextStyle(
                     color: Colors.grey.shade400,
                 )),
               ]),

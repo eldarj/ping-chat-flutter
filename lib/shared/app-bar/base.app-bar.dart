@@ -4,13 +4,16 @@ import 'package:flutterping/shared/component/round-profile-image.component.dart'
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
+const double APP_BAR_ELEVATION = 2.5;
+const Color APP_BAR_SHADOW_COLOR = Color.fromRGBO(0, 0, 0, 0.5);
+
 class BaseAppBar {
   static getBase(Function getContext, {
-    leading, titleWidget, titleText = '', actions, centerTitle = true, elevation: 10.0
+    leading, titleWidget, titleText = '', actions, centerTitle = true, double elevation = APP_BAR_ELEVATION
   }) {
     return AppBar(
         elevation: elevation,
-        shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
+        shadowColor: APP_BAR_SHADOW_COLOR,
         centerTitle: centerTitle,
         backgroundColor: Colors.white,
         titleSpacing: 0,
@@ -28,7 +31,6 @@ class BaseAppBar {
 
   static getBackAppBar(Function getContext, {
     titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed,
-    elevation = 10.0
   }) {
     return getBase(getContext,
         leading: BackButton(onPressed: () async {
@@ -40,14 +42,13 @@ class BaseAppBar {
 
   static getCloseAppBar(Function getContext, {
     titleWidget, titleText = '', actions, centerTitle = true, Function onBackPressed = _backPressed,
-    elevation = 10.0
   }) {
     return getBase(getContext,
+        elevation: 0.0,
         leading: CloseButton(onPressed: () async {
           await Future.delayed(Duration(milliseconds: 250));
           onBackPressed(getContext);
         }),
-        elevation: elevation,
         titleText: titleText, titleWidget: titleWidget, actions: actions, centerTitle: centerTitle);
   }
 
@@ -55,38 +56,25 @@ class BaseAppBar {
     titleWidget, titleText, actions, bottomTabs, centerTitle = true
   }) {
     return AppBar(
-        elevation: 10,
-        shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
+        elevation: APP_BAR_ELEVATION,
+        shadowColor: APP_BAR_SHADOW_COLOR,
         centerTitle: centerTitle,
         backgroundColor: Colors.white,
         bottom: bottomTabs,
-        leading: GestureDetector(
-          onTap: () {
-            scaffold.openDrawer();
-          },
-          child: Container(
-              margin: EdgeInsets.only(left: 10),
-              alignment: Alignment.center,
-              child: Stack(
-                  alignment: AlignmentDirectional.bottomEnd,
-                  children: [
-                    Container(alignment: Alignment.center,
-                        width: 45, height: 45,
-                        child: FutureBuilder(future: UserService.getUser(), builder: (context, snapshot) {
-                          return snapshot.hasData ? RoundProfileImageComponent(url: snapshot.data.profileImagePath,
-                              height: 40, width: 40, margin: 0) : Spinner();
-                        })
-                    ),
-                    Container(alignment: Alignment.center,
-                        width: 17.5, height: 17.5,
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                            boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 0.5, spreadRadius: 0.2)]
-                        ),
-                        child: Icon(Icons.menu, size: 15, color: CompanyColor.blueDark))
-                  ]
-              )
+        leadingWidth: 70,
+        leading: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              scaffold.openDrawer();
+            },
+            child: Container(
+                alignment: Alignment.center,
+                child: FutureBuilder(future: UserService.getUser(), builder: (context, snapshot) {
+                  return snapshot.hasData ? RoundProfileImageComponent(url: snapshot.data.profileImagePath,
+                      height: 40, width: 40, margin: 0) : Spinner();
+                })
+            ),
           ),
         ),
         title: titleText != null ? Text(titleText) : titleWidget,

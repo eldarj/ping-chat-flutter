@@ -142,7 +142,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getCloseAppBar(getScaffoldContext, elevation: 0.0);
+    appBar = BaseAppBar.getCloseAppBar(getScaffoldContext);
     drawer = new NavigationDrawerComponent();
   }
 
@@ -158,7 +158,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                 : Container(),
             Container(
                 color: Colors.white,
-                margin: EdgeInsets.only(left: 2.5, right: 2.5),
+                margin: EdgeInsets.only(left: 2.5, right: 2.5, bottom: 0.5),
                 child: TextField(
                   controller: searchController,
                   textInputAction: TextInputAction.search,
@@ -169,6 +169,9 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                       hintText: '',
                       prefixIcon: Icon(Icons.search),
                       labelText: 'Search by name or phone number',
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(width: 0.25, color: Colors.grey.shade800),
+                      ),
                       contentPadding: EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 15)),
                 )),
           ],
@@ -227,15 +230,12 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
         ));
       },
       child: Container(
-        decoration: BoxDecoration(
-            color: contact.favorite ? Colors.white : Colors.grey.shade50,
-            border: Border(bottom: BorderSide(color: CompanyColor.backgroundGrey, width: 1))
-        ),
-        padding: EdgeInsets.all(10),
+        color: contact.favorite ? Colors.white : Colors.grey.shade50,
+        padding: EdgeInsets.only(left: 10, right: 10, top: 7.5, bottom: 7.5),
         child: Row(
             children: [
               Container(
-                  padding: EdgeInsets.only(left: 5, right: 10),
+                  padding: EdgeInsets.only(right: 12.5),
                   child: Stack(
                       alignment: AlignmentDirectional.topEnd,
                       children: [
@@ -246,10 +246,8 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                         Container(
                             decoration: BoxDecoration(
                                 color: Colors.green,
-                                border: Border.all(color: Colors.white, width: 1.5),
-                                borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(5),
-                                    bottomLeft: Radius.circular(5))
+                                border: Border.all(color: Colors.white, width: 1),
+                                borderRadius: BorderRadius.circular(5)
                             ),
                             margin: EdgeInsets.all(5),
                             width: 10, height: 10)
@@ -341,9 +339,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                       children: [
                         Container(
                             child: Text(contact.contactName,
-                                style: TextStyle(fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87))),
+                                style: TextStyle(fontSize: 16, color: Colors.black87))),
                         infoSection
                       ]
                   ),

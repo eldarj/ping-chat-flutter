@@ -44,10 +44,7 @@ class CreateDirectoryActivityState extends BaseState<CreateDirectoryActivity> {
 
   @override
   preRender() async {
-    appBar = BaseAppBar.getCloseAppBar(
-        getScaffoldContext,
-        elevation: 0.0,
-    );
+    appBar = BaseAppBar.getCloseAppBar(getScaffoldContext);
     drawer = new NavigationDrawerComponent();
   }
 

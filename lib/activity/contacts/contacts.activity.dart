@@ -352,15 +352,12 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                 child: Column(
                   children: [
                     Container(
-                      decoration: BoxDecoration(
-                          color: contact.favorite ? Colors.white : Colors.grey.shade50,
-                          border: Border(bottom: BorderSide(color: CompanyColor.backgroundGrey, width: 1))
-                      ),
-                      padding: EdgeInsets.all(10),
+                      color: contact.favorite ? Colors.white : Colors.grey.shade50,
+                      padding: EdgeInsets.only(left: 10, right: 10, top: 7.5, bottom: 7.5),
                       child: Row(
                           children: [
                             Container(
-                                padding: EdgeInsets.only(left: 5, right: 10),
+                                padding: EdgeInsets.only(right: 12.5),
                                 child: Stack(
                                     alignment: AlignmentDirectional.topEnd,
                                     children: [
@@ -394,9 +391,7 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                                               children: [
                                                 Container(
                                                     child: Text(contact.contactName,
-                                                        style: TextStyle(fontSize: 18,
-                                                            fontWeight: FontWeight.bold,
-                                                            color: Colors.black87))
+                                                        style: TextStyle(fontSize: 16, color: Colors.black87))
                                                 ),
                                                 contact.contactUser != null ? Visibility(
                                                     visible: contact.contactUser.displayMyFullName,
