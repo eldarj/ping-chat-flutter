@@ -5,6 +5,7 @@ class ActionButton extends StatefulWidget {
   final IconData icon;
   final bool checked;
   final Color fillColor;
+  final Color iconColor;
   final Color splashColor;
   final Function() onPressed;
 
@@ -13,6 +14,7 @@ class ActionButton extends StatefulWidget {
     this.onPressed,
     this.checked = false,
     this.fillColor,
+    this.iconColor,
     this.splashColor,
   }) : super(key: key);
 
@@ -28,13 +30,15 @@ class _ActionButtonState extends State<ActionButton> {
         width: 50,
         margin: EdgeInsets.only(left: 10, right: 10),
         child: RawMaterialButton(
-          elevation: 1,
+          elevation: 0,
           shape: CircleBorder(),
           onPressed: widget.onPressed,
           child: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Icon(widget.icon, size: 25.0,
-              color: widget.fillColor != null
+              color: widget.iconColor != null
+              ? widget.iconColor
+              : widget.fillColor != null
                   ? Colors.white
                   : (widget.checked ? Colors.white : CompanyColor.blueDark),
             ),

@@ -49,6 +49,7 @@ class ChatSettingsMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, color: Colors.grey.shade700),
       onSelected: (choice) {
         if (choice == 'info') {
           NavigatorUtil.push(context, SingleContactActivity(
@@ -87,47 +88,42 @@ class ChatSettingsMenu extends StatelessWidget {
               value: 'info',
               child: Row(children: [
                 Container(
-                    width: 30,
-                    margin:EdgeInsets.only(right: 20, left: 5),
-                    child: Icon(Icons.person)),
+                    margin:EdgeInsets.only(right: 10, left: 5),
+                    child: Icon(Icons.person, color: Colors.grey.shade700, size: 17)),
                 Text('Profile')
               ])),
+          PopupMenuDivider(height: 0),
           PopupMenuItem<String>(
               value: 'media',
               child: Row(children: [
                 Container(
-                    width: 30,
-                    margin:EdgeInsets.only(right: 20, left: 5),
-                    child: Icon(Icons.image_outlined)),
+                    margin:EdgeInsets.only(right: 10, left: 5),
+                    child: Icon(Icons.image_outlined, color: Colors.grey.shade700, size: 17)),
                 Text('Shared media')
               ])),
-          PopupMenuDivider(),
           PopupMenuItem<String>(
               value: 'pinned_messages',
               child: Row(children: [
                 Container(
-                    width: 30,
-                    margin:EdgeInsets.only(right: 20, left: 5),
-                    child: Icon(Icons.push_pin_outlined)),
+                    margin:EdgeInsets.only(right: 10, left: 5),
+                    child: Icon(Icons.push_pin_outlined, color: Colors.grey.shade700, size: 17)),
                 Text('Pinned messages')
               ])),
-          PopupMenuDivider(),
+          PopupMenuDivider(height: 0),
           PopupMenuItem<String>(
               value: 'delete_contact',
               child: Row(children: [
                 Container(
-                    width: 30,
-                    margin:EdgeInsets.only(right: 20, left: 5),
-                    child: Icon(Icons.delete_outline)),
+                    margin:EdgeInsets.only(right: 10, left: 5),
+                    child: Icon(Icons.delete_outline, color: Colors.grey.shade700, size: 17)),
                 Text('Delete contact')
               ])),
           PopupMenuItem<String>(
               value: 'delete_messages',
               child: Row(children: [
                 Container(
-                    width: 30,
-                    margin:EdgeInsets.only(right: 20, left: 5),
-                    child: Icon(Icons.announcement_outlined)),
+                    margin:EdgeInsets.only(right: 10, left: 5),
+                    child: Icon(Icons.announcement_outlined, color: Colors.grey.shade700, size: 17)),
                 Text('Delete all messages')
               ])),
         ];

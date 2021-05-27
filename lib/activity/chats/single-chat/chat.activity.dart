@@ -616,7 +616,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 Padding(
                     padding: EdgeInsets.only(right: 20.0),
                     child: GestureDetector(
-                      child: Icon(Icons.call, size: 20),
+                      child: Icon(Icons.call, size: 20, color: Colors.grey.shade700),
                       onTap: () {
                         NavigatorUtil.replace(context, new CallScreenWidget(
                           target: widget.peer.fullPhoneNumber,
@@ -699,8 +699,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
                                     margin: EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
-                                      border: Border.all(color: CompanyColor.blueDark, width: 1.5),
                                       shape: BoxShape.circle,
+                                      boxShadow: [Shadows.bottomShadow()]
                                     ),
                                     child: IconButton(
                                       color: CompanyColor.blueDark,
@@ -1299,7 +1299,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.info('Contact $contactName deleted'));
 
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 3));
 
     Navigator.of(context).pop();
   }
@@ -1541,7 +1541,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     scaffold.showSnackBar(SnackBarsComponent.info('All messages deleted'));
 
 
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 3));
 
     Navigator.of(context).pop();
   }

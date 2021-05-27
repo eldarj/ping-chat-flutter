@@ -210,12 +210,13 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                   ),
                   child: buildContactProfileSection()),
               widget.peer != null ? Container(
-                  padding: EdgeInsets.only(top: 10, bottom: 25),
+                  padding: EdgeInsets.only(top: 10, bottom: 20),
                   color: Colors.white,
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     ActionButton(
                       icon: Icons.chat,
-                      fillColor: CompanyColor.bluePrimary,
+                      fillColor: Colors.grey.shade100,
+                      iconColor: CompanyColor.bluePrimary,
                       onPressed: () async {
                         if (widget.wasChatActivityPrevious) {
                           Navigator.of(context).pop();
@@ -229,7 +230,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     ),
                     ActionButton(
                       icon: Icons.phone,
-                      fillColor: CompanyColor.bluePrimary,
+                      fillColor: Colors.grey.shade100,
+                      iconColor: CompanyColor.bluePrimary,
                       onPressed: () async {
                         await Future.delayed(Duration(milliseconds: 250));
                         NavigatorUtil.push(context, new CallScreenWidget(
@@ -243,7 +245,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                     ),
                   ])) : Container(),
               Container(
-                  padding: EdgeInsets.all(10),
+                  padding: EdgeInsets.only(top: 10, bottom: 10),
                   margin: EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
                       color: Theme.of(context).backgroundColor,
@@ -337,6 +339,18 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                 Text('Chat background',
                     style: TextStyle(color: Colors.grey.shade700)),
               ]),
+              contact.backgroundImagePath == null ? Container() : Container(
+                padding: EdgeInsets.all(2.5),
+                margin: EdgeInsets.only(left: 10, right: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(2),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: CachedNetworkImage(
+                    fit: BoxFit.cover,
+                    height: 35, width: 35,
+                    imageUrl: API_BASE_URL + '/files/chats/' + contact.backgroundImagePath),
+              )
             ]
         ));
   }
@@ -359,10 +373,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                               width: 45, height: 45,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(50.0),
-                                  color: Colors.grey.shade50
+                                  color: Colors.grey.shade100
                               ),
                               child: Icon(Icons.image_outlined, color: Colors.grey.shade700, size: 20)),
-                          Container(child: Text('Chat background', style: TextStyle(color: Colors.grey.shade700))),
+                          Container(child: Text('Select a background', style: TextStyle(color: Colors.grey.shade700))),
                         ],
                       ),
                       CloseButton(onPressed: () async {
@@ -376,7 +390,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                 Expanded(
                   child: Container(
                     padding: EdgeInsets.only(bottom: 20),
-                    margin: EdgeInsets.only(left: 20, right: 20),
+                    margin: EdgeInsets.only(left: 15, right: 15),
                     child: displayBackgroundsLoader ? Center(child: Spinner()) : Align(
                       child: Opacity(
                         opacity: backgroundLoaderIndex != null ? 0.5 : 1,
@@ -386,7 +400,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                           itemCount: backgrounds.length,
                           itemBuilder: (context, index) {
                             var background = API_BASE_URL + '/files/chats/' + backgrounds[index];
-                            var backgroundWidth = DEVICE_MEDIA_SIZE.width / 2 - 50;
+                            var backgroundWidth = DEVICE_MEDIA_SIZE.width / 2;
                             return Align(
                               child: Stack(
                                 alignment: Alignment.center,
@@ -459,7 +473,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                                           width: 45, height: 45,
                                           decoration: BoxDecoration(
                                               borderRadius: BorderRadius.circular(50.0),
-                                              color: Colors.grey.shade400
+                                              color: Colors.grey.shade100
                                           ),
                                           child: Icon(Icons.edit, color: Colors.grey.shade300, size: 20)),
                                       Container(child: Text('Change contact name', style: TextStyle(color: Colors.grey.shade700))),
@@ -493,15 +507,12 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                                   decoration: InputDecoration(
                                       hintText: 'Name',
                                       labelText: 'Name',
+                                      errorText: contactNameValidationMessage.length > 0 ? contactNameValidationMessage : null,
                                       border: OutlineInputBorder(),
                                       contentPadding: EdgeInsets.all(15)),
                                 ),
                                 Container(
-                                    margin: EdgeInsets.only(top: 5, left: 2),
-                                    child: Text(contactNameValidationMessage,
-                                        style: TextStyle(color: CompanyColor.red))
-                                ),
-                                Container(
+                                  margin: EdgeInsets.only(top: 5),
                                   child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                                     GradientButton(
                                       child: displayContactNameButtonLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Save'),
@@ -767,7 +778,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
 
   Widget buildSectionHeader(title, { icon, linkWidget }) {
     return Container(
-        padding: EdgeInsets.only(top: 10, left: 10),
+        padding: EdgeInsets.only(top: 10, left: 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -996,7 +1007,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   void onUpdateContactNameSuccess(String name) async {
-    scaffold.showSnackBar(SnackBarsComponent.success('Updated name', duration: Duration(seconds: 4)));
+    scaffold.showSnackBar(SnackBarsComponent.success('Contact name updated', duration: Duration(seconds: 4)));
 
     setState(() {
       contactName = name;
@@ -1123,7 +1134,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.info('Contact $contactName deleted'));
 
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 3));
 
     if (widget.wasChatActivityPrevious) {
       Navigator.of(context).pop();
@@ -1175,7 +1186,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.info('All messages deleted'));
 
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 3));
 
     if (widget.wasChatActivityPrevious) {
       Navigator.of(context).pop();

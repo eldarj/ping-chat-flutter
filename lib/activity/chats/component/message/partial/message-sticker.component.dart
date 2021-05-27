@@ -57,9 +57,13 @@ class MessageSticker extends StatelessWidget {
             padding: EdgeInsets.all(5),
             child: Image.asset('static/graphic/sticker/' + stickerCode, height: size, width: size)
         ),
-        Container(
+        !displayTimestamp ? Container() : Container(
+          decoration: BoxDecoration(
+            color: Color.fromRGBO(255, 255, 255, 0.50),
+            borderRadius: BorderRadius.circular(10),
+          ),
           padding: EdgeInsets.only(left: 5, right: 5, top: 2.5),
-          child: !displayTimestamp ? Container() : Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(

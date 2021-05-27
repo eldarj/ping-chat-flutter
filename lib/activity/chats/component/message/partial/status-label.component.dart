@@ -47,6 +47,10 @@ class MessagePinnedLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+        decoration: BoxDecoration(
+          color: Color.fromRGBO(255, 255, 255, 0.50),
+          borderRadius: BorderRadius.circular(10),
+        ),
         padding: EdgeInsets.only(top: 3, bottom: 1, left: 5, right: 5),
         child: Row(
           children: [

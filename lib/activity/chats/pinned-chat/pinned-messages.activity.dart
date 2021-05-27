@@ -119,7 +119,7 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: BaseAppBar.getBackAppBar(getScaffoldContext, centerTitle: false, titleText: 'Pinned'),
+        appBar: BaseAppBar.getBackAppBar(getScaffoldContext, centerTitle: false, titleText: 'Pinned messages'),
         body: Builder(builder: (context) {
           scaffold = Scaffold.of(context);
           return Container(

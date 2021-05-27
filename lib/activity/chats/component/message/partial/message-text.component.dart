@@ -50,7 +50,7 @@ class MessageText extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Container(
-              child: Text(message.text,
+              child: Text(message.text ?? '',
                   style: TextStyle(
                       fontSize: 16,
                       color: textColor
