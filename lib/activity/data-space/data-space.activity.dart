@@ -83,6 +83,9 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
   Queue<DSNodeDto> nodeBreadcrumbs = new Queue();
 
+  bool multiSelectEnabled = false;
+  int multiSelectCount = 0;
+
   openFilePicker() async {
     files = await FilePicker.getMultiFile();
 
@@ -241,6 +244,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
               titleText: currentDirectoryNodeName,
               onBackPressed: onBackPressed,
               actions: [
+                buildMultiSelectAction(),
                 buildCreateDirectoryButton(),
                 buildDeleteDirectoryButton(),
                 buildDeleteContentButton(),
@@ -357,7 +361,12 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
 
       if (!isFileValid) {
         _w = GestureDetector(
-            onTapDown: (details) {
+            onLongPressStart: (details) {
+              onNodeSelected(node);
+            },
+            onTapDown: multiSelectEnabled ? (_) {
+              onNodeSelected(node);
+            } : (details) {
               showMenu(
                 context: scaffold.context,
                 position: RelativeRect.fromLTRB(details.globalPosition.dx - 25, details.globalPosition.dy - 50, 1000, 1000),
@@ -371,11 +380,18 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
                 }
               });
             },
-            child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400));
+            child: Container(
+                color: Colors.grey.shade100,
+                child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400)));
       } else if (node.nodeType == 'IMAGE' || node.nodeType == 'MAP_LOCATION') {
         var imageSize = DEVICE_MEDIA_SIZE.width / gridHorizontalSize;
-        _w = GestureDetector(
-          onTap: () async {
+        _w = InkWell(
+          onLongPress: () {
+            onNodeSelected(node);
+          },
+          onTap: multiSelectEnabled ? () {
+            onNodeSelected(node);
+          } : () async {
             NavigatorUtil.push(scaffold.context,
                 ImageViewerActivity(
                     nodeId: node.id,
@@ -385,7 +401,6 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             );
           },
           child: Container(
-            color: Colors.grey.shade200,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -398,11 +413,11 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
           ),
         );
       } else if (node.nodeType == 'RECORDING') {
-        _w = DSRecording(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
+        _w = DSRecording(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected);
       } else if (node.nodeType == 'MEDIA') {
-        _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
+        _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected);
       } else if (node.nodeType == 'FILE') {
-        _w = DSDocument(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath);
+        _w = DSDocument(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected);
       } else {
         _w = Container(
             color: Colors.grey.shade100,
@@ -410,15 +425,62 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
       }
     }
 
-    return _w;
+    return Container(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+              height: DEVICE_MEDIA_SIZE.width / gridHorizontalSize,
+              width: DEVICE_MEDIA_SIZE.width / gridHorizontalSize,
+              child: _w),
+          IgnorePointer(
+            ignoring: node.nodeType == 'DIRECTORY' ? false : true,
+            child: Container(
+              child: multiSelectEnabled ? Container(
+                  color: Colors.black45,
+                  height: DEVICE_MEDIA_SIZE.width / gridHorizontalSize,
+                  width: DEVICE_MEDIA_SIZE.width / gridHorizontalSize,
+                  child: node.nodeType == 'DIRECTORY'
+                      ? Container()
+                      : Align(
+                        child: Container(
+                            decoration: BoxDecoration(
+                              color: node.selected != null && node.selected ? Colors.green : Colors.transparent,
+                              borderRadius: BorderRadius.circular(2.5),
+                            ),
+                            child: node.selected != null && node.selected
+                                ? Icon(Icons.check, size: 20, color: Colors.white)
+                                : Icon(Icons.check_box_outline_blank_rounded, size: 27, color: Color.fromRGBO(255, 255, 255, 0.5)),
+                        ))
+                  ) : Container()
+              ),
+            ),
+        ]
+      )
+    );
+  }
+
+  onNodeSelected(node) {
+    if (node.selected != null && node.selected) {
+      setState(() {
+        node.selected = false;
+        --multiSelectCount;
+      });
+    } else {
+      setState(() {
+        node.selected = true;
+        multiSelectEnabled = true;
+        ++multiSelectCount;
+      });
+    }
   }
 
   Widget buildDeleteDirectoryButton() {
     Widget _w = Container();
 
-    if (currentDirectoryNodeId != 0 && !['Sent', 'Received'].contains(currentDirectoryNodeName)) {
+    if (!multiSelectEnabled && currentDirectoryNodeId != 0 && !['Sent', 'Received'].contains(currentDirectoryNodeName)) {
       _w = Container(
-        width: 60,
+        padding: EdgeInsets.only(left: 10, right: 10),
         child: LoadingButton(
             icon: Icons.delete_outline,
             disabled: displayUploadingFiles || displayLoader,
@@ -445,14 +507,14 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   Widget buildDeleteContentButton() {
     Widget _w = Container();
 
-    if (currentDirectoryNodeId == 0 || ['Sent', 'Received'].contains(currentDirectoryNodeName)) {
+    if (!multiSelectEnabled && currentDirectoryNodeId == 0 || ['Sent', 'Received'].contains(currentDirectoryNodeName)) {
 
       bool disabled = isError || displayLoader || displayUploadingFiles || nodes == null || nodes.length <= 0 || (currentDirectoryNodeId == 0 && nodes.length <= 2);
 
       _w = Container(
-        width: 60,
+        padding: EdgeInsets.only(left: 10, right: 10),
         child: LoadingButton(
-            icon: Icons.delete_sweep_outlined,
+            icon: Icons.delete_outlined,
             displayLoader: displayDeleteLoader,
             disabled: disabled,
             loaderSize: 25,
@@ -474,10 +536,40 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     return _w;
   }
 
+  Widget buildMultiSelectAction() {
+    Widget w = Container();
+
+    if (multiSelectEnabled) {
+      return Row(
+        children: [
+          Text('Selected $multiSelectCount', style: TextStyle(
+              fontSize: 16
+          )),
+          Container(
+            padding: EdgeInsets.only(left: 10, right: 10),
+            child: LoadingButton(
+              icon: Icons.close,
+                displayLoader: displayDeleteLoader,
+                onPressed: () {
+                setState(() {
+                  nodes.forEach((n) { n.selected = false; });
+                  multiSelectEnabled = false;
+                  multiSelectCount = 0;
+                });
+              }
+            ),
+          )
+        ]
+      );
+    }
+
+    return w;
+  }
+
   Widget buildCreateDirectoryButton() {
     Widget w = Container();
 
-    if (!['Sent', 'Received'].contains(currentDirectoryNodeName)) {
+    if (!multiSelectEnabled && !['Sent', 'Received'].contains(currentDirectoryNodeName)) {
       w = LoadingButton(
           icon: Icons.create_new_folder_outlined,
           disabled: isError || displayUploadingFiles || displayLoader,
@@ -497,7 +589,24 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   buildFloatingActionButton() {
     Widget _w;
 
-    if (!displayUploadingFiles && !displayLoader && !isError) {
+    if (multiSelectEnabled) {
+      _w = FloatingActionButton(
+        elevation: 1,
+        backgroundColor: displayDeleteLoader ? Color.fromRGBO(255, 105, 95, 1) : CompanyColor.red,
+        child: Icon(Icons.delete_outlined, color: Colors.white),
+        onPressed: displayDeleteLoader ? null : () {
+          var dialog = GenericAlertDialog(
+              title: 'Delete',
+              message: 'Are you sure you want to delete $multiSelectCount items?',
+              onPostivePressed: () {
+                doDeleteSelected();
+              },
+              positiveBtnText: 'Delete',
+              negativeBtnText: 'Cancel');
+          showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
+        },
+      );
+    } else if (!displayUploadingFiles && !displayLoader && !isError) {
       _w = FloatingActionButton(
         elevation: 1,
         backgroundColor: CompanyColor.blueDark,
@@ -630,6 +739,65 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   }
 
   onDeleteMessageError(error) {
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.error());
+  }
+
+  // Delete multiple messages
+  doDeleteSelected() async {
+    setState(() {
+      displayDeleteLoader = true;
+    });
+
+    List<DSNodeDto> selectedNodes = nodes.where((node) => node.selected).toList();
+
+    await Future.delayed(Duration(milliseconds: 500));
+
+    List<Future> deleteTasks = selectedNodes.map((node) async {
+      try {
+        var file = File(picturesPath + '/' + node.nodeName);
+        file.delete();
+      } catch(ignored) {}
+
+      String url = '/api/data-space'
+          '?nodeId=' + node.id.toString() +
+          '&fileName=' + basename(node.nodeName);
+
+      http.Response response = await HttpClientService.delete(url);
+
+      if (response.statusCode != 200) {
+        throw Exception();
+      }
+
+      return node;
+    }).toList();
+
+    Future.wait(deleteTasks).then(onDeleteSelectedSuccess, onError: onDeleteSelectedError);
+  }
+
+  onDeleteSelectedSuccess(selectedNodes) async {
+    setState(() {
+      displayDeleteLoader = false;
+      multiSelectEnabled = false;
+      multiSelectCount = 0;
+    });
+
+    scaffold.removeCurrentSnackBar();
+    scaffold.showSnackBar(SnackBarsComponent.info(
+        'Deleted ${selectedNodes.length} item' + (selectedNodes.length > 1 ? 's' : '')
+    ));
+    selectedNodes.forEach((node) {
+      dataSpaceDeletePublisher.subject.add(node.id);
+    });
+  }
+
+  onDeleteSelectedError(error) {
+    setState(() {
+      displayDeleteLoader = false;
+      multiSelectEnabled = false;
+      multiSelectCount = 0;
+    });
+
     scaffold.removeCurrentSnackBar();
     scaffold.showSnackBar(SnackBarsComponent.error());
   }

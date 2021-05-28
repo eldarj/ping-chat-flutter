@@ -33,10 +33,10 @@ class MessageSendingService {
     return message;
   }
 
-  void sendPinnedInfoMessage() {
+  void sendPinnedInfoMessage(pinned) {
     MessageDto message = _create();
     message.messageType = 'PIN_INFO';
-    message.pinned = true;
+    message.pinned = pinned;
 
     wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
   }

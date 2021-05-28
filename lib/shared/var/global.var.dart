@@ -47,6 +47,7 @@ class CompanyColor {
   static Color accentPurpleDark = Color.fromRGBO(63, 58, 96, 1);
 
   static Color red = Color.fromRGBO(231, 76, 60, 1);
+  static Color redAccent = Color.fromRGBO(241, 86, 80, 1);
   static Color green = Colors.green.shade400;
 
   static Color grey = Colors.grey;

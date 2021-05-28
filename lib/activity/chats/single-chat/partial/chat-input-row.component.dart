@@ -232,7 +232,9 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
           children: [
             buildTopDetailsSection(),
             Container(
-                height: 90,
+                constraints: BoxConstraints(
+                  maxHeight: 100, minHeight: 90
+                ),
                 width: DEVICE_MEDIA_SIZE.width,
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -245,8 +247,10 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          height: 45,
-                          constraints: BoxConstraints(maxWidth: DEVICE_MEDIA_SIZE.width), // TODO: Dynamic width
+                          constraints: BoxConstraints(
+                              minHeight: 45,
+                              maxHeight: 55,
+                              maxWidth: DEVICE_MEDIA_SIZE.width - 65), // TODO: Dynamic width
                           padding: EdgeInsets.only(left: 15),
                           child: TextField(
                             cursorHeight: 18,

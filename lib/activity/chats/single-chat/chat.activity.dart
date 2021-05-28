@@ -917,6 +917,8 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   Widget buildSingleMessage(int index, MessageDto message, {isLastMessage, isFirstMessage = false}) {
+    Widget _w;
+
     bool nextIsSticker = false;
     bool chained = false;
 
@@ -941,11 +943,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
     message.widgetKey = new GlobalKey();
 
     if (message.messageType == 'PIN_INFO') {
-      return Container(
+      _w = Container(
           margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 25 : 0),
           child: InfoMessageComponent(key: message.widgetKey, message: message, isPeerMessage: isPeerMessage, isPinnedMessage: isPinnedMessage));
     } else if (isPeerMessage) {
-      return PeerMessageComponent(
+      _w = PeerMessageComponent(
         key: message.widgetKey,
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
             left: 5, right: 5,
@@ -958,7 +960,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       );
 
     } else {
-      return MessageComponent(
+      _w = MessageComponent(
         myMessageTheme,
         key: message.widgetKey,
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0,
@@ -972,6 +974,10 @@ class ChatActivityState extends BaseState<ChatActivity> {
         onMessageTapDown: () => onMessageTapDown(message)
       );
     }
+
+    return Container(
+      child: _w
+    );
   }
 
   onOpenStickerBar() {
@@ -1625,7 +1631,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
   }
 
   onPinSuccess(message, pinned) {
-    widget.messageSendingService.sendPinnedInfoMessage();
+    widget.messageSendingService.sendPinnedInfoMessage(pinned);
 
     setState(() {
       message.pinned = pinned;

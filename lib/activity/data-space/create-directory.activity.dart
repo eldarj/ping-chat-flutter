@@ -86,16 +86,17 @@ class CreateDirectoryActivityState extends BaseState<CreateDirectoryActivity> {
                 TextField(
                   autofocus: true,
                   controller: directoryNameController,
+                  textCapitalization: TextCapitalization.words,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                       hintText: 'Directory name',
                       labelText: 'Directory name',
+                      errorText: directoryNameValidationMessage != null && directoryNameValidationMessage.length > 0 ? directoryNameValidationMessage : null,
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.all(15)),
                 ),
-                Container(margin: EdgeInsets.only(top: 5, left: 2),
-                    child: Text(directoryNameValidationMessage, style: TextStyle(color: CompanyColor.red))),
                 Container(
+                  margin: EdgeInsets.only(top: 5),
                   child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     GradientButton(
                       child: displayLoader ? Container(height: 20, width: 20, child: Spinner()) : Text('Save'),

@@ -89,7 +89,7 @@ class ChatSettingsMenu extends StatelessWidget {
               child: Row(children: [
                 Container(
                     margin:EdgeInsets.only(right: 10, left: 5),
-                    child: Icon(Icons.person, color: CompanyColor.iconGrey, size: 17)),
+                    child: Icon(Icons.alternate_email, color: CompanyColor.iconGrey, size: 17)),
                 Text('Profile')
               ])),
           PopupMenuDivider(height: 0),

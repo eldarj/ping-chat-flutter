@@ -22,7 +22,12 @@ class DSMedia extends StatefulWidget {
 
   final int gridHorizontalSize;
 
-  const DSMedia({Key key, this.node, this.picturesPath, this.gridHorizontalSize}) : super(key: key);
+  final Function(DSNodeDto) onNodeSelected;
+
+  final bool multiSelectEnabled;
+
+  const DSMedia({Key key, this.node, this.picturesPath, this.gridHorizontalSize, this.onNodeSelected,
+    this.multiSelectEnabled = false}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => DSMediaState();
@@ -49,61 +54,66 @@ class DSMediaState extends BaseState<DSMedia> {
     String title = widget.node.nodeName;
     filePath = widget.picturesPath + '/' + widget.node.nodeName;
 
-    return GestureDetector(
-      onTap: () async {
-        OpenFile.open(filePath);
-      },
-      onLongPressStart: (details) {
-        showDSMenu(details);
-      },
-      child: Container(
-          color: Colors.grey.shade200,
-          child: Stack(
-            alignment: Alignment.topRight,
-            children: [
-              Container(
-                padding: EdgeInsets.only(left: 10, top: 10, bottom: 10),
-                child: Row(
-                  children: [
-                    widget.gridHorizontalSize == 4 ? Container() : Container(
-                      margin: EdgeInsets.only(right: 5),
-                      child: Container(
-                          width: iconContainerSize, height: iconContainerSize,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              color: CompanyColor.accentGreenLight
-                          ),
-                          child: Icon(Icons.ondemand_video, color: Colors.grey.shade100, size: iconSize)),
-                    ),
-                    Container(
-                      width: nameContainerSize,
-                      alignment: Alignment.centerLeft,
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(title, overflow: TextOverflow.ellipsis, maxLines: 3),
-                            Text(widget.node.fileSizeFormatted(), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                          ]),
-                    )
-                  ],
+    return Material(
+      color: Colors.grey.shade200,
+      child: InkWell(
+        onTap: widget.multiSelectEnabled ? () {
+          widget.onNodeSelected.call(widget.node);
+        } : () async {
+          OpenFile.open(filePath);
+        },
+        onLongPress: widget.multiSelectEnabled ? () {
+          widget.onNodeSelected.call(widget.node);
+        } : null,
+        child: Container(
+            child: Stack(
+              alignment: Alignment.topRight,
+              children: [
+                Container(
+                  padding: EdgeInsets.only(left: 10, top: 10, bottom: 10),
+                  child: Row(
+                    children: [
+                      widget.gridHorizontalSize == 4 ? Container() : Container(
+                        margin: EdgeInsets.only(right: 5),
+                        child: Container(
+                            width: iconContainerSize, height: iconContainerSize,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50),
+                                color: CompanyColor.accentGreenLight
+                            ),
+                            child: Icon(Icons.ondemand_video, color: Colors.grey.shade100, size: iconSize)),
+                      ),
+                      Container(
+                        width: nameContainerSize,
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(title, overflow: TextOverflow.ellipsis, maxLines: 3),
+                              Text(widget.node.fileSizeFormatted(), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                            ]),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              buildMoreButton(),
-            ],
-          )),
+                buildMoreButton(),
+              ],
+            )),
+      ),
     );
   }
 
   GestureDetector buildMoreButton() {
     return GestureDetector(
         onTapDown: (details) async {
-          showDSMenu(details);
+          widget.multiSelectEnabled ? () {} : showDSMenu(details);
         },
         child: Container(
-          alignment: Alignment.center,
+          alignment: Alignment.topRight,
+          padding: EdgeInsets.only(top: 7.5, right: 2.5),
           constraints: BoxConstraints(
-              maxWidth: 25, maxHeight: 35
+              maxWidth: 50, maxHeight: 50
           ),
           child: Icon(Icons.more_vert_rounded, color: Colors.grey, size: 20),
         )

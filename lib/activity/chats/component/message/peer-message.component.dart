@@ -91,23 +91,22 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
   Widget build(BuildContext context) {
     scaffold = Scaffold.of(context);
 
-    return GestureDetector(
-      onTapUp: resolveMessageTapHandler(),
-      onLongPressStart: (_) {
-        widget.onMessageTapDown.call();
-      },
-      onDoubleTap: () {
-        widget.onMessageTapDown.call();
-      },
-      child: Container(
-        margin: widget.margin,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: resolveMessageTapHandler(),
+        onLongPress: widget.onMessageTapDown,
+        onDoubleTap: widget.onMessageTapDown,
         child: Container(
-          margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 2.5 : 5),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildMessageContent(),
-                buildPinnedLabel(),
-              ]),
+          margin: widget.margin,
+          child: Container(
+            margin: EdgeInsets.only(left: 5, right: 5, top: 2.5, bottom: widget.chained || widget.isPinnedMessage ? 2.5 : 5),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  buildMessageContent(),
+                  buildPinnedLabel(),
+                ]),
+          ),
         ),
       ),
     );
@@ -214,9 +213,14 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
         ));
   }
 
-  buildProgressIndicator(totalDurationInSeconds) {
+  buildProgressIndicator(durationInMillis) {
     var maxWidth = DEVICE_MEDIA_SIZE.width - 240;
-    var currentWidth = (recordingCurrentPositionMillis / totalDurationInSeconds) * (maxWidth);
+
+    if (durationInMillis < 100) {
+      durationInMillis = 100;
+    }
+
+    var currentWidth = (recordingCurrentPositionMillis / durationInMillis) * (maxWidth);
 
     return Stack(
       alignment: Alignment.centerLeft,
@@ -337,7 +341,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
   // Message tap handler
   resolveMessageTapHandler() {
-    Function messageTapHandler = (_) {};
+    Function messageTapHandler = () {};
 
     String filePath;
 
@@ -355,17 +359,17 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
     }
 
     // if (widget.message.deleted) {
-    //   messageTapHandler = (_) {};
+    //   messageTapHandler = () {};
     //
     // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
     if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
-      messageTapHandler = (_) async {
+      messageTapHandler = () async {
         OpenFile.open(filePath);
       };
 
     } else if (widget.message.messageType == 'RECORDING') {
       if (!widget.message.isUploading) {
-        messageTapHandler = (_) async {
+        messageTapHandler = () async {
           if (widget.message.isRecordingPlaying) {
             await audioPlayer.stop();
           } else {
@@ -376,7 +380,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
 
     } else if (widget.message.messageType == 'IMAGE') {
       if (!widget.message.isUploading) {
-        messageTapHandler = (_) async {
+        messageTapHandler = () async {
           NavigatorUtil.push(context,
               ImageViewerActivity(message: widget.message,
                   messageId: widget.message.id,
@@ -387,7 +391,7 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
       }
     } else if (widget.message.messageType == 'MAP_LOCATION') {
       if (!widget.message.isUploading) {
-        messageTapHandler = (_) async {
+        messageTapHandler = () async {
           NavigatorUtil.push(context,
               ImageViewerActivity(message: widget.message,
                   messageId: widget.message.id,

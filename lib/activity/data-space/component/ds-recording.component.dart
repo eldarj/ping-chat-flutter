@@ -22,7 +22,12 @@ class DSRecording extends StatefulWidget {
 
   final int gridHorizontalSize;
 
-  const DSRecording({Key key, this.node, this.picturesPath, this.gridHorizontalSize}) : super(key: key);
+  final Function(DSNodeDto) onNodeSelected;
+
+  final bool multiSelectEnabled;
+
+  const DSRecording({Key key, this.node, this.picturesPath, this.gridHorizontalSize, this.onNodeSelected,
+    this.multiSelectEnabled = false}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => DSRecordingState();
@@ -115,62 +120,71 @@ class DSRecordingState extends BaseState<DSRecording> {
 
     progressIndicator = buildProgressIndicator(durationInMillis - 950, Colors.grey.shade500, Colors.indigo);
 
-    return GestureDetector(
-      onTap: () async {
-        if (isRecordingPlaying) {
-          await audioPlayer.stop();
-        } else {
-          await audioPlayer.play(filePath, isLocal: true);
-        }
-      },
-      onLongPressStart: (details) {
-        showDSMenu(details);
-      },
-      child: Container(
-          color: Colors.grey.shade200,
-          child: Stack(
-            alignment: Alignment.topRight,
-            children: [
-              Container(
-                padding: EdgeInsets.only(left: 10, top: 10, bottom: 10),
-                child: Row(
-                  children: [
-                    widget.gridHorizontalSize == 4 ? Container() : Container(
-                      margin: EdgeInsets.only(right: 5),
-                      child: Container(
-                          width: iconContainerSize, height: iconContainerSize,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              color: Colors.indigo
-                          ),
-                          child: iconWidget),
-                    ),
-                    Container(
-                      width: nameContainerSize,
-                      alignment: Alignment.centerLeft,
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                                height: 15,
-                                child: isRecordingPlaying
-                                    ? progressIndicator
-                                    : Text(title, overflow: TextOverflow.ellipsis, maxLines: 3)),
-                            Text(widget.node.fileSizeFormatted(), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                          ]),
-                    )
-                  ],
+    return Material(
+      color: Colors.grey.shade200,
+      child: InkWell(
+        onTap: widget.multiSelectEnabled ? () {
+          widget.onNodeSelected.call(widget.node);
+        } : () async {
+          if (isRecordingPlaying) {
+            await audioPlayer.stop();
+          } else {
+            await audioPlayer.play(filePath, isLocal: true);
+          }
+        },
+        onLongPress: widget.multiSelectEnabled ? () {
+          widget.onNodeSelected.call(widget.node);
+        } : null,
+        child: Container(
+            child: Stack(
+              alignment: Alignment.topRight,
+              children: [
+                Container(
+                  padding: EdgeInsets.only(left: 10, top: 10, bottom: 10),
+                  child: Row(
+                    children: [
+                      widget.gridHorizontalSize == 4 ? Container() : Container(
+                        margin: EdgeInsets.only(right: 5),
+                        child: Container(
+                            width: iconContainerSize, height: iconContainerSize,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50),
+                                color: Colors.indigo
+                            ),
+                            child: iconWidget),
+                      ),
+                      Container(
+                        width: nameContainerSize,
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                  height: 15,
+                                  child: isRecordingPlaying
+                                      ? progressIndicator
+                                      : Text(title, overflow: TextOverflow.ellipsis, maxLines: 3)),
+                              Text(widget.node.fileSizeFormatted(), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                            ]),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              buildMoreButton(),
-            ],
-          )),
+                buildMoreButton(),
+              ],
+            )),
+      ),
     );
   }
 
   buildProgressIndicator(durationInMillis, loaderColor, progressColor) {
     var maxWidth = nameContainerSize - 10;
+
+    if (durationInMillis < 100) {
+      durationInMillis = 100;
+    }
+
     var currentWidth = (recordingCurrentPositionMillis / durationInMillis) * (maxWidth);
 
     return Stack(
@@ -190,13 +204,13 @@ class DSRecordingState extends BaseState<DSRecording> {
   buildMoreButton() {
     return GestureDetector(
         onTapDown: (details) async {
-          showDSMenu(details);
+          widget.multiSelectEnabled ? () {} : showDSMenu(details);
         },
         child: Container(
-          padding: EdgeInsets.only(left: 10, bottom: 10),
-          alignment: Alignment.center,
+          alignment: Alignment.topRight,
+          padding: EdgeInsets.only(top: 7.5, right: 2.5),
           constraints: BoxConstraints(
-              maxWidth: 35, maxHeight: 45
+              maxWidth: 50, maxHeight: 50
           ),
           child: Icon(Icons.more_vert_rounded, color: Colors.grey, size: 20),
         )

@@ -9,6 +9,7 @@ import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/status-label.component.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
+import 'package:flutterping/activity/profile/my-profile.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
@@ -391,7 +392,27 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   @override
   Widget build(BuildContext context) {
     return displayApp ? Scaffold(
-        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Chats'),
+        appBar: BaseAppBar.getProfileAppBar(scaffold, titleText: 'Chats',
+            actions: [
+              Container(
+                width: 25, height: 25,
+                margin: EdgeInsets.all(15),
+                child: Material(
+                  color: Colors.red,
+                  clipBehavior: Clip.hardEdge,
+                  borderRadius: BorderRadius.circular(100),
+                  child: InkWell(
+                    child: Container(
+                        child: Icon(Icons.alternate_email, size: 16, color: Colors.white)
+                    ),
+                    onTap: () {
+                      NavigatorUtil.push(context, MyProfileActivity());
+                    }
+                  )
+                ),
+              ),
+            ]
+        ),
         drawer: NavigationDrawerComponent(),
         bottomNavigationBar: new BottomNavigationComponent(currentIndex: 0).build(context),
         floatingActionButton: FloatingActionButton(

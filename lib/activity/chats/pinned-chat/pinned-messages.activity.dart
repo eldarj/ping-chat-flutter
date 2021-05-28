@@ -217,13 +217,18 @@ class PinnedMessagesActivityState extends BaseState<PinnedMessagesActivity> {
               color: Colors.grey.shade400,
             )),
             TextButton(
+                style: TextButton.styleFrom(backgroundColor: Colors.grey.shade200),
                 onPressed: message.pinLoading ? null : () {
                   doUpdatePinStatus(message).then(onPinSuccess, onError: onPinError);
                 },
-                style: TextButton.styleFrom(backgroundColor: Colors.grey.shade200),
                 child: Row(
                   children: [
-                    message.pinLoading ? Spinner(size: 20) : Text('Unpin', style: TextStyle(color: Colors.grey.shade600)),
+                    message.pinLoading ? Spinner(size: 20) : Row(children: [
+                      Text('Unpin', style: TextStyle(color: Colors.grey.shade600)),
+                      Container(
+                          margin: EdgeInsets.only(left: 5, top: 1),
+                          child: Icon(Icons.push_pin_outlined, size: 14, color: Colors.grey.shade600)),
+                    ]),
                   ],
                 ))
           ],
