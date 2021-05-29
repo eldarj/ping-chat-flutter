@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
+import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/model/reply-dto.model.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
@@ -11,6 +13,7 @@ import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/dialog/generic-alert.dialog.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
@@ -24,6 +27,8 @@ class ImageViewerActivity extends StatefulWidget {
 
   final int nodeId;
 
+  final DSNodeDto node;
+
   final MessageDto message;
 
   final File file;
@@ -36,11 +41,15 @@ class ImageViewerActivity extends StatefulWidget {
 
   final ReplyDto reply;
 
+  final bool displayShare;
+
+  final String picturesPath;
+
   const ImageViewerActivity({Key key,
     this.message,
-    this.messageId, this.nodeId,
+    this.messageId, this.nodeId, this.node,
     this.file, this.sender, this.timestamp, this.contactName,
-    this.reply
+    this.reply, this.displayShare = false, this.picturesPath
   }) : super(key: key);
 
   @override
@@ -89,19 +98,39 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                   height: 85, color: Colors.black87,
                   padding: EdgeInsets.only(top: 30, left: 5, right: 10),
                   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    IconButton(onPressed: () {
-                      Navigator.pop(context);
-                    }, icon: Icon(Icons.close), color: Colors.white),
+                    LoadingButton(
+                        icon: Icons.close,
+                        color: Colors.white,
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                    ),
                     Container(child: Row(
                       children: <Widget>[
-                        IconButton(onPressed: () {
-                          Share.shareFiles([widget.file.path]);
-                        }, icon: Icon(Icons.share), color: Colors.white),
+                        LoadingButton(
+                            icon: Icons.share,
+                            color: Colors.white,
+                            onPressed: () {
+                              Share.shareFiles([widget.file.path]);
+                            },
+                        ),
+                        !widget.displayShare ? Container() : LoadingButton(
+                          icon: Icons.send_rounded,
+                          color: Colors.white,
+                          onPressed: () {
+                            NavigatorUtil.push(context, SearchContactsActivity(
+                              sharedNode: widget.node,
+                              sharedFile: widget.file,
+                              picturesPath: widget.picturesPath,
+                              type: SearchContactsType.SHARE
+                            ));
+                          },
+                        ),
                         LoadingButton(child: Icon(Icons.delete, color: Colors.white),
                             displayLoader: displayLoader, onPressed: () {
                               var dialog = GenericAlertDialog(
                                   title: "Delete",
-                                  message: "Both the message and image will be deleted from the device as well",
+                                  message: "Both the message ass well as the image will be deleted from the device",
                                   onPostivePressed: () {
                                     doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
                                   },

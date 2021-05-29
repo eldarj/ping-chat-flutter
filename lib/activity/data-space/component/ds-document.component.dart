@@ -2,14 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/ds-node-dto.model.dart';
 import 'package:flutterping/service/data-space/data-space-delete.publisher.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
+import 'package:flutterping/shared/modal/floating-modal.dart';
 import 'package:flutterping/shared/var/global.var.dart';
+import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart';
 
@@ -24,8 +28,13 @@ class DSDocument extends StatefulWidget {
 
   final bool multiSelectEnabled;
 
+  final bool displayShare;
+
+  final File file;
+
   const DSDocument({Key key, this.node, this.picturesPath, this.gridHorizontalSize, this.onNodeSelected,
-    this.multiSelectEnabled = false}) : super(key: key);
+    this.multiSelectEnabled = false,
+    this.displayShare = false, this.file}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => DSDocumentState();
@@ -102,38 +111,101 @@ class DSDocumentState extends BaseState<DSDocument> {
     );
   }
 
-  GestureDetector buildMoreButton() {
-    return GestureDetector(
-      onTapDown: (details) async {
-        widget.multiSelectEnabled ? () {} : showDSMenu(details);
-      },
-      child: Container(
-        alignment: Alignment.topRight,
-        padding: EdgeInsets.only(top: 7.5, right: 2.5),
-        constraints: BoxConstraints(
-            maxWidth: 50, maxHeight: 50
-        ),
-        child: Icon(Icons.more_vert_rounded, color: Colors.grey, size: 20),
-      )
+  buildMoreButton() {
+    return Material(
+      color: Colors.grey.shade200,
+      child: InkWell(
+          onTap: () async {
+            widget.multiSelectEnabled ? () {} : showDSMenu();
+          },
+          child: Container(
+            height: 35, width: 25,
+            alignment: Alignment.topRight,
+            padding: EdgeInsets.only(top: 7.5, right: 2.5),
+            child: Icon(Icons.more_vert_rounded, color: Colors.grey, size: 20),
+          )
+      ),
     );
   }
 
-  void showDSMenu(details) {
-    showMenu(
-      context: scaffold.context,
-      position: RelativeRect.fromLTRB(details.globalPosition.dx, details.globalPosition.dy, 100000, 0),
-      elevation: 8.0,
-      items: [
-        PopupMenuItem(value: 'DELETE', child: Text("Delete")),
-        PopupMenuItem(value: 'OPEN', child: Text("Open")),
-      ],
-    ).then((value) {
-      if (value == 'DELETE') {
-        doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
-      } else if (value == 'OPEN') {
-        OpenFile.open(filePath);
-      }
-    });
+  showDSMenu() {
+    List<Widget> items = [];
+    items.add(ListTile(leading: Icon(Icons.radio_button_checked_rounded),
+        title: Text('Open'),
+        onTap: () {
+          Navigator.of(scaffold.context).pop();
+          OpenFile.open(filePath);
+        }));
+
+    if (widget.displayShare) {
+      items.add(ListTile(leading: Icon(Icons.send),
+          title: Text('Send'),
+          onTap: () {
+            NavigatorUtil.replace(scaffold.context, SearchContactsActivity(
+                sharedNode: widget.node,
+                sharedFile: widget.file,
+                picturesPath: widget.picturesPath,
+                type: SearchContactsType.SHARE
+            ));
+          }));
+    }
+
+    items.add(ListTile(
+        leading: Icon(Icons.delete_outline),
+        title: Text('Delete'),
+        onTap: () {
+          Navigator.of(scaffold.context).pop();
+          doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
+        }));
+
+    showCustomModalBottomSheet(context: scaffold.context,
+        expand: false,
+        containerWidget: (_, animation, child) => FloatingModal(child: child),
+        builder: (BuildContext context) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [Shadows.bottomShadow()]
+                ),
+                padding: EdgeInsets.only(left: 20, right: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(top: 15, bottom: 15),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('DOCUMENT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade500)),
+                            Container(
+                              width: DEVICE_MEDIA_SIZE.width - 80,
+                              child: Text(widget.node.nodeName,
+                                  overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ]
+                      ),
+                    ),
+                    Container(
+                      child: IconButton(
+                        icon: Icon(Icons.close),
+                        iconSize: 25,
+                        onPressed: () {
+                          Navigator.of(scaffold.context).pop();
+                        },
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              Wrap(children: items),
+            ],
+          );
+        });
   }
 
   Future doDeleteMessage() async {

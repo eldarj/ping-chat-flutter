@@ -15,6 +15,8 @@ class LoadingButton extends StatefulWidget {
 
   final IconData icon;
 
+  final color;
+
   const LoadingButton({
     Key key,
     this.onPressed,
@@ -23,6 +25,7 @@ class LoadingButton extends StatefulWidget {
     this.displayLoader = false,
     this.disabled = false,
     this.loaderSize,
+    this.color
   }) : super(key: key);
 
   @override
@@ -36,9 +39,9 @@ class LoadingButtonState extends State<LoadingButton> {
     Widget _child;
 
     if (widget.icon != null) {
-      _child = Icon(widget.icon, color: widget.disabled ? Colors.grey.shade300 : Colors.grey.shade600);
+      _child = Icon(widget.icon, color: widget.disabled ? Colors.grey.shade300 : widget.color ?? Colors.grey.shade600);
     } else {
-      _child = widget.child;
+      _child = widget.child ?? Container();
     }
 
     return Material(

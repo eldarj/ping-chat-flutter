@@ -89,18 +89,20 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   openFilePicker() async {
     files = await FilePicker.getMultiFile();
 
-    List<Future> uploadTasks = files.map((e) => prepareUploadFiles(e))
-        .toList();
+    if (files != null) {
+      List<Future> uploadTasks = files.map((e) => prepareUploadFiles(e))
+          .toList();
 
-    Future.wait(uploadTasks).then((_) {
-      doGetData().then(onGetDataSuccess, onError: onGetDataError);
+      Future.wait(uploadTasks).then((_) {
+        doGetData().then(onGetDataSuccess, onError: onGetDataError);
 
-    }, onError: (error) {
-      scaffold.removeCurrentSnackBar();
-      scaffold.showSnackBar(SnackBarsComponent.error(
-        content: 'Error occurred during upload', duration: Duration(seconds: 3)
-      ));
-    });
+      }, onError: (error) {
+        scaffold.removeCurrentSnackBar();
+        scaffold.showSnackBar(SnackBarsComponent.error(
+          content: 'Error occurred during upload', duration: Duration(seconds: 3)
+        ));
+      });
+    }
   }
 
   Future prepareUploadFiles(file) async {
@@ -394,9 +396,12 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
           } : () async {
             NavigatorUtil.push(scaffold.context,
                 ImageViewerActivity(
+                    node: node,
+                    picturesPath: picturesPath,
                     nodeId: node.id,
                     sender: node.description,
                     timestamp: node.createdTimestamp,
+                    displayShare: true,
                     file: File(filePath))
             );
           },
@@ -413,11 +418,11 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
           ),
         );
       } else if (node.nodeType == 'RECORDING') {
-        _w = DSRecording(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected);
+        _w = DSRecording(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected, displayShare: true, file: file);
       } else if (node.nodeType == 'MEDIA') {
-        _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected);
+        _w = DSMedia(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected, displayShare: true, file: file);
       } else if (node.nodeType == 'FILE') {
-        _w = DSDocument(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected);
+        _w = DSDocument(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: picturesPath, multiSelectEnabled: multiSelectEnabled, onNodeSelected: onNodeSelected, displayShare: true, file: file);
       } else {
         _w = Container(
             color: Colors.grey.shade100,
@@ -507,8 +512,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   Widget buildDeleteContentButton() {
     Widget _w = Container();
 
-    if (!multiSelectEnabled && currentDirectoryNodeId == 0 || ['Sent', 'Received'].contains(currentDirectoryNodeName)) {
-
+    if (!multiSelectEnabled && (currentDirectoryNodeId == 0 || ['Sent', 'Received'].contains(currentDirectoryNodeName))) {
       bool disabled = isError || displayLoader || displayUploadingFiles || nodes == null || nodes.length <= 0 || (currentDirectoryNodeId == 0 && nodes.length <= 2);
 
       _w = Container(

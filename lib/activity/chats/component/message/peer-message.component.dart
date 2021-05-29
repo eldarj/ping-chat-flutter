@@ -243,23 +243,25 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
         displayBubble: widget.isPinnedMessage || !widget.chained
     );
 
+    String filePath = widget.picturesPath + '/' + (widget.message.fileName ?? '');
+
     // if (widget.message.deleted) {
     //   print('MESSAGE DELETED');
     //   _messageWidget = MessageDeleted();
     //
     if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
-      String filePath = widget.picturesPath + '/' + widget.message.fileName;
+      bool isFileValid = false;
 
-      File file = File(filePath);
-      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+      if (filePath != null) {
+        File file = File(filePath);
+        isFileValid = file.existsSync() && file.lengthSync() > 0;
+      }
 
       _messageWidget = buildMessageMedia(widget.message, filePath, widget.message.isDownloadingFile,
           widget.message.isUploading, widget.message.uploadProgress,
           isFileValid);
 
     } else if (widget.message.messageType == 'RECORDING') {
-      String filePath = widget.picturesPath + '/' + widget.message.fileName;
-
       File file = File(filePath);
       bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
@@ -268,8 +270,6 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
           isFileValid);
 
     } else if (widget.message.messageType == 'IMAGE') {
-      String filePath = widget.picturesPath + '/' + widget.message.fileName;
-
       _messageDecoration = peerImageDecoration(widget.message.pinned);
       _messageWidget = MessageImage(
           widget.message,
@@ -288,8 +288,6 @@ class PeerMessageComponentState extends State<PeerMessageComponent> {
           isPeerMessage: true);
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
-      String filePath = widget.picturesPath + '/' + widget.message.fileName;
-
       _messageDecoration = peerImageDecoration(widget.message.pinned);
       _messageWidget = MessageImage(
           widget.message,

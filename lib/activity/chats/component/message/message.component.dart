@@ -283,16 +283,20 @@ class MessageComponentState extends State<MessageComponent> {
         displayBubble: widget.isPinnedMessage || !widget.chained
     );
 
+    String filePath = widget.message.filePath ?? '';
+
     // if (widget.message.deleted) {
     //   print('MESSAGE DELETED');
     //   _messageWidget = MessageDeleted();
     //
     // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
     if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
-      String filePath = widget.message.filePath;
+      bool isFileValid = false;
 
-      File file = File(filePath);
-      bool isFileValid = file.existsSync() && file.lengthSync() > 0;
+      if (filePath != null) {
+        File file = File(filePath);
+        isFileValid = file.existsSync() && file.lengthSync() > 0;
+      }
 
       if (!isFileValid) {
         _messageDecoration = disabledTextBoxDecoration(displayBubble: widget.isPinnedMessage || !widget.chained);
@@ -303,8 +307,6 @@ class MessageComponentState extends State<MessageComponent> {
       );
 
     } else if (widget.message.messageType == 'RECORDING') {
-      String filePath = widget.message.filePath;
-
       File file = File(filePath);
       bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
@@ -317,8 +319,6 @@ class MessageComponentState extends State<MessageComponent> {
       );
 
     } else if (widget.message.messageType == 'IMAGE') {
-      String filePath = widget.message.filePath;
-
       File file = File(filePath);
       bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 
@@ -340,8 +340,6 @@ class MessageComponentState extends State<MessageComponent> {
       );
 
     } else if (widget.message.messageType == 'MAP_LOCATION') {
-      String filePath = widget.message.filePath;
-
       File file = File(filePath);
       bool isFileValid = file.existsSync() && file.lengthSync() > 0;
 

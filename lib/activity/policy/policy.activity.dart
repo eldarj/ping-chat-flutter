@@ -87,5 +87,6 @@ class PolicyActivityState extends BaseState<PolicyActivity> {
   initPermissions() async {
     await Permission.microphone.request();
     await Permission.contacts.request();
+    await Permission.storage.request();
   }
 }
