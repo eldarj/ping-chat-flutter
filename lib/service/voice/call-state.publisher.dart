@@ -10,6 +10,16 @@ class CallEvent {
   CallState callState;
 
   CallEvent({this.call, this.callState});
+
+  String log() {
+    return
+    'call.direction= ${call.direction} ' +
+    'call.remote_display_name= ${call.remote_display_name} ' +
+    'call.local_identity= ${call.local_identity} ' +
+    'callState.state= ${callState.state} ' +
+    'callState.audio= ${callState.audio} ' +
+    'callState.cause= ${callState.cause}';
+  }
 }
 
 class CallStatePublisher {

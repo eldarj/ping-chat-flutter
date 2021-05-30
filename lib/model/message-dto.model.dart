@@ -80,6 +80,10 @@ class MessageDto {
 
   bool stoppedUpload;
 
+  String callDuration;
+
+  String callType;
+
   fileSizeFormatted() {
     return filesize(fileSizeBytes);
   }
@@ -103,7 +107,8 @@ class MessageDto {
     this.pinnedTimestamp,
     this.pinnedByUserId,
     this.edited,
-    this.replyMessage
+    this.replyMessage,
+    this.callDuration, this.callType,
   });
 
   factory MessageDto.fromJson(Map<String, dynamic> parsedJson) {
@@ -154,7 +159,10 @@ class MessageDto {
       ..edited = parsedJson['edited'] as bool
       ..replyMessage = parsedJson['replyMessage'] == null
           ? null
-          : ReplyDto.fromJson(parsedJson['replyMessage'] as Map<String, dynamic>);
+          : ReplyDto.fromJson(parsedJson['replyMessage'] as Map<String, dynamic>)
+      ..callDuration = parsedJson['callDuration'] as String
+      ..callType = parsedJson['callType'] as String
+    ;
   }
 
   Map<String, dynamic> toJson() => {
@@ -186,6 +194,8 @@ class MessageDto {
     'pinnedTimestamp': pinnedTimestamp,
     'pinnedByUserId': pinnedByUserId,
     'edited': edited,
-    'replyMessage': replyMessage
+    'replyMessage': replyMessage,
+    'callDuration': callDuration,
+    'callType': callType
   };
 }

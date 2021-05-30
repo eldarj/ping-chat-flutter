@@ -308,14 +308,6 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                               url: contact.contactUser?.profileImagePath,
                               margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
                               borderRadius: 50, height: 50, width: 50),
-                          Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.green,
-                                  border: Border.all(color: Colors.white, width: 1),
-                                  borderRadius: BorderRadius.circular(5)
-                              ),
-                              margin: EdgeInsets.all(5),
-                              width: 10, height: 10)
                         ])
                 ),
                 buildItemDetails(contact)
@@ -341,7 +333,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
             padding: EdgeInsets.all(0),
             shape: StadiumBorder(),
             onPressed: () {
-              NavigatorUtil.replace(context, ChatActivity(
+              NavigatorUtil.replace(scaffold.context, ChatActivity(
                   myContactName: username, peer: contact.contactUser, peerContactName: contact.contactName,
                   statusLabel: '', contactBindingId: contact.contactBindingId));
             },
@@ -357,16 +349,9 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
             shape: StadiumBorder(),
             onPressed: () async {
               await Future.delayed(Duration(milliseconds: 250));
-              NavigatorUtil.replace(context, new CallScreenWidget(
-                target: contact.contactUser.fullPhoneNumber,
-                contactName: contact.contactName,
-                fullPhoneNumber: contact.contactUser.fullPhoneNumber,
-                profileImageWidget: CachedNetworkImage(imageUrl: contact.contactUser.profileImagePath,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                      margin: EdgeInsets.all(15),
-                      child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
-                ),
+              NavigatorUtil.replace(scaffold.context, new CallScreenWidget(
+                contact: contact,
+                myContactName: username,
                 direction: 'OUTGOING',
               ));
             },

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message.decoration.dart';
 import 'package:flutterping/activity/chats/component/message/partial/status-label.component.dart';
 import 'package:flutterping/model/message-dto.model.dart';
+import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
 
 const MESSAGE_PADDING = EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15);
@@ -60,6 +61,10 @@ class MessageGif extends StatelessWidget {
                 child: CachedNetworkImage(
                   fit: BoxFit.cover,
                   imageUrl: url,
+                  placeholder: (context, url) => Container(
+                      padding: EdgeInsets.all(15),
+                      alignment: Alignment.center,
+                      child: Spinner(size: 20)),
                 )
             ),
             this.isReply ? Container() : buildStatusLabel(),

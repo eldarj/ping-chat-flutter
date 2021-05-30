@@ -28,7 +28,7 @@ class WsClientService {
   WsPublisher<int> userStatusPub = new WsPublisher();
 
   WsPublisher<MessageDto> receivingMessagesPub = new WsPublisher();
-  WsPublisher<MessageDto> editedMessagePub = new WsPublisher();
+  WsPublisher<MessageDto> editedMessagePub = new WsPublisher(ws: _wsFunc);
   WsPublisher<MessageDto> sendingMessagesPub = new WsPublisher(ws: _wsFunc);
 
   WsPublisher<MessageSeenDto> outgoingReceivedPub = new WsPublisher(ws: _wsFunc);

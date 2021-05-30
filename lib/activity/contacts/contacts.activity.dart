@@ -354,14 +354,6 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                                           url: contacts[index].contactUser?.profileImagePath,
                                           margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
                                           borderRadius: 50, height: 50, width: 50),
-                                      Container(
-                                          decoration: BoxDecoration(
-                                              color: Colors.green,
-                                              border: Border.all(color: Colors.white, width: 1),
-                                              borderRadius: BorderRadius.circular(5)
-                                          ),
-                                          margin: EdgeInsets.all(5),
-                                          width: 9, height: 9)
                                     ])
                             ),
                             Expanded(

@@ -23,6 +23,15 @@ class MessageSendingService {
     initialize();
   }
 
+  sendCallInfoMessage(String callType, String callDuration) {
+    MessageDto message = _create();
+    message.messageType = 'CALL_INFO';
+    message.callDuration = callDuration;
+    message.callType = callType;
+
+    wsClientService.sendingMessagesPub.sendEvent(message, '/messages/send');
+  }
+
   MessageDto sendTextMessage(String text) {
     MessageDto message = _create();
     message.messageType = 'TEXT_MESSAGE';

@@ -574,12 +574,8 @@ class SingleChatInputRowState extends State<SingleChatInputRow> with TickerProvi
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.4
                   )),
-                  Container(
-                    width: DEVICE_MEDIA_SIZE.width - 80,
-                    child: Text('Hey mate how are you doing, is everything fine? I heard from your sis we went out the other night and she said you are moving out',
-                        overflow: TextOverflow.ellipsis, maxLines: 1,
-                        style: TextStyle(color: Colors.grey.shade500)),
-                  )                ],
+                  widget.replyWidget
+                ],
               ),
             ],
           )

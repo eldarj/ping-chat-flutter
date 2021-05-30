@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutterping/service/voice/call-state.publisher.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sip_ua/sip_ua.dart';
+import 'package:logger/logger.dart' as Log;
 
 class SipClientService implements SipUaHelperListener {
   SIPUAHelper helper;
@@ -13,16 +14,18 @@ class SipClientService implements SipUaHelperListener {
     return _appData;
   }
 
+  bool get isRegistered {
+    return helper.registerState.state == RegistrationStateEnum.REGISTERED;
+  }
+
   SipClientService._internal() {
-    // print('SipClientService - internally creating SIPUAHelper');
-    // helper = SIPUAHelper();
-    // helper.loggingLevel(Log.Level.nothing);
-    // helper.addSipUaHelperListener(this);
+    helper = SIPUAHelper();
+    helper.loggingLevel = Log.Level.verbose;
+    helper.addSipUaHelperListener(this);
   }
 
   // SipClientService
   register(user, password) {
-    print('SipClientService - REGISTER');
     UaSettings settings = UaSettings();
 
     settings.webSocketUrl = 'ws://192.168.0.13:5066';
@@ -30,6 +33,7 @@ class SipClientService implements SipUaHelperListener {
     //   'Origin': ' https://tryit.jssip.net',
     //   'Host': 'tryit.jssip.net:10443'
     // };
+
     settings.webSocketSettings.allowBadCertificate = true;
     settings.webSocketSettings.userAgent = 'Dart/2.8 (dart:io) for OpenSIPS.';
     settings.registerParams.extraContactUriParams = <String, String>{
@@ -48,7 +52,6 @@ class SipClientService implements SipUaHelperListener {
   }
 
   call(target) {
-    print('SipClientService - CALL');
     helper.call(target, true);
   }
 

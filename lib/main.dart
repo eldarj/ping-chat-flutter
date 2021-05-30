@@ -1,5 +1,11 @@
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutterping/model/client-dto.model.dart';
+import 'package:flutterping/model/contact-dto.model.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -75,18 +81,26 @@ initializeFlutterDownloader() async {
 
 // Calls
 initializeCallHandler() async {
-  callStatePublisher.addListener('main', (CallEvent callEvent) {
+  callStatePublisher.addListener('main', (CallEvent callEvent) async {
     var call = callEvent.call;
-    var callState = callEvent.callState;
 
-    if (callState.state == CallStateEnum.CALL_INITIATION && call.direction == 'INCOMING') {
-      NavigatorUtil.push(ROOT_CONTEXT, new CallScreenWidget(
-        target: '+xxx',
-        contactName: '===',
-        fullPhoneNumber: 'Phone',
-        direction: 'INCOMING',
-        incomingCall: call,
-      ));
-    }
+      if (callEvent.callState.state == CallStateEnum.CALL_INITIATION && call.direction == 'INCOMING') {
+        String contactPhoneNumber = call.remote_display_name.replaceAll('Extension', '');
+        String url = '/api/contacts/$contactPhoneNumber';
+
+        http.Response response = await HttpClientService.get(url);
+
+        ContactDto contact = ContactDto.fromJson(response.decode());
+        ClientDto user = await UserService.getUser();
+
+        if(response.statusCode == 200) {
+          NavigatorUtil.push(ROOT_CONTEXT, new CallScreenWidget(
+            contact: contact,
+            myContactName: user.firstName,
+            direction: 'INCOMING',
+            incomingCall: call,
+          ));
+        }
+      }
   });
 }

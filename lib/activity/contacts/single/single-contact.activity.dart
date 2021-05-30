@@ -235,10 +235,8 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                       onPressed: () async {
                         await Future.delayed(Duration(milliseconds: 250));
                         NavigatorUtil.push(context, new CallScreenWidget(
-                          target: widget.peer.fullPhoneNumber,
-                          contactName: widget.contactName,
-                          fullPhoneNumber: widget.peer.fullPhoneNumber,
-                          profileImageWidget: profileImageWidget,
+                          contact: contact,
+                          myContactName: widget.myContactName,
                           direction: 'OUTGOING',
                         ));
                       },

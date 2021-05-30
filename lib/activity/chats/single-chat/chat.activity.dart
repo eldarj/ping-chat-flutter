@@ -4,7 +4,8 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutterping/activity/chats/component/gifs/gif-bar.component.dart';
-import 'package:flutterping/activity/chats/component/message/info-message.component.dart';
+import 'package:flutterping/activity/chats/component/message/call-info-message.component.dart';
+import 'package:flutterping/activity/chats/component/message/pinned-info-message.component.dart';
 import 'package:flutterping/activity/chats/component/message/partial/message.decoration.dart';
 import 'package:flutterping/model/typing-event.model.dart';
 import 'package:flutterping/service/gif/giphy.client.service.dart';
@@ -45,6 +46,7 @@ import 'package:flutterping/service/persistence/storage.io.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';import 'package:flutterping/service/messaging/unread-message.publisher.dart';
+import 'package:flutterping/shared/component/loading-button.component.dart';
 
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
@@ -444,14 +446,11 @@ class ChatActivityState extends BaseState<ChatActivity> {
             );
             break;
           default:
-            replyWidget = Row(
-              children: [
-                Container(
-                  child: Text(message.text,
-                      overflow: TextOverflow.ellipsis, maxLines: 1,
-                      style: TextStyle(color: Colors.grey.shade500)),
-                ),
-              ],
+            replyWidget = Container(
+              width: DEVICE_MEDIA_SIZE.width - 80,
+              child: Text(message.text,
+                  overflow: TextOverflow.ellipsis, maxLines: 1,
+                  style: TextStyle(color: Colors.grey.shade500)),
             );
         }
       });
@@ -613,25 +612,17 @@ class ChatActivityState extends BaseState<ChatActivity> {
                 ),
               ),
               actions: [
-                Padding(
-                    padding: EdgeInsets.only(right: 20.0),
-                    child: GestureDetector(
-                      child: Icon(Icons.call, size: 20, color: CompanyColor.iconGrey),
-                      onTap: () {
-                        NavigatorUtil.replace(context, new CallScreenWidget(
-                          target: widget.peer.fullPhoneNumber,
-                          contactName: contactName,
-                          fullPhoneNumber: widget.peer.fullPhoneNumber,
-                          profileImageWidget: widget.peer?.profileImagePath != null ? CachedNetworkImage(
-                            imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                                margin: EdgeInsets.all(15),
-                                child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)),
-                          ) : null,
-                          direction: 'OUTGOING',
-                        ));
+                Container(
+                  child: LoadingButton(
+                      onPressed: () {
+                          NavigatorUtil.push(context, new CallScreenWidget(
+                            contact: contact,
+                            myContactName: widget.myContactName,
+                            direction: 'OUTGOING',
+                          ));
                       },
-                    )
+                      icon: Icons.call,
+                  ),
                 ),
                 displayDeleteLoader
                     ? Container(width: 48, child: Align(child: Spinner(size: 20)))
@@ -901,7 +892,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
               margin: EdgeInsets.only(bottom: 25),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.grey.shade200,
+                color: Colors.black26,
               ),
               child: Icon(Icons.chat, size: 50, color: Colors.white)
             ),
@@ -942,10 +933,15 @@ class ChatActivityState extends BaseState<ChatActivity> {
 
     message.widgetKey = new GlobalKey();
 
-    if (message.messageType == 'PIN_INFO') {
+    if (message.messageType == 'CALL_INFO') {
+      _w = Container(
+        margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 25 : 0),
+          child: CallInfoMessageComponent(key: message.widgetKey, message: message)
+      );
+    } else if (message.messageType == 'PIN_INFO') {
       _w = Container(
           margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 25 : 0),
-          child: InfoMessageComponent(key: message.widgetKey, message: message, isPeerMessage: isPeerMessage, isPinnedMessage: isPinnedMessage));
+          child: PinnedInfoMessageComponent(key: message.widgetKey, message: message, isPeerMessage: isPeerMessage, isPinnedMessage: isPinnedMessage));
     } else if (isPeerMessage) {
       _w = PeerMessageComponent(
         key: message.widgetKey,
@@ -1048,13 +1044,15 @@ class ChatActivityState extends BaseState<ChatActivity> {
         textController.clear();
       });
 
-      chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
+      try {
+        chatListController.animateTo(0.0, curve: Curves.easeOut, duration: Duration(milliseconds: 50));
+      } catch (ignored) {
+
+      }
     }
   }
 
   doSendEditMessage(MessageDto message, String text) async {
-    // String url = '/api/messages/$messageId';
-    // await HttpClientService.post(url, body: text);
     widget.messageSendingService.sendEdit(message, text);
   }
 

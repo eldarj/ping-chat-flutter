@@ -4,13 +4,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/chats/component/message/partial/status-label.component.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 
-class InfoMessageComponent extends StatefulWidget {
+class PinnedInfoMessageComponent extends StatefulWidget {
   final MessageDto message;
 
   final bool isPeerMessage;
   final bool isPinnedMessage;
 
-  const InfoMessageComponent(
+  const PinnedInfoMessageComponent(
       {
         Key key,
         this.message,
@@ -19,10 +19,10 @@ class InfoMessageComponent extends StatefulWidget {
       }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => InfoMessageComponentState();
+  State<StatefulWidget> createState() => PinnedInfoMessageComponentState();
 }
 
-class InfoMessageComponentState extends State<InfoMessageComponent> {
+class PinnedInfoMessageComponentState extends State<PinnedInfoMessageComponent> {
   ScaffoldState scaffold;
 
   @override
