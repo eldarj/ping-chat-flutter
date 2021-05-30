@@ -770,7 +770,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         ]
       );
     } else if (message.messageType == 'CALL_INFO') {
-      widget = chatListCallInfo(message.callType);
+      widget = chatListCallInfo(message.callType, !isPeerMessage);
     }
 
     return widget;

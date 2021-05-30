@@ -2,19 +2,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-chatListCallInfo(callType) {
+chatListCallInfo(callType, isCaller) {
   var icon = Icons.call;
   var iconColor = Colors.grey.shade500;
-  var text = '';
+  var text = 'Call';
 
   if (callType == 'FAILED') {
-    icon = Icons.call_made;
-    iconColor = Colors.red;
-    text = 'Call';
+    if (isCaller) {
+      icon = Icons.phone;
+      iconColor = Colors.red;
+      text = 'Call';
+    } else {
+      icon = Icons.phone_missed;
+      iconColor = Colors.red;
+      text = 'Missed call';
+    }
+
   } else if (callType == 'OUTGOING') {
-    icon = Icons.call_made;
-    iconColor = Colors.green;
-    text = 'Call';
+    if (isCaller) {
+      icon = Icons.phone;
+      iconColor = Colors.green;
+      text = 'Call';
+    } else {
+      icon = Icons.phone_callback_rounded;
+      iconColor = Colors.green;
+      text = 'Received call';
+    }
+
   }
 
   return Row(

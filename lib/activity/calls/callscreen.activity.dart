@@ -115,14 +115,20 @@ class CallScreenActivityState extends State<CallScreenWidget> {
               }
 
             });
+
           } else if (call.state == CallStateEnum.PROGRESS) {
             stateLabel = 'Ringing';
+
           } else if (call.state == CallStateEnum.FAILED) {
-            messageSendingService.sendCallInfoMessage('FAILED', '00:00');
+            if (direction == 'OUTGOING') {
+              messageSendingService.sendCallInfoMessage('FAILED', '00:00');
+            }
             Navigator.pop(context);
 
           } else if (call.state == CallStateEnum.ENDED) {
-            messageSendingService.sendCallInfoMessage('OUTGOING', callDurationLabel);
+            if (direction == 'OUTGOING') {
+              messageSendingService.sendCallInfoMessage('OUTGOING', callDurationLabel);
+            }
             Navigator.pop(context);
 
           } else if (call.state == CallStateEnum.MUTED) {

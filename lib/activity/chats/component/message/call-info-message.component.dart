@@ -7,10 +7,12 @@ import 'package:flutterping/model/message-dto.model.dart';
 class CallInfoMessageComponent extends StatefulWidget {
   final MessageDto message;
 
+  final int userId;
+
   const CallInfoMessageComponent(
       {
         Key key,
-        this.message,
+        this.message, this.userId,
       }) : super(key: key);
 
   @override
@@ -33,12 +35,25 @@ class CallInfoMessageComponentState extends State<CallInfoMessageComponent> {
     var icon = Icons.call;
     var iconColor = Colors.white;
 
+    bool isCaller =  widget.userId == widget.message.sender.id;
+
     if (widget.message.callType == 'FAILED') {
-      text = 'Call (${widget.message.callDuration})';
-      icon = Icons.call_made;
+      if (isCaller) {
+        text = 'Call (${widget.message.callDuration})';
+        icon = Icons.phone;
+      } else {
+        text = 'Missed call';
+        icon = Icons.phone_missed;
+      }
+
     } else if (widget.message.callType == 'OUTGOING') {
-      text = 'Call (${widget.message.callDuration})';
-      icon = Icons.call_made;
+      if (isCaller) {
+        text = 'Call (${widget.message.callDuration})';
+        icon = Icons.phone;
+      } else {
+        text = 'Received call (${widget.message.callDuration})';
+        icon = Icons.phone_callback_rounded;
+      }
     }
 
     Widget messageWidget = Text(text, style: TextStyle(color: Colors.white));

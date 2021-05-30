@@ -936,7 +936,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
     if (message.messageType == 'CALL_INFO') {
       _w = Container(
         margin: EdgeInsets.only(top: isFirstMessage ? 20 : 0, bottom: isLastMessage ? 25 : 0),
-          child: CallInfoMessageComponent(key: message.widgetKey, message: message)
+          child: CallInfoMessageComponent(key: message.widgetKey, message: message, userId: userId)
       );
     } else if (message.messageType == 'PIN_INFO') {
       _w = Container(
