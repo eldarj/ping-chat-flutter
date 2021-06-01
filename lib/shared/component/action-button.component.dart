@@ -31,6 +31,8 @@ class _ActionButtonState extends State<ActionButton> {
         margin: EdgeInsets.only(left: 10, right: 10),
         child: RawMaterialButton(
           elevation: 0,
+          highlightElevation: 1,
+          highlightColor: Colors.grey.shade300,
           shape: CircleBorder(),
           onPressed: widget.onPressed,
           child: Padding(

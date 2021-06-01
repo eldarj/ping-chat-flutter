@@ -86,12 +86,21 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
   bool multiSelectEnabled = false;
   int multiSelectCount = 0;
 
+  int totalFilesToUpload = 0;
+
+  int uploadedFiles = 0;
+
   openFilePicker() async {
     files = await FilePicker.getMultiFile();
 
     if (files != null) {
       List<Future> uploadTasks = files.map((e) => prepareUploadFiles(e))
           .toList();
+
+      setState(() {
+        uploadedFiles = 1;
+        totalFilesToUpload = uploadTasks.length;
+      });
 
       Future.wait(uploadTasks).then((_) {
         doGetData().then(onGetDataSuccess, onError: onGetDataError);
@@ -140,7 +149,12 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
     });
 
     return fileUploadClient.upload(
-      onComplete: (response) => response,
+      onComplete: (response) {
+        setState(() {
+          ++uploadedFiles;
+        });
+        return response;
+      },
       onProgress: (progress) {},
     );
   }
@@ -412,7 +426,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
                 Spinner(),
                 Container(
                     height: imageSize, width: imageSize,
-                    child: Image.file(File(filePath), fit: BoxFit.cover)),
+                    child: Image.file(File(filePath), fit: BoxFit.cover, cacheWidth: 200)),
               ],
             ),
           ),
@@ -634,7 +648,7 @@ class DataSpaceActivityState extends State<DataSpaceActivity> {
             Container(
                 margin: EdgeInsets.only(left: 15, right: 15),
                 child: Spinner(size: 25)),
-            Text('Uploading'),
+            Text('Uploading $uploadedFiles of $totalFilesToUpload'),
           ]));
     } else {
       _w = Container();

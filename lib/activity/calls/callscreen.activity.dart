@@ -17,10 +17,12 @@ import 'package:flutterping/shared/component/round-profile-image.component.dart'
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 
 import 'package:sip_ua/sip_ua.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class CallScreenWidget extends StatefulWidget {
   final ContactDto contact;
@@ -43,6 +45,8 @@ class CallScreenWidget extends StatefulWidget {
 }
 
 class CallScreenActivityState extends State<CallScreenWidget> {
+  static const String STREAMS_LISTENER_ID = "CallScreenActivityListener";
+
   ScaffoldState scaffold;
 
   BuildContext getScaffoldContext() => scaffold.context;
@@ -70,7 +74,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
 
   void initCall() async {
     if (sipClientService.isRegistered) {
-      sipClientService.call(widget.contact.contactUser.fullPhoneNumber);
+      // sipClientService.call(widget.contact.contactUser.fullPhoneNumber);
     } else {
       await Future.delayed(Duration(seconds: 3));
       // TODO: Play disconnect sound
@@ -82,7 +86,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
   }
 
   initHandlers() {
-    callStatePublisher.addListener('123', (CallEvent callEvent) {
+    callStatePublisher.addListener(STREAMS_LISTENER_ID, (CallEvent callEvent) {
       print('CALL STATE PUBLISHER - CALLSCREEN: ${callEvent.log()}');
       var call = callEvent.call;
       var callState = callEvent.callState;
@@ -174,7 +178,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
   @override
   dispose() {
     super.dispose();
-    callStatePublisher.removeListener('123');
+    callStatePublisher.removeListener(STREAMS_LISTENER_ID);
     disposeCallObjects();
   }
 
@@ -235,29 +239,36 @@ class CallScreenActivityState extends State<CallScreenWidget> {
               Expanded(
                 child: Container(
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Container(
                         width: 250,
+                        height: 380,
+                        alignment: Alignment.center,
                         margin: EdgeInsets.only(top: 25),
                         decoration: BoxDecoration(
-                          color: Color.fromRGBO(0, 0, 0, 0.5),
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        alignment: Alignment.center,
                         child: Stack(
                           children: [
-                            buildBackgroundImage(),
+                            Container(
+                              width: 250,
+                              height: 380,
+                              child: buildBackgroundImage(),
+                            ),
                             Column(
-                              children: [
-                                buildProfileImage(),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 10),
-                                  child: Text(widget.contact.contactName, style: TextStyle(fontSize: 26, color: Colors.white)),
-                                ),
-                                Text(widget.contact.contactUser.fullPhoneNumber, style: TextStyle(fontSize: 18, color: Colors.grey.shade300)),
-                                buildCallDetails(),
-                              ]
+                                children: [
+                                  buildProfileImage(),
+                                  Text(widget.contact.contactName, style: TextStyle(fontSize: 26, color: Colors.white)),
+                                  Text(widget.contact.contactUser.fullPhoneNumber, style: TextStyle(fontSize: 18, color: Colors.grey.shade300)),
+                                  Container(
+                                      margin: EdgeInsets.only(top: 5),
+                                      child: Text(stateLabel, style: TextStyle(color: Colors.white))),
+                                  Container(
+                                    margin: EdgeInsets.only(top: 20),
+                                    child: Text(
+                                        callOngoing ? callDurationLabel : callDurationLabel,
+                                        style: TextStyle(fontSize: 16, color: Colors.white))),
+                                ]
                             ),
                           ],
                         ),
@@ -326,14 +337,14 @@ class CallScreenActivityState extends State<CallScreenWidget> {
 
     if (widget.contact.backgroundImagePath != null) {
       w = ClipRRect(
-        borderRadius: BorderRadius.circular(5),
-        child: Positioned.fill(
-            child: Opacity(
-              opacity: 0.3,
-              child: CachedNetworkImage(
-                  fit: BoxFit.cover,
-                  imageUrl: API_BASE_URL + '/files/chats/' + widget.contact.backgroundImagePath),
-            )),
+        borderRadius: BorderRadius.circular(10),
+        child: Opacity(
+          opacity: 0.3,
+          child: FadeInImage.memoryNetwork(
+              fit: BoxFit.cover,
+              placeholder: kTransparentImage,
+              image: API_BASE_URL + '/files/chats/' + widget.contact.backgroundImagePath),
+        ),
       );
     }
 
@@ -376,19 +387,12 @@ class CallScreenActivityState extends State<CallScreenWidget> {
   }
 
   Widget buildCallDetails() {
-    return Column(
-        children: [
-          Text(stateLabel, style: TextStyle(color: Colors.white)),
-          Center(
-              child: Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 25),
-                  child: Text(
-                      callDurationLabel,
-                      style: TextStyle(fontSize: 16, color: Colors.white)
-                  )
-              )
-          ),
-        ]
+    return Container(
+      margin: EdgeInsets.only(top: 20),
+      child: Text(
+          callOngoing ? callDurationLabel : callDurationLabel,
+          style: TextStyle(fontSize: 16, color: Colors.white)
+      ),
     );
   }
 

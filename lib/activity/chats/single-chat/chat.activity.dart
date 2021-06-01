@@ -61,6 +61,7 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:path_provider/path_provider.dart';
@@ -1153,7 +1154,7 @@ class ChatActivityState extends BaseState<ChatActivity> {
       if (m.receiver.id == userId && !m.seen) {
         // Download new file
         // if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType) && !m.deleted) {
-        if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING'].contains(m.messageType)) {
+        if (['IMAGE', 'MEDIA', 'FILE', 'RECORDING', 'MAP_LOCATION'].contains(m.messageType)) {
           bool fileExists = File(picturesPath + '/' + m.id.toString() + m.fileName).existsSync();
           if (!fileExists) {
             m.isDownloadingFile = true;

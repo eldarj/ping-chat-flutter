@@ -1,7 +1,6 @@
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class RoundProfileImageComponent extends StatefulWidget {
   static const String DEFAULT_IMAGE_PATH = 'static/graphic/client/default-profile.png';
@@ -9,6 +8,7 @@ class RoundProfileImageComponent extends StatefulWidget {
 
   final bool displayQuestionMarkImage;
   final String url;
+  final int cacheWidth;
   final double width;
   final double height;
   final Color backgroundColor;
@@ -23,6 +23,7 @@ class RoundProfileImageComponent extends StatefulWidget {
     this.width = 55,
     this.backgroundColor,
     this.border,
+    this.cacheWidth = 500,
     this.borderRadius = 30.0,
     this.margin = 10.0
   }) : super();
@@ -56,13 +57,13 @@ class RoundProfileImageComponentState extends State<RoundProfileImageComponent> 
         ),
       );
     } else if (widget.url != null) {
-      return CachedNetworkImage(imageUrl: widget.url, fit: BoxFit.cover,
-          errorWidget: (context, url, error) => Container(
-              color: Colors.grey.shade100,
-              child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400)),
-          placeholder: (context, url) => Container(
-              margin: EdgeInsets.all(15),
-              child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)));
+      return FadeInImage.memoryNetwork(
+          imageCacheWidth: widget.cacheWidth,
+          placeholder: kTransparentImage, image: widget.url, fit: BoxFit.cover, imageErrorBuilder: (context, error, stackTrace) {
+        return Container(
+            color: Colors.grey.shade100,
+            child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400));
+      });
     } else {
       return Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH);
     }

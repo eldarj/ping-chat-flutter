@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutterping/main.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:flutterping/model/message-dto.model.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
@@ -74,7 +75,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
   String searchString = '';
 
   bool hasPreviouslySearched = false;
-  bool displayRecent = true;
+  bool displayRecent = false;
 
   bool displayShareLoader = false;
 
@@ -203,7 +204,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                     )),
               ],
             ),
-            !hasPreviouslySearched && recentContacts.length == 0 ? Container(
+            !hasPreviouslySearched && !displayRecent ? Container(
               padding: EdgeInsets.only(top: 25),
               child: Text('Search contacts by their name or phone number',
                   textAlign: TextAlign.center,
@@ -222,26 +223,27 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
     Widget w = Container();
 
     if (displayRecent && recentContacts != null && recentContacts.length > 0) {
-      w = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: EdgeInsets.only(left: 10, top: 10, bottom: 2.5),
-            child: Text('RECENT', style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.w500, fontSize: 12))
-          ),
-          Container(
-            height: (recentContacts.length * 70).toDouble(),
-            child: ListView.builder(
-                itemCount: recentContacts.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                      height: 70,
-                      child: buildListItem(recentContacts[index])
-                  );
-                }
+      w = Flexible(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.only(left: 10, top: 10, bottom: 2.5),
+              child: Text('RECENT', style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.w500, fontSize: 12))
             ),
-          ),
-        ],
+            Flexible(
+              child: ListView.builder(
+                  itemCount: recentContacts.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                        height: 70,
+                        child: buildListItem(recentContacts[index])
+                    );
+                  }
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -262,7 +264,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
               },
             ),
           );
-        } else {
+        } else if (hasPreviouslySearched) {
           w = Center(
             child: Container(
               margin: EdgeInsets.all(25),
@@ -307,7 +309,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                           RoundProfileImageComponent(displayQuestionMarkImage: contact.contactUser == null,
                               url: contact.contactUser?.profileImagePath,
                               margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
-                              borderRadius: 50, height: 50, width: 50),
+                              borderRadius: 50, height: 50, width: 50, cacheWidth: 75),
                         ])
                 ),
                 buildItemDetails(contact)
@@ -337,7 +339,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                   myContactName: username, peer: contact.contactUser, peerContactName: contact.contactName,
                   statusLabel: '', contactBindingId: contact.contactBindingId));
             },
-            child: Icon(Icons.message, size: 17.5, color: Colors.grey.shade500),
+            child: Icon(Icons.message, size: 17.5, color: CompanyColor.blueDark),
           ),
         ),
         Container(
@@ -355,7 +357,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
                 direction: 'OUTGOING',
               ));
             },
-            child: Icon(Icons.call, size: 17.5, color: Colors.grey.shade500),
+            child: Icon(Icons.call, size: 17.5, color: CompanyColor.blueDark),
           ),
         ),
       ]);
@@ -386,7 +388,7 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
           },
           child: Container(
               margin: EdgeInsets.only(left: 2.5),
-              child: Icon(Icons.send, size: 17.5, color: Colors.grey.shade500)),
+              child: Icon(Icons.send, size: 17.5, color: CompanyColor.blueDark)),
         ),
       );
       infoSection = Text(contact.contactPhoneNumber, style: TextStyle(color: Colors.grey));
@@ -580,6 +582,15 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
 
   void onGetRecentSuccess(List<dynamic> recentContacts) {
     this.recentContacts = recentContacts.map((e) => ContactDto.fromJson(e)).toList();
+    if (this.recentContacts.length <= 0) {
+      setState(() {
+        this.displayRecent = false;
+      });
+    } else {
+      setState(() {
+        this.displayRecent = true;
+      });
+    }
   }
 
   void onGetRecentError(Object error) {

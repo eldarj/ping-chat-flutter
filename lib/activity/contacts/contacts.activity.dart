@@ -353,7 +353,8 @@ class ContactsActivityState extends BaseState<ContactsActivity> with WidgetsBind
                                       RoundProfileImageComponent(displayQuestionMarkImage: contact.contactUser == null,
                                           url: contacts[index].contactUser?.profileImagePath,
                                           margin: 2.5, border: contact.favorite ? Border.all(color: Colors.yellow.shade700, width: 3) : null,
-                                          borderRadius: 50, height: 50, width: 50),
+                                          borderRadius: 50, height: 50, width: 50, cacheWidth: 75,
+                                      ),
                                     ])
                             ),
                             Expanded(

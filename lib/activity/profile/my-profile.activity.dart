@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutterping/activity/profile/profile-image-upload/profile-image-upload.activity.dart';
+import 'package:flutterping/activity/profile/sliver.component.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/user-settings.dto.model.dart';
@@ -28,10 +29,15 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class MyProfileActivity extends StatefulWidget {
+  final String profileImageUrl;
+
+  const MyProfileActivity({Key key, @required this.profileImageUrl}) : super(key: key);
+
   @override
-  State<StatefulWidget> createState() => new MyProfileActivityState();
+  State<StatefulWidget> createState() => new MyProfileActivityState(this.profileImageUrl);
 }
 
 class MyProfileActivityState extends BaseState<MyProfileActivity> {
@@ -50,6 +56,13 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
       .entries.map<Color>((element) => element.key)
       .toList();
 
+  String profileImageUrl;
+
+  double appbarMinHeight = kToolbarHeight + DEVICE_MEDIA_PADDING.top;
+
+
+  MyProfileActivityState(this.profileImageUrl);
+
   getFormattedDate(timestamp) {
     if (timestamp is int) {
       return dateFormat.format(DateTime.fromMillisecondsSinceEpoch(timestamp));
@@ -63,6 +76,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
     if (savedProfileImagePath != null) {
       profilePublisher.emitProfileImageUpdate(savedProfileImagePath);
       setState(() {
+        profileImageUrl = savedProfileImagePath;
         clientDto.profileImagePath = savedProfileImagePath;
       });
     }
@@ -76,26 +90,91 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
 
   @override
   preRender() {
-    appBar = BaseAppBar.getBackAppBar(getScaffoldContext, titleText: 'Profile');
     drawer = new NavigationDrawerComponent();
   }
 
   @override
   Widget render() {
-    return buildActivityContent();
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return <Widget>[
+          SliverAppBar( // this is where I would like to set some minimum constraint
+            pinned: true,
+            elevation: 5,
+            leadingWidth: 50,
+            expandedHeight: DEVICE_MEDIA_SIZE.width,
+            leading: CloseButton(color: Colors.black),
+            flexibleSpace: LayoutBuilder(builder: (context, constraints) {
+              var sliverHeight = DEVICE_MEDIA_SIZE.width - kToolbarHeight;
+              var sliverHeightWithOffset = DEVICE_MEDIA_SIZE.width + DEVICE_MEDIA_PADDING.top;
+              var top = constraints.biggest.height - appbarMinHeight;
+
+              var scrollCoefficient = top / sliverHeight;
+
+              return Container(
+                color: Colors.white,
+                height: sliverHeightWithOffset,
+                width: double.infinity,
+                child: Stack(
+                  fit: StackFit.expand,
+                  alignment: Alignment.bottomLeft,
+                  children: <Widget>[
+                    AnimatedOpacity(
+                      opacity: scrollCoefficient,
+                      duration: Duration(milliseconds: 250),
+                      child: profileImageUrl != null ? FadeInImage.memoryNetwork(
+                        fit: BoxFit.cover,
+                        image: profileImageUrl,
+                        placeholder: kTransparentImage,
+                      ) : Image.asset(RoundProfileImageComponent.DEFAULT_IMAGE_PATH, fit: BoxFit.cover),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      child: Container(
+                          height: appbarMinHeight,
+                          width: DEVICE_MEDIA_SIZE.width,
+                          padding: EdgeInsets.only(
+                            top: DEVICE_MEDIA_PADDING.top
+                          ),
+                          child: Container(
+                            height: kToolbarHeight,
+                            alignment: Alignment.centerLeft,
+                            padding: EdgeInsets.only(
+                              left: (scrollCoefficient * 15) + ((1 - scrollCoefficient) * 50),
+                            ),
+                            child: Text('Profile', style: TextStyle(
+                              color: Colors.black.withOpacity(1 - scrollCoefficient),
+                              fontSize: 20,
+                            )),
+                          )
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          )
+        ];
+      },
+      body: buildActivityContent(),
+    );
   }
 
   Widget buildActivityContent() {
     Widget widget = Center(child: Spinner());
+
     if (!displayLoader) {
       if (!isError) {
         widget = Container(
-            child: ListView(children: [
-              buildHeader(),
-              buildQRCode(),
-              buildSettings(),
-              buildProfileActions(),
-            ])
+            child: ListView(
+                padding: EdgeInsets.only(top: 0, bottom: 15),
+                children: [
+                  buildHeader(),
+                  buildProfileActions(),
+                  buildSettings(),
+                  buildQRCode(),
+                ]
+            )
         );
       } else {
         widget = InfoComponent.errorHomer(message: "Couldn't load your profile, please try again", onButtonPressed: () async {
@@ -163,40 +242,40 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
             boxShadow: [Shadows.bottomShadow()]
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          GestureDetector(
-            onTap: pushProfileImageUploadActivity,
-            child: Container(
-                margin: EdgeInsets.only(left: 5, right: 5),
-                child: Center(
-                  child: Stack(
-                    alignment: AlignmentDirectional.bottomEnd,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                            boxShadow: [BoxShadow(color: Colors.grey.shade50, blurRadius: 15, spreadRadius: 1)],
-                            borderRadius: BorderRadius.all(Radius.circular(20))
-                        ),
-                        child: new RoundProfileImageComponent(url: clientDto.profileImagePath,
-                            height: 200, width: 200, borderRadius: 45),
-                      ),
-                      Container(
-                          margin: EdgeInsets.all(10),
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              color: CompanyColor.accentGreenDark,
-                              boxShadow: [BoxShadow(color: Colors.grey.shade300, offset: Offset.fromDirection(1))]
-                          ),
-                          child: Icon(Icons.edit, color: Colors.white, size: 15))
-                    ],
-                  ),
-                )
-            ),
-          ),
+          // GestureDetector(
+          //   onTap: pushProfileImageUploadActivity,
+          //   child: Container(
+          //       margin: EdgeInsets.only(left: 5, right: 5),
+          //       child: Center(
+          //         child: Stack(
+          //           alignment: AlignmentDirectional.bottomEnd,
+          //           children: [
+          //             Container(
+          //               decoration: BoxDecoration(
+          //                   boxShadow: [BoxShadow(color: Colors.grey.shade50, blurRadius: 15, spreadRadius: 1)],
+          //                   borderRadius: BorderRadius.all(Radius.circular(20))
+          //               ),
+          //               child: new RoundProfileImageComponent(url: clientDto.profileImagePath,
+          //                   height: 200, width: 200, borderRadius: 45),
+          //             ),
+          //             Container(
+          //                 margin: EdgeInsets.all(10),
+          //                 padding: EdgeInsets.all(5),
+          //                 decoration: BoxDecoration(
+          //                     borderRadius: BorderRadius.circular(30),
+          //                     color: CompanyColor.accentGreenDark,
+          //                     boxShadow: [BoxShadow(color: Colors.grey.shade300, offset: Offset.fromDirection(1))]
+          //                 ),
+          //                 child: Icon(Icons.edit, color: Colors.white, size: 15))
+          //           ],
+          //         ),
+          //       )
+          //   ),
+          // ),
           Row(
             children: [
               Container(
-                padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 20),
+                padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(clientDto.firstName + ' ' + clientDto.lastName,
                       style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 29)),
@@ -205,23 +284,80 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
             ],
           ),
           Container(
-            padding: EdgeInsets.only(left: 10, right: 10),
-            child: buildTwoColumns([
-              buildSection('Phone number',
-                  icon: Icons.phone,
-                  text: clientDto.countryCode.dialCode + " " + clientDto.phoneNumber),
-            ], [
-              buildSection('Joined', icon: Icons.verified_user_outlined, text: createdAtFormatted),
-            ]),
+              padding: EdgeInsets.only(left: 10, right: 10, bottom: 15),
+              child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                          width: 50,
+                          child: Container(
+                              width: 25, height: 25,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: CompanyColor.accentGreenLight,
+                              ),
+                              child: Icon(Icons.phone, color: Colors.white, size: 16))
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                              margin: EdgeInsets.only(bottom: 5),
+                              child: Text('Phone number',
+                                  style: TextStyle(fontWeight: FontWeight.w500, color: Colors.grey.shade800)
+                              )
+                          ),
+                          Text(clientDto.countryCode.dialCode + " " + clientDto.phoneNumber)
+                        ]
+                      )
+                    ]
+                  ),
+                ),
+                Flexible(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                          width: 50,
+                          child: Container(
+                              width: 25, height: 25,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: CompanyColor.accentPurpleLight,
+                              ),
+                              child: Icon(Icons.verified_user_outlined, color: Colors.white, size: 16))
+
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                              margin: EdgeInsets.only(bottom: 5),
+                              child: Text('Joined',
+                                  style: TextStyle(fontWeight: FontWeight.w500, color: Colors.grey.shade800)
+                              )
+                          ),
+                          Text(createdAtFormatted)
+                        ]
+                      )
+                    ]
+                  ),
+                ),
+              ]
+            )
           ),
           Container(
-            margin: EdgeInsets.only(left: 10, right: 10, bottom: 20),
+            margin: EdgeInsets.only(left: 10, bottom: 20),
             child: Row(
               children: [
                 Container(
-                    margin: EdgeInsets.only(right: 15, left: 15),
+                    width: 50,
                     child: CountryIconComponent
-                        .buildCountryIcon(clientDto.countryCode.countryName, height: 15, width: 15)
+                        .buildCountryIcon(clientDto.countryCode.countryName, height: 20, width: 20)
                 ),
                 Container(
                     child: Text(clientDto.countryCode.countryName)
@@ -245,17 +381,29 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
+
               padding: EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    height: 20,
                     margin: EdgeInsets.only(left: 10, right: 10),
                     child: Text("Profile", style: TextStyle(
                         fontWeight: FontWeight.w500, color: Colors.grey.shade800
                     )),
                   ),
-                  Spinner(size: 20, visible: displayProfileActionsLoader)
+                  !displayProfileActionsLoader ? Container(
+                    child: Container(
+                      child: Material(
+                        color: Colors.white,
+                        child: InkWell(
+                          onTap: pushProfileImageUploadActivity,
+                          child: Container(
+                              padding: EdgeInsets.all(5),
+                              child: Text('Change profile photo', style: TextStyle(color: CompanyColor.blueDark))),
+                        ),
+                      ),
+                    ),
+                  ) : Spinner(size: 20, visible: displayProfileActionsLoader)
                 ],
               ),
             ),
@@ -279,7 +427,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                         showDialog(context: getScaffoldContext(), builder: (BuildContext context) => dialog);
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                        padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -647,7 +795,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
   }
 
   // Get Profile
-  Future<void> doGetProfileData() async {
+  Future<ClientDto> doGetProfileData() async {
     var user = await UserService.getUser();
     http.Response response = await HttpClientService.get('/api/users/${user.id}');
 
@@ -661,10 +809,12 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
     return ClientDto.fromJson(jsonDecoded);
   }
 
-  void onGetProfileDataSuccess(clientDto) async {
-    this.clientDto = clientDto;
-    await UserService.setUser(clientDto);
-    createdAtFormatted = getFormattedDate(clientDto.joinedTimestamp);
+  void onGetProfileDataSuccess(ClientDto user) async {
+    this.clientDto = user;
+    await UserService.setUser(user);
+    createdAtFormatted = getFormattedDate(user.joinedTimestamp);
+
+    profilePublisher.emitProfileImageUpdate(this.clientDto.profileImagePath);
 
     setState(() {
       displayLoader = false;
@@ -709,6 +859,7 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
   }
 
   void onRemoveProfileSuccess(_) async {
+    profileImageUrl = null;
     clientDto.profileImagePath = null;
     await UserService.setUser(clientDto);
 

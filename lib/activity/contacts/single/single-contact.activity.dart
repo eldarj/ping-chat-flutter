@@ -36,6 +36,7 @@ import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class SingleContactActivity extends StatefulWidget {
   final int userId;
@@ -193,11 +194,10 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
       if (!isError) {
 
         if (widget.peer?.profileImagePath != null) {
-          profileImageWidget = CachedNetworkImage(imageUrl: widget.peer.profileImagePath, fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                  margin: EdgeInsets.all(15),
-                  child: CircularProgressIndicator(strokeWidth: 2, backgroundColor: Colors.grey.shade100)
-              )
+          profileImageWidget = FadeInImage.memoryNetwork(image: widget.peer.profileImagePath,
+              fit: BoxFit.cover,
+              placeholder: kTransparentImage,
+              imageCacheWidth: 500,
           );
         }
 
@@ -859,7 +859,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
                   file: File(filePath))
           );
         },
-        child: Image.file(File(filePath), fit: BoxFit.cover),
+        child: Image.file(File(filePath), fit: BoxFit.cover, cacheWidth: 200),
       );
     } else if (node.nodeType == 'RECORDING') {
       _w = DSRecording(node: node, gridHorizontalSize: 3, picturesPath: picturesPath);

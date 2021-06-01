@@ -73,7 +73,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
               ),
               child: Column(
                 children: [
-                  BaseAppBar.getCloseAppBar(() => scaffold.context),
+                  BaseAppBar.getCloseAppBar(() => scaffold.context, titleText: 'Me'),
                   Expanded(
                     child: ListView(
                       padding: EdgeInsets.zero,
@@ -84,7 +84,8 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                           shadowColor: APP_BAR_SHADOW_COLOR,
                           child: InkWell(
                             onTap: () {
-                              NavigatorUtil.push(context, MyProfileActivity());
+                              print(user.profileImagePath);
+                              NavigatorUtil.push(context, MyProfileActivity(profileImageUrl: user.profileImagePath));
                             },
                             child: Container(
                               padding: EdgeInsets.only(top: 5, bottom: 20),
@@ -122,7 +123,7 @@ class NavigationDrawerComponentState extends BaseState<NavigationDrawerComponent
                               buildSectionTitle("Me"),
                               buildDrawerItem(context, 'My profile',
                                   buildIcon(icon: Icons.alternate_email, backgroundColor: Colors.red),
-                                  activity: MyProfileActivity()),
+                                  activity: MyProfileActivity(profileImageUrl: user.profileImagePath)),
                               buildDrawerItem(context, 'Active status',
                                 buildIcon(icon: user.isActive ? Icons.check : Icons.visibility_off,
                                     backgroundColor: user.isActive ? Colors.green : Colors.grey),

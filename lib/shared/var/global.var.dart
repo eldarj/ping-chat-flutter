@@ -35,6 +35,22 @@ class CompanyColor {
   static Color blueAccent = Color.fromRGBO(37, 218, 227, 1); // #25E4E3
   static Color bluePrimary = Color.fromRGBO(38, 197, 221, 1); // #26CFDD
   static const Color blueDark = Color.fromRGBO(28, 166, 197, 1); //// #63CFD9
+  // Material alt
+  static const MaterialColor blueDarkMaterial = const MaterialColor(
+      0xFF1CA6C5,
+      {
+        50:Color.fromRGBO(28, 166, 197, .1),
+        100:Color.fromRGBO(28, 166, 197, .2),
+        200:Color.fromRGBO(28, 166, 197, .3),
+        300:Color.fromRGBO(28, 166, 197, .4),
+        400:Color.fromRGBO(28, 166, 197, .5),
+        500:Color.fromRGBO(28, 166, 197, .6),
+        600:Color.fromRGBO(28, 166, 197, .7),
+        700:Color.fromRGBO(28, 166, 197, .8),
+        800:Color.fromRGBO(28, 166, 197, .9),
+        900:Color.fromRGBO(28, 166, 197, 1),
+      });
+
   static const Color blueDarker = Color.fromRGBO(21, 146, 177, 1); //// #63CFD9
 
   static Color accentGreenLight = Color(0xff1bb29f);

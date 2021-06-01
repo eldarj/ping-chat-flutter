@@ -407,7 +407,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
                         child: Icon(Icons.alternate_email, size: 16, color: Colors.white)
                     ),
                     onTap: () {
-                      NavigatorUtil.push(context, MyProfileActivity());
+                      NavigatorUtil.push(context, MyProfileActivity(profileImageUrl: userProfileImagePath));
                     }
                   )
                 ),

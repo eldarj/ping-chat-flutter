@@ -6,6 +6,7 @@ import 'package:flutterping/service/gif/giphy.client.service.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/spinner.element.dart';
 import 'package:flutterping/shared/var/global.var.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class GifBar extends StatefulWidget {
   final Function(String) sendFunc;
@@ -25,10 +26,17 @@ class GifBarState extends State<GifBar> {
 
   List<String> gifs = giphyClientService.getRecentGifs();
 
-
   init() async {
     if (gifs.length == 0) {
-      gifs = await giphyClientService.getGifs("puppy");
+      setState(() {
+        displayLoader = true;
+      });
+
+      gifs = await giphyClientService.getGifs("funny");
+
+      setState(() {
+        displayLoader = false;
+      });
     }
   }
 
@@ -71,7 +79,6 @@ class GifBarState extends State<GifBar> {
                 decoration: InputDecoration(
                     hintText: 'Search gifs',
                     enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade200, width: 0.75)),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: CompanyColor.blueDark, width: 0.75)),
                     prefixIcon: Icon(Icons.search),
                     labelText: '',
                     contentPadding: EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 15)),
@@ -108,10 +115,10 @@ class GifBarState extends State<GifBar> {
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: CachedNetworkImage(
-                      imageUrl: gifs[index],
+                    child: FadeInImage.memoryNetwork(
+                      image: gifs[index],
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => ActivityLoader.shimmer(child: Container(color: Colors.white)),
+                      placeholder: kTransparentImage,
                     ),
                   )
               )

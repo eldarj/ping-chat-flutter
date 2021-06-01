@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutterping/model/client-dto.model.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
+import 'package:flutterping/shared/var/global.var.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/util/extension/http.response.extension.dart';
@@ -22,6 +23,7 @@ void main() {
 
 // Device size
 Size DEVICE_MEDIA_SIZE;
+EdgeInsets DEVICE_MEDIA_PADDING;
 
 // Root ctx
 BuildContext ROOT_CONTEXT;
@@ -51,8 +53,11 @@ class MyApp extends StatelessWidget {
 
     var themeData = ThemeData(
       fontFamily: 'Roboto',
-      primarySwatch: Colors.lightBlue,
+      primarySwatch: CompanyColor.blueDarkMaterial,
       backgroundColor: Colors.white,
+      brightness: Brightness.light,
+      accentColorBrightness: Brightness.light,
+      primaryColorBrightness: Brightness.light,
     );
 
     return MaterialApp(
@@ -66,6 +71,7 @@ class MyApp extends StatelessWidget {
               initializeCallHandler();
             }
             DEVICE_MEDIA_SIZE = MediaQuery.of(context).size;
+            DEVICE_MEDIA_PADDING = MediaQuery.of(context).padding;
             return ChatListActivity();
           })
       ),

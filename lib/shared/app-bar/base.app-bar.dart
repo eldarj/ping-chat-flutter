@@ -20,7 +20,7 @@ class BaseAppBar {
         automaticallyImplyLeading: false,
         title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           leading,
-          titleWidget != null ? Expanded(child: titleWidget) : Text(titleText)
+          titleWidget != null ? Expanded(child: titleWidget) : Text(titleText, style: TextStyle(fontWeight: FontWeight.normal))
         ]),
         actions: actions);
   }
@@ -77,7 +77,7 @@ class BaseAppBar {
             ),
           ),
         ),
-        title: titleText != null ? Text(titleText) : titleWidget,
+        title: titleText != null ? Text(titleText, style: TextStyle(fontWeight: FontWeight.normal)) : titleWidget,
         actions: actions);
   }
 }

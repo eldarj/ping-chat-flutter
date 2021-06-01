@@ -81,6 +81,7 @@ class ProfileImageUploadActivityState extends BaseState<ProfileImageUploadActivi
             color: Color(0xEE0000000),
             child: Image.file(
               imageFile, fit: BoxFit.contain,
+              cacheWidth: 1000
             ),
           ),
           buildOptionsBar()

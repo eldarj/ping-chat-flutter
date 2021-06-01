@@ -92,7 +92,7 @@ class MessageImage extends StatelessWidget {
             height: 50, width: 50,
             alignment: Alignment.center,
             child: Spinner())
-            : Image.file(file, fit: BoxFit.cover));
+            : Image.file(file, fit: BoxFit.cover, cacheWidth: 300));
 
     Widget colorFilteredImage;
     if (isUploading) {

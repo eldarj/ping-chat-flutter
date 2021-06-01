@@ -264,7 +264,7 @@ class ContactSharedActivityState extends BaseState<ContactSharedActivity> {
                   file: File(filePath))
           );
         },
-        child: Image.file(File(filePath), fit: BoxFit.cover),
+        child: Image.file(File(filePath), fit: BoxFit.cover, cacheWidth: 200),
       );
     } else if (node.nodeType == 'RECORDING') {
       _w = DSRecording(node: node, gridHorizontalSize: gridHorizontalSize, picturesPath: widget.picturesPath);
