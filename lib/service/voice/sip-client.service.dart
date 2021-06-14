@@ -8,6 +8,8 @@ import 'package:logger/logger.dart' as Log;
 class SipClientService implements SipUaHelperListener {
   SIPUAHelper helper;
 
+  CallStateEnum lastCallState;
+
   static final SipClientService _appData = new SipClientService._internal();
 
   factory SipClientService() {
@@ -24,7 +26,7 @@ class SipClientService implements SipUaHelperListener {
     helper.addSipUaHelperListener(this);
   }
 
-  // SipClientService
+  // Register user
   register(user, password) {
     UaSettings settings = UaSettings();
 
@@ -51,10 +53,12 @@ class SipClientService implements SipUaHelperListener {
     helper.start(settings);
   }
 
+  // Call contact
   call(target) {
     helper.call(target, true);
   }
 
+  // Answer incoming call
   answer(call) {
     call.answer(helper.buildCallOptions(true));
   }
@@ -78,34 +82,36 @@ class SipClientService implements SipUaHelperListener {
     registrationStateSubs.remove(key);
   }
 
-  // SipUaHelperListener
+  // SipUaHelperListener - sip handlers
   @override
   void callStateChanged(Call call, CallState state) {
-    print('SipClientService - call state changed');
-    print(call.state.toString());
-    print(state.state.toString());
+    // print('SipClientService - call state changed');
+    // print(call.state.toString());
+    // print(state.state.toString());
 
+    lastCallState = state.state;
     callStatePublisher.subject.add(new CallEvent(call: call, callState: state));
   }
 
   @override
   void registrationStateChanged(RegistrationState state) {
-    print('SipClientService - registration state changed');
+    // print('SipClientService - registration state changed');
+    // print(state.state.toString());
+
     registrationStateSubject.add(state);
-    print(state.state.toString());
   }
 
   @override
   void transportStateChanged(TransportState state) {
-    print('SipClientService - transport state changed');
-    print(state.state.toString());
+    // print('SipClientService - transport state changed');
+    // print(state.state.toString());
   }
 
   @override
   void onNewMessage(SIPMessageRequest msg) {
-    print('SipClientService - new message');
-    print(msg.toString());
-    print(msg.message.toString());
+    // print('SipClientService - new message');
+    // print(msg.toString());
+    // print(msg.message.toString());
   }
 }
 

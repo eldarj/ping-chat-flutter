@@ -21,27 +21,15 @@ void main() {
   initializeFlutterDownloader();
 }
 
+// Root context
+BuildContext ROOT_CONTEXT;
+
 // Device size
 Size DEVICE_MEDIA_SIZE;
 EdgeInsets DEVICE_MEDIA_PADDING;
 
-// Root ctx
-BuildContext ROOT_CONTEXT;
-
+// Global contact binding id (which contact is currently open)
 int CURRENT_OPEN_CONTACT_BINDING_ID = 0;
-
-// Audio player
-AudioPlayer _audioPlayer = AudioPlayer(mode: PlayerMode.LOW_LATENCY);
-AudioCache  _audioCache = AudioCache(fixedPlayer: _audioPlayer, prefix: 'static/sound/');
-bool _playingMessageSound = false;
-
-playMessageSound() async {
-  if (!_playingMessageSound) {
-    _playingMessageSound = true;
-    await _audioCache.play('message-sound-3.mp3');
-    _playingMessageSound = false;
-  }
-}
 
 // Main app
 class MyApp extends StatelessWidget {
@@ -79,16 +67,35 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Downloader
+// Audio Player
+AudioPlayer _audioPlayer = AudioPlayer(mode: PlayerMode.LOW_LATENCY);
+AudioCache  _audioCache = AudioCache(fixedPlayer: _audioPlayer, prefix: 'static/sound/');
+bool _playingMessageSound = false;
+
+playMessageSound() async {
+  if (!_playingMessageSound) {
+    _playingMessageSound = true;
+    await _audioCache.play('message-sound-3.mp3');
+    _playingMessageSound = false;
+  }
+}
+
+// File Downloader
 initializeFlutterDownloader() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FlutterDownloader.initialize(debug: true);
 }
 
-// Calls
+// Calls handler
+bool isBusy = false;
+
 initializeCallHandler() async {
   callStatePublisher.addListener('main', (CallEvent callEvent) async {
-    var call = callEvent.call;
+    // print('IS BUSY $isBusy');
+    // print('STATE FAILED ${callEvent.callState.state == CallStateEnum.FAILED || callEvent.callState.state == CallStateEnum.ENDED}');
+
+    if (!isBusy) {
+      var call = callEvent.call;
 
       if (callEvent.callState.state == CallStateEnum.CALL_INITIATION && call.direction == 'INCOMING') {
         String contactPhoneNumber = call.remote_display_name.replaceAll('Extension', '');
@@ -107,6 +114,9 @@ initializeCallHandler() async {
             incomingCall: call,
           ));
         }
+      } else if (callEvent.callState.state == CallStateEnum.FAILED || callEvent.callState.state == CallStateEnum.ENDED) {
+        // print('ended');
       }
+    }
   });
 }

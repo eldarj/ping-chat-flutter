@@ -22,16 +22,31 @@ class NotificationService {
   _initialize() async {
   }
 
+  // Setup method in main dart
   NotificationService initializeNotificationHandlers() {
     FirebaseMessaging firebaseMessaging = FirebaseMessaging();
     firebaseMessaging.configure(
-      onMessage: _onMessage,
-      onResume: _onOpenNotification,
+      onMessage: _onLocalNotificationReceived,
+      onResume: _onPushNotification,
     );
 
     return this;
   }
 
+  // Setup method in main dart
+  NotificationService initializeLocalPlugin() {
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    var initSettings = InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ping_full_launcher_round'), iOS: null, macOS: null
+    );
+
+    _initializeLocalPlugin(initSettings);
+
+    return this;
+  }
+
+  // Setup method in main dart
   NotificationService initializeRegister() {
     FirebaseMessaging firebaseMessaging = FirebaseMessaging();
 
@@ -46,19 +61,18 @@ class NotificationService {
     return this;
   }
 
-  NotificationService initializeLocalPlugin() {
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-    var initSettings = InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ping_full_launcher_round'), iOS: null, macOS: null
-    );
-
-    _initializeLocalPlugin(initSettings);
-
-    return this;
+  void _initializeLocalPlugin(settings) async {
+    await flutterLocalNotificationsPlugin.initialize(settings,
+        onSelectNotification: (payload) => _onOpenLocalNotification(payload));
   }
 
-  Future _onMessage (Map<String, dynamic> message) async {
+  Future _registerUser(token) async {
+    return HttpClientService.post('/api/users/firebase-token', body: token);
+  }
+
+  // Notification handlers
+  // Create local notification (mainly used for contact registered notif.)
+  Future _onLocalNotificationReceived (Map<String, dynamic> message) async {
     var notificationMessage = Map.from(message);
 
     var data = notificationMessage['data'];
@@ -71,43 +85,28 @@ class NotificationService {
       String groupChannelName = 'onMessageChannelName';
       String groupChannelDescription = 'onMessageChannelDescription';
 
-      AndroidNotificationDetails androidNotificationDetails = _createAndroidNotificationDetails(groupKey,
-          groupChannelId, groupChannelName, groupChannelDescription);
-
       var title = notification['title'];
       var body = notification['body'];
+      AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
+          groupChannelId, groupChannelName, groupChannelDescription,
+          importance: Importance.max,
+          priority: Priority.max,
+          enableLights: true,
+          groupKey: groupKey);
 
       await flutterLocalNotificationsPlugin.show(900, title, body,
           NotificationDetails(android: androidNotificationDetails));
     }
   }
 
-  Future _onOpenNotification(Map<String, dynamic> unused) async {
-    NavigatorUtil.push(ROOT_CONTEXT, ChatListActivity());
-  }
-
-  Future _onOpenLocalNotification (String payload) async {
+  // On open local notification
+  Future _onOpenLocalNotification (String contactPhoneNumber) async {
     NavigatorUtil.push(ROOT_CONTEXT, ContactsActivity());
   }
 
-  Future _registerUser(token) async {
-    return HttpClientService.post('/api/users/firebase-token', body: token);
-  }
-
-  void _initializeLocalPlugin(settings) async {
-    await flutterLocalNotificationsPlugin.initialize(settings,
-        onSelectNotification: (payload) => _onOpenLocalNotification(payload));
-  }
-
-  static AndroidNotificationDetails _createAndroidNotificationDetails(String groupKey,
-      String groupChannelId, String groupChannelName, String groupChannelDescription) {
-
-    return AndroidNotificationDetails(
-        groupChannelId, groupChannelName, groupChannelDescription,
-        importance: Importance.max,
-        priority: Priority.max,
-        enableLights: true,
-        groupKey: groupKey);
+  // On received push notification click
+  Future _onPushNotification(Map<String, dynamic> unused) async {
+    NavigatorUtil.push(ROOT_CONTEXT, ChatListActivity());
   }
 }
 
