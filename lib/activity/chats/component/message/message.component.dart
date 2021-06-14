@@ -63,9 +63,7 @@ class MessageComponentState extends State<MessageComponent> {
   double maxWidth = DEVICE_MEDIA_SIZE.width - 150;
 
   AudioPlayer audioPlayer = AudioPlayer();
-
   String recordingCurrentPosition = '00:00';
-
   int recordingCurrentPositionMillis = 0;
 
   @override
@@ -121,6 +119,7 @@ class MessageComponentState extends State<MessageComponent> {
     ) : Container();
   }
 
+  // MEDIA Message content
   buildMessageMedia(MessageDto message, filePath, isDownloadingFile, isUploading, uploadProgress, isFileValid) {
     Color titleColor = Colors.grey.shade800;
     Color descColor = Colors.grey.shade500;
@@ -190,6 +189,7 @@ class MessageComponentState extends State<MessageComponent> {
     if (!isFileValid) {
       iconColor = Colors.grey.shade300;
       iconWidget = Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 20);
+      desc = 'Delete from device';
     }
 
     return Container(
@@ -285,11 +285,6 @@ class MessageComponentState extends State<MessageComponent> {
 
     String filePath = widget.message.filePath ?? '';
 
-    // if (widget.message.deleted) {
-    //   print('MESSAGE DELETED');
-    //   _messageWidget = MessageDeleted();
-    //
-    // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
     if (['MEDIA', 'FILE'].contains(widget.message.messageType??'')) {
       bool isFileValid = false;
 
@@ -401,10 +396,6 @@ class MessageComponentState extends State<MessageComponent> {
       return messageTapHandler;
     }
 
-    // if (widget.message.deleted) {
-    //   messageTapHandler = () {};
-    //
-    // } else if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
     if (['MEDIA', 'FILE'].contains(widget.message.messageType ?? '')) {
       messageTapHandler = () async {
         OpenFile.open(filePath);

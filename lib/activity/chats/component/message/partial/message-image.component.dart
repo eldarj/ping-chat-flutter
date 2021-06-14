@@ -12,7 +12,6 @@ import 'package:flutterping/shared/var/global.var.dart';
 
 const MESSAGE_PADDING = EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15);
 
-// TODO: Split into message image and location image
 class MessageImage extends StatelessWidget {
   final dynamic filePath;
 
@@ -80,8 +79,20 @@ class MessageImage extends StatelessWidget {
     if (!isFileValid && !isDownloadingFile) {
       return Container(
           constraints: BoxConstraints(
-              maxWidth: size, maxHeight: size, minHeight: 100, minWidth: 100),
-          child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400));
+              maxWidth: size, maxHeight: size, minHeight: 80, minWidth: 130),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                  margin: EdgeInsets.only(bottom: 5),
+                  child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade500)),
+              Text('Deleted from device', style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade500,
+              )),
+            ],
+          ));
     }
 
     Container image = Container(

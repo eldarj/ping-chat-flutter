@@ -4,10 +4,11 @@ import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:flutterping/activity/calls/partial/call-info.component.dart';
-import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/chats/component/message/partial/status-label.component.dart';
+import 'package:flutterping/activity/chats/single-chat/chat.activity.dart';
 import 'package:flutterping/activity/contacts/search-contacts.activity.dart';
 import 'package:flutterping/activity/policy/policy.activity.dart';
 import 'package:flutterping/activity/profile/my-profile.activity.dart';
@@ -18,31 +19,26 @@ import 'package:flutterping/model/message-seen-dto.model.dart';
 import 'package:flutterping/model/presence-event.model.dart';
 import 'package:flutterping/service/contact/contact.publisher.dart';
 import 'package:flutterping/service/contact/contact.service.dart';
+import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/unread-message.publisher.dart';
 import 'package:flutterping/service/notification/notification.service.dart';
+import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/service/profile/profile.publisher.dart';
-import 'package:flutterping/service/voice/call-state.publisher.dart';
 import 'package:flutterping/service/voice/sip-client.service.dart';
 import 'package:flutterping/service/ws/ws-client.service.dart';
-import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/bottom-navigation-bar/bottom-navigation.component.dart';
-import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
-import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/drawer/navigation-drawer.component.dart';
 import 'package:flutterping/shared/info/info.component.dart';
 import 'package:flutterping/shared/loader/activity-loader.element.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
 import 'package:flutterping/shared/var/global.var.dart';
-import 'package:flutterping/util/widget/base.state.dart';
-import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
+import 'package:flutterping/util/extension/http.response.extension.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
 import 'package:flutterping/util/other/date-time.util.dart';
+import 'package:flutterping/util/widget/base.state.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutterping/util/extension/http.response.extension.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sip_ua/sip_ua.dart';
 import 'package:volume/volume.dart';
 
@@ -66,7 +62,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
   String userProfileImagePath;
 
   List<MessageDto> chats = [];
-  // Map<int, Map> messagesPagePerContact = {};
 
   int totalChatsLoaded = 0;
 
@@ -77,7 +72,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
   Timer presenceTimer;
 
-  String registerStateString = 'unknown';
+  String registerStateString = 'None';
 
   StreamSubscription<FGBGType> foregroundSubscription;
 
@@ -125,11 +120,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       setState(() {
         registerStateString = state.state.toString();
       });
-    });
-
-    wsClientService.userStatusPub.addListener(STREAMS_LISTENER_ID, (item) {
-      print('HELLO THERE');
-      print(item);
     });
 
     wsClientService.sendingMessagesPub.addListener(STREAMS_LISTENER_ID, (MessageDto message) {
@@ -206,7 +196,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     });
 
     wsClientService.incomingSeenPub.addListener(STREAMS_LISTENER_ID, (List<dynamic> seenMessagesIds) async {
-      // TODO: Change to map
       int lastSeenMessageId = seenMessagesIds.last;
       for(var i = chats.length - 1; i >= 0; i--){
         if (chats[i].id == lastSeenMessageId) {
@@ -316,7 +305,7 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
         result.where((element) => element != null).forEach((element) {
           PresenceEvent presenceEvent = PresenceEvent.fromJson(element);
-          // TODO: Replace with maps
+          // TODO: Replace with maps (due to Performance [?])
           chats.forEach((chat) {
             if (userId == chat.sender.id) {
               chat.receiverOnline = presenceEvent.status;
@@ -356,7 +345,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     }
 
     if (wsClientService != null) {
-      wsClientService.userStatusPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.sendingMessagesPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.receivingMessagesPub.removeListener(STREAMS_LISTENER_ID);
       wsClientService.incomingSentPub.removeListener(STREAMS_LISTENER_ID);
@@ -381,10 +369,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
 
     if (sipClientService != null) {
       sipClientService.removeListener('123');
-    }
-
-    if (callStatePublisher != null) {
-      callStatePublisher.removeListener('123');
     }
 
     super.deactivate();
@@ -597,10 +581,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
         onTap: () async {
           await Future.delayed(Duration(milliseconds: 250));
           NavigatorUtil.push(context, ChatActivity(
-              // onFetchedFirstPage: (result) {
-              //   messagesPagePerContact[contactBindingId] = result;
-              // },
-              // firstMessagesPage: messagesPagePerContact[contactBindingId],
               myContactName: myContactName, peer: contact, peerContactName: peerContactName,
               statusLabel: statusLabel, contactBindingId: contactBindingId));
         },
@@ -809,7 +789,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
     return {
       'chats': result['page'],
       'totalElements': result['totalElements'],
-      // 'messagesPagePerContact': result['additionalData']
     };
   }
 
@@ -825,7 +804,6 @@ class ChatListActivityState extends BaseState<ChatListActivity> {
       MessageDto message = MessageDto.fromJson(element);
 
       chats.add(message);
-      // messagesPagePerContact[message.contactBindingId] = result['messagesPagePerContact'][message.contactBindingId.toString()];
     });
 
     scaffold.removeCurrentSnackBar();

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/persistence/user.prefs.service.dart';
 import 'package:flutterping/shared/component/snackbars.component.dart';
 import 'package:flutterping/shared/loader/linear-progress-loader.component.dart';
@@ -25,10 +24,7 @@ class LogoutActivityState extends State<LogoutActivity> {
   }
 
   doLogout() async {
-    var user = await UserService.getUser();
-    HttpClientService.post('/api/users/${user.id}/logout');
-    UserService.remove();
-
+    await UserService.remove();
     await Future.delayed(Duration(seconds: 1));
 
     setState(() {
@@ -38,7 +34,6 @@ class LogoutActivityState extends State<LogoutActivity> {
     scaffold.showSnackBar(SnackBarsComponent.success('You logged out.'));
 
     await Future.delayed(Duration(seconds: 1));
-
     SystemNavigator.pop();
   }
 

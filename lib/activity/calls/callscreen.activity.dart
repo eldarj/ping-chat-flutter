@@ -1,26 +1,23 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ui';
+
+import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutterping/activity/chats/chat-list.activity.dart';
 import 'package:flutterping/main.dart';
 import 'package:flutterping/model/contact-dto.model.dart';
 import 'package:flutterping/service/http/http-client.service.dart';
 import 'package:flutterping/service/messaging/message-sending.service.dart';
 import 'package:flutterping/service/voice/call-state.publisher.dart';
 import 'package:flutterping/service/voice/sip-client.service.dart';
-import 'package:flutterping/shared/app-bar/base.app-bar.dart';
 import 'package:flutterping/shared/component/action-button.component.dart';
 import 'package:flutterping/shared/component/loading-button.component.dart';
 import 'package:flutterping/shared/component/round-profile-image.component.dart';
-import 'package:flutterping/shared/loader/activity-loader.element.dart';
-import 'package:flutterping/shared/loader/spinner.element.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:flutterping/shared/var/global.var.dart';
 import 'package:flutterping/util/navigation/navigator.util.dart';
-import 'package:flutterping/util/widget/base.state.dart';
-
 import 'package:sip_ua/sip_ua.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -62,7 +59,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
   MediaStream localMediaStream;
   MediaStream remoteMediaStream;
 
-  bool isAudioMuted = false;
+  // bool isAudioMuted = false;
   bool isSpeakerOn = false;
 
   Call call;
@@ -70,21 +67,70 @@ class CallScreenActivityState extends State<CallScreenWidget> {
   String direction;
   String stateLabel = 'Connecting';
 
+  AudioPlayer _audioPlayer = AudioPlayer(mode: PlayerMode.LOW_LATENCY);
+  AudioCache  _audioCache;
+
   CallScreenActivityState({this.direction, this.call}) : super();
 
+  // Make a call
   void initCall() async {
     if (sipClientService.isRegistered) {
-      // sipClientService.call(widget.contact.contactUser.fullPhoneNumber);
+      String url = '/api/chat/call'
+          '?senderContactName=' + widget.myContactName +
+          '&receiverPhoneNumber=' + Uri.encodeComponent(widget.contact.contactPhoneNumber);
+
+      HttpClientService.get(url);
+      sipClientService.call(widget.contact.contactUser.fullPhoneNumber);
     } else {
       await Future.delayed(Duration(seconds: 3));
-      // TODO: Play disconnect sound
-      // TODO: Send neutral message
-
       messageSendingService.sendCallInfoMessage('FAILED', '00:00');
-      Navigator.pop(context);
+      pop();
     }
   }
 
+  // Audio
+  playRingtone() async {
+    await Future.delayed(Duration(milliseconds: 400));
+
+    Future.delayed(Duration(seconds: 10), () {
+      stopRingtone();
+    });
+
+    await _audioCache.loop('ringtone_chilled_out.mp3');
+  }
+
+  stopRingtone() async {
+    if (_audioPlayer != null) {
+      _audioPlayer.stop();
+    }
+  }
+
+  // Pop and handle context
+  pop() {
+    try {
+      isBusy = false;
+      stopRingtone();
+      Navigator.pop(context);
+    } catch (ignored) {
+      // print(ignored);
+    }
+  }
+
+  // Check state on init
+  checkState() async {
+    // Return if missed call
+    // - Return if incmong call failed (missed call) when e.g. app is closed but
+    // - main.dart pushes the callscreen.activity to the stack
+    if (direction == 'INCOMING' && sipClientService.lastCallState != null && sipClientService.lastCallState == CallStateEnum.FAILED) {
+      Future.delayed(Duration(seconds: 1), () {
+        stopRingtone();
+        isBusy = false;
+        NavigatorUtil.replace(context, ChatListActivity());
+      });
+    }
+  }
+
+  // SIP Call handler
   initHandlers() {
     callStatePublisher.addListener(STREAMS_LISTENER_ID, (CallEvent callEvent) {
       print('CALL STATE PUBLISHER - CALLSCREEN: ${callEvent.log()}');
@@ -127,21 +173,21 @@ class CallScreenActivityState extends State<CallScreenWidget> {
             if (direction == 'OUTGOING') {
               messageSendingService.sendCallInfoMessage('FAILED', '00:00');
             }
-            Navigator.pop(context);
+            pop();
 
           } else if (call.state == CallStateEnum.ENDED) {
             if (direction == 'OUTGOING') {
               messageSendingService.sendCallInfoMessage('OUTGOING', callDurationLabel);
             }
-            Navigator.pop(context);
+            pop();
 
           } else if (call.state == CallStateEnum.MUTED) {
-            print('MUTED');
-            if (callState.audio) isAudioMuted = true;
+            // print('MUTED');
+            // if (callState.audio) isAudioMuted = true;
 
           } else if (call.state == CallStateEnum.UNMUTED) {
-            print('UNMUTED');
-            if (callState.audio) isAudioMuted = false;
+            // print('UNMUTED');
+            // if (callState.audio) isAudioMuted = false;
 
           } else if (call.state == CallStateEnum.STREAM) {
             print('STREAM EVENT' + callState.originator);
@@ -165,13 +211,20 @@ class CallScreenActivityState extends State<CallScreenWidget> {
   initState() {
     super.initState();
 
+    checkState();
+
+    _audioCache = AudioCache(fixedPlayer: _audioPlayer, prefix: 'static/sound/');
+
     messageSendingService = new MessageSendingService(widget.contact.contactUser, widget.contact.contactName, widget.myContactName, widget.contact.contactBindingId);
     messageSendingService.initialize();
 
     initHandlers();
 
+    isBusy = true;
     if (direction == 'OUTGOING') {
       initCall();
+    } else if (direction == 'INCOMING') {
+      playRingtone();
     }
   }
 
@@ -179,6 +232,10 @@ class CallScreenActivityState extends State<CallScreenWidget> {
   dispose() {
     super.dispose();
     callStatePublisher.removeListener(STREAMS_LISTENER_ID);
+
+    _audioPlayer.stop();
+    isBusy = false;
+
     disposeCallObjects();
   }
 
@@ -192,21 +249,24 @@ class CallScreenActivityState extends State<CallScreenWidget> {
     }
   }
 
+  // Button handlers
   void onHangup() {
+    stopRingtone();
     disposeCallObjects();
   }
 
   void onAccept() {
+    stopRingtone();
     sipClientService.answer(call);
   }
 
-  void onToggleMute() {
-    if (isAudioMuted) {
-      call.unmute(true, false);
-    } else {
-      call.mute(true, false);
-    }
-  }
+  // void onToggleMute() {
+  //   if (isAudioMuted) {
+  //     call.unmute(true, false);
+  //   } else {
+  //     call.mute(true, false);
+  //   }
+  // }
 
   void onToggleSpeaker() {
     if (localMediaStream != null) {
@@ -226,6 +286,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
     );
   }
 
+  // Activity content
   Widget buildActivityContent() {
     return Stack(
       children: [
@@ -266,7 +327,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
                                   Container(
                                     margin: EdgeInsets.only(top: 20),
                                     child: Text(
-                                        callOngoing ? callDurationLabel : callDurationLabel,
+                                        callOngoing ? callDurationLabel : '',
                                         style: TextStyle(fontSize: 16, color: Colors.white))),
                                 ]
                             ),
@@ -325,7 +386,7 @@ class CallScreenActivityState extends State<CallScreenWidget> {
           icon: Icons.close,
           color: Colors.white,
           onPressed: () {
-            Navigator.pop(context);
+            pop();
           },
         ),
       ]),
@@ -386,16 +447,6 @@ class CallScreenActivityState extends State<CallScreenWidget> {
     );
   }
 
-  Widget buildCallDetails() {
-    return Container(
-      margin: EdgeInsets.only(top: 20),
-      child: Text(
-          callOngoing ? callDurationLabel : callDurationLabel,
-          style: TextStyle(fontSize: 16, color: Colors.white)
-      ),
-    );
-  }
-
   Widget buildCallButtons() {
     Widget baseButtons = Row();
     Widget advancedButtons = Row();
@@ -409,11 +460,11 @@ class CallScreenActivityState extends State<CallScreenWidget> {
         )
       ]);
       advancedButtons = Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        ActionButton(
-          icon: isAudioMuted ? Icons.mic_off : Icons.mic,
-          checked: isAudioMuted,
-          onPressed: () => onToggleMute(),
-        ),
+        // ActionButton(
+        //   icon: isAudioMuted ? Icons.mic_off : Icons.mic,
+        //   checked: isAudioMuted,
+        //   onPressed: () => onToggleMute(),
+        // ),
         ActionButton(
           icon: isSpeakerOn ? Icons.volume_off : Icons.volume_up,
           checked: isSpeakerOn,
