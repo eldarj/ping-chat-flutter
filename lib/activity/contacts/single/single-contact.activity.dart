@@ -1052,7 +1052,7 @@ class SingleContactActivityState extends BaseState<SingleContactActivity> {
   }
 
   void onUpdateBackgroundSuccess(String background) async {
-    scaffold.showSnackBar(SnackBarsComponent.success('Updated background', duration: Duration(seconds: 4)));
+    scaffold.showSnackBar(SnackBarsComponent.success('Chat background updated', duration: Duration(seconds: 4)));
 
     setState(() {
       contact.backgroundImagePath = background;
