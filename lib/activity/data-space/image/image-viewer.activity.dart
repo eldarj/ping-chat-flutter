@@ -130,7 +130,7 @@ class ImageViewerActivityState extends BaseState<ImageViewerActivity> {
                             displayLoader: displayLoader, onPressed: () {
                               var dialog = GenericAlertDialog(
                                   title: "Delete",
-                                  message: "Both the message ass well as the image will be deleted from the device",
+                                  message: "Both the message as well as the image will be deleted from the device",
                                   onPostivePressed: () {
                                     doDeleteMessage().then(onDeleteMessageSuccess, onError: onDeleteMessageError);
                                   },

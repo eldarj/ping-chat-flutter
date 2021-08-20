@@ -509,15 +509,15 @@ class MyProfileActivityState extends BaseState<MyProfileActivity> {
                         clientDto.userSettings.receiveNotifications = value;
                         doUpdateUserSettings().then(onSettingsSuccess, onError: onSettingsError);
                       }),
-                  buildSwitchButton(
-                      Icons.amp_stories,
-                      'Dark mode',
-                      'Turn dark mode ' + (clientDto.userSettings.darkMode ? 'off' : 'on'),
-                      clientDto.userSettings.darkMode,
-                          (value) {
-                        clientDto.userSettings.darkMode = value;
-                        doUpdateUserSettings().then(onSettingsSuccess, onError: onSettingsError);
-                      }),
+                  // buildSwitchButton(
+                  //     Icons.amp_stories,
+                  //     'Dark mode',
+                  //     'Turn dark mode ' + (clientDto.userSettings.darkMode ? 'off' : 'on'),
+                  //     clientDto.userSettings.darkMode,
+                  //         (value) {
+                  //       clientDto.userSettings.darkMode = value;
+                  //       doUpdateUserSettings().then(onSettingsSuccess, onError: onSettingsError);
+                  //     }),
                 ])
               ),
             ),

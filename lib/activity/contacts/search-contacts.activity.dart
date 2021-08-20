@@ -334,12 +334,15 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
             color: Colors.grey.shade200,
             padding: EdgeInsets.all(0),
             shape: StadiumBorder(),
-            onPressed: () {
+            onPressed: contact.contactUser != null ? () {
               NavigatorUtil.replace(scaffold.context, ChatActivity(
                   myContactName: username, peer: contact.contactUser, peerContactName: contact.contactName,
                   statusLabel: '', contactBindingId: contact.contactBindingId));
-            },
-            child: Icon(Icons.message, size: 17.5, color: CompanyColor.blueDark),
+            } : () {},
+            child: Icon(Icons.message, size: 17.5, color: contact.contactUser != null
+                ? CompanyColor.blueDark
+                : Colors.grey.shade400
+            ),
           ),
         ),
         Container(
@@ -349,15 +352,18 @@ class SearchContactsActivityState extends BaseState<SearchContactsActivity> {
             color: Colors.grey.shade200,
             padding: EdgeInsets.all(0),
             shape: StadiumBorder(),
-            onPressed: () async {
+            onPressed: contact.contactUser != null ? () async {
               await Future.delayed(Duration(milliseconds: 250));
               NavigatorUtil.replace(scaffold.context, new CallScreenWidget(
                 contact: contact,
                 myContactName: username,
                 direction: 'OUTGOING',
               ));
-            },
-            child: Icon(Icons.call, size: 17.5, color: CompanyColor.blueDark),
+            } : () {},
+            child: Icon(Icons.call, size: 17.5, color: contact.contactUser != null
+                ? CompanyColor.blueDark
+                : Colors.grey.shade400
+            ),
           ),
         ),
       ]);

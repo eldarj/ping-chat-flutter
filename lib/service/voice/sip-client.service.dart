@@ -30,7 +30,7 @@ class SipClientService implements SipUaHelperListener {
   register(user, password) {
     UaSettings settings = UaSettings();
 
-    settings.webSocketUrl = 'ws://192.168.0.13:5066';
+    settings.webSocketUrl = 'ws://46.101.169.71:5066';
     // settings.webSocketSettings.extraHeaders = {
     //   'Origin': ' https://tryit.jssip.net',
     //   'Host': 'tryit.jssip.net:10443'
@@ -43,7 +43,7 @@ class SipClientService implements SipUaHelperListener {
       'transport': 'ws'
     };
 
-    settings.uri = 'sip:' + user + '@192.168.0.13';
+    settings.uri = 'sip:' + user + '@46.101.169.71';
     settings.authorizationUser = user;
     settings.password = password;
     settings.displayName = user;
